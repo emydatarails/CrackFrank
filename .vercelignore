@@ -1,0 +1,5 @@
+tools/
+docs/
+test/site/
+test/play.py
+INSTALL_WITH_CLAUDE_CODE.md

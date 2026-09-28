@@ -23,3 +23,5 @@ jobs:
         run: python3 build.py
       - name: Spreadsheet engine tests
         run: node test/excel_engine_test.js
+      - name: Player-account API tests
+        run: node test/account_api_test.js

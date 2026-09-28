@@ -8,8 +8,8 @@ def rd(p):
 xp = rd(os.path.join(src, 'xp.css'))
 # drop the DOS font-face (external woff files we don't ship)
 xp = re.sub(r'@font-face\{[^}]*\}', '', xp)  # all external woff files (we don't ship them)
-css = xp + '\n' + rd(os.path.join(src, 'core.css')) + '\n' + '\n'.join(rd(p) for p in sorted(glob.glob(os.path.join(src, 'apps', '*.css'))))
-order = ['core.js', 'icons.js', 'fs.js', 'assets.js', 'sounds.js']
+css = xp + '\n' + rd(os.path.join(src, 'core.css')) + '\n' + rd(os.path.join(src, 'account.css')) + '\n' + '\n'.join(rd(p) for p in sorted(glob.glob(os.path.join(src, 'apps', '*.css'))))
+order = ['core.js', 'icons.js', 'fs.js', 'assets.js', 'sounds.js', 'account.js']
 js = '\n;\n'.join(rd(os.path.join(src, f)) for f in order)
 js += '\n;\n' + '\n;\n'.join(rd(p) for p in sorted(glob.glob(os.path.join(src, 'apps', '*.js'))))
 js += '\n;\n' + rd(os.path.join(src, 'boot.js'))

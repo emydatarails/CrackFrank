@@ -1,0 +1,18 @@
+/* player sign-in screen (src/account.js) — reuses the intro's case-file folder */
+.fr-acct .fr-folder { width: min(520px, 100%); }
+.fr-acct-tabs { display: flex; gap: 0; margin: 18px 0 0; border-bottom: 2px solid #5b4a30; }
+.fr-acct-tabs button { font: 700 13px "Courier New", Courier, monospace; background: #dcc795; color: #5b4a30; border: 1px solid #5b4a30; border-bottom: 0; border-radius: 6px 6px 0 0; padding: 7px 14px; margin-right: 4px; cursor: pointer; min-width: 0; box-shadow: none; }
+.fr-acct-tabs button.on { background: #f4e9cc; color: #17263f; position: relative; top: 2px; padding-bottom: 9px; }
+.fr-acct-form { background: #f4e9cc; border: 1px solid #5b4a30; border-top: 0; padding: 16px 18px 18px; display: grid; gap: 12px; }
+.fr-acct-form label { display: grid; gap: 4px; font-size: 12px; font-weight: 700; color: #5b4a30; letter-spacing: .5px; text-transform: uppercase; }
+.fr-acct-form input { font: 15px "Courier New", Courier, monospace; padding: 7px 9px; border: 1px solid #7a6440; border-radius: 2px; background: #fffdf6; color: #1a1a1a; height: auto; }
+.fr-acct-form input:focus { outline: 2px solid #245edb; outline-offset: 0; }
+.fr-acct-note { font-size: 11.5px; color: #6b5a3e; line-height: 1.45; }
+.fr-acct-note:empty, .fr-acct-err:empty { display: none; }
+.fr-acct-err { font-size: 12.5px; color: #a3261c; font-weight: 700; line-height: 1.4; }
+.fr-acct-form .fr-intro-start { margin-top: 2px; }
+.fr-acct-guest { background: none; border: 0; box-shadow: none; min-width: 0; padding: 4px 2px; font: 12px "Courier New", Courier, monospace; color: #6b5a3e; text-decoration: underline; cursor: pointer; }
+.fr-acct-guest:hover { color: #17263f; }
+.fr-bigbtn:disabled { opacity: .6; cursor: default; }
+.fr-intro .fr-save-line a { color: #17263f; font-weight: 700; }
+@media (max-width: 520px) { .fr-acct .fr-stamp { position: static; display: inline-block; margin: -10px 0 12px; transform: rotate(-3deg); font-size: 16px; } }

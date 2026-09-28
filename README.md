@@ -7,21 +7,24 @@ $4.0M survival package only if the Board Pack is complete and true. The player s
 his password and works through his email, Excel files and folders to assemble the pack. Hints come from
 "Datarails FinanceOS" (the joke: Packa doesn't have it). The clues also point to the live site www.packacorp.com.
 
-The game is one self-contained HTML file (about 3.4 MB). All images and sounds are embedded, it has no runtime
-dependencies, and it makes no network calls except the in-game Internet Explorer, which frames packacorp.com.
+The game is one self-contained HTML file (about 3.4 MB). All images and sounds are embedded and it has no runtime
+dependencies. Its only network calls are the in-game Internet Explorer, which frames packacorp.com, and the optional
+player accounts (`/api/*`, see below).
 
 ## Repository layout
 
 | Path | What it is |
 |---|---|
 | `src/` | Game source: `core.js` (window manager, state, dialogs), `fs.js` (virtual file system), `boot.js` (intro, login, desktop, checklist, ending, config defaults), `apps/*.js|css` (Excel, Outlook Express, Explorer, IE, Notepad …), `assets.js` (embedded images), `sounds.js` (embedded Windows XP sounds), `xp.css` (XP.css 0.2.6). |
+| `src/account.js`, `src/account.css` | Player sign-in screen and cloud save (talks to `api/`). |
+| `api/` | Vercel functions for player accounts: `register`, `login`, `logout`, `me`, `save` (shared code in `_lib.js`). No npm dependencies. |
 | `build.py` | Concatenates `src/` into `dist/index.html` and copies `public/` next to it. Python 3, standard library only. |
 | `config.json` | Site links, end-screen CTA and share-card metadata, injected at build time. |
 | `public/` | Static files copied into the build (`og-image.png` share card). |
 | `dist/` | A prebuilt copy of the game (Vercel rebuilds it on every deploy). |
 | `vercel.json` | Vercel build settings (build command, `dist/` output, cache headers). |
 | `.github/workflows/ci.yml` | Builds and runs the spreadsheet-engine tests on every push and PR. |
-| `test/` | `excel_engine_test.js` (node, no deps) and `play.py` (full Playwright playthrough; the Packa site pages it needs are in `test/site/`). |
+| `test/` | `excel_engine_test.js` (node, no deps), `play.py` (full Playwright playthrough; the Packa site pages it needs are in `test/site/`), `account_api_test.js` + `account_play.py` (player accounts), `local_server.js` + `fake_redis.js` (runs the game and `api/` locally with an in-memory database). |
 | `tools/` | `make_sounds.py` + the Windows XP sound pack, to regenerate `src/sounds.js`. |
 | `docs/` | `SPEC.md` (the design spec; later sections win), `API.md` (the `window.FR` API every app uses), `CANON_DECISIONS.md` (numbers and story facts that must stay consistent), `PACKA_SITE_GAME_CLUES.md` (what must exist on packacorp.com), `PLAYTEST_FPA.md`. |
 
@@ -64,6 +67,39 @@ The repository is ready for Vercel; `vercel.json` holds the settings, so nothing
 `.vercelignore` keeps `tools/` (the sound pack), `docs/` and the Playwright fixtures out of the upload.
 `.github/workflows/ci.yml` builds and runs the spreadsheet-engine tests on every push and PR.
 
+### Player accounts (Upstash Redis)
+
+Players can create a player name and password on the first screen, and their progress follows them to any computer.
+"Play without an account" keeps the old behaviour (progress in that browser only), and a guest can create an account
+later from the intro without losing progress.
+
+To turn it on:
+
+1. In the Vercel project, open **Storage → Create Database → Upstash for Redis** (free tier is fine), and connect it
+   to the project for Production and Preview. This adds `KV_REST_API_URL` and `KV_REST_API_TOKEN` (the code also
+   accepts `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`).
+2. Redeploy. Until the database is connected, `/api/*` answers 503 and the game quietly plays in browser-only mode.
+
+How it works:
+
+- Passwords are hashed with scrypt (Node's built-in crypto). Sessions are a random token in an HttpOnly, Secure,
+  SameSite=Lax cookie that lasts 30 days; Redis only stores the token's SHA-256.
+- The whole save is `FR.state` (a few KB). Real progress is sent within ~2 seconds, the play clock at most once a
+  minute, and again when the tab is hidden or closed.
+- Each save has a revision number. If a player continues on another computer, the older tab gets "This game was
+  continued somewhere else" and reloads instead of overwriting the newer save. A change made while offline stays in
+  the browser and is sent when the server is reachable again.
+- Sign-up is limited to 10 per IP per hour; sign-in to 10 tries per player name and 30 per IP per 15 minutes.
+- There is no password reset (no email is collected). Player names are 3–20 letters, numbers, `.`, `-` or `_`,
+  unique regardless of case.
+- Redis keys: `fc:user:<name>`, `fc:save:<name>`, `fc:sess:<token hash>`, `fc:rl:*` (rate limits, expire on their own).
+
+Run it locally without Vercel or a database:
+
+```bash
+python3 build.py && node test/local_server.js 8000    # http://localhost:8000/ with an in-memory database
+```
+
 ### The in-game browser and packacorp.com
 
 The in-game Internet Explorer shows packacorp.com in an iframe. If the site sends `X-Frame-Options: DENY/SAMEORIGIN`,
@@ -76,7 +112,9 @@ listed in `docs/PACKA_SITE_GAME_CLUES.md`.
 
 ```bash
 node test/excel_engine_test.js           # spreadsheet engine + answer checks (no dependencies)
+node test/account_api_test.js            # player-account API against an in-memory Redis (no dependencies)
 pip install playwright && python3 test/play.py   # full honest playthrough in headless Chromium
+python3 test/account_play.py             # sign up, continue on another computer, guest → player, sign out, conflicts
 ```
 
 ## Sounds

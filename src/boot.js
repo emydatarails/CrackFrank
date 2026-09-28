@@ -94,17 +94,28 @@
         ${hasSave ? '<button class="fr-bigbtn" data-a="new">Start over</button>' : ''}
         <a class="fr-small" href="${CONFIG.siteUrl}" target="_blank" rel="noopener">Open packacorp.com ↗</a>
       </div>
-      <p class="fr-small" style="margin-top:14px">Made for finance people. Best on a laptop or desktop. Progress saves in this browser.</p>
+      <p class="fr-small fr-save-line" style="margin-top:14px">Made for finance people. Best on a laptop or desktop. ${saveLine()}</p>
     </div></div>`);
     el.querySelector('[data-a=go]').onclick = () => { FR.sound.play('click'); if (!FR.state.startedAt) { FR.state.startedAt = Date.now(); FR.save(); } boot(); };
     const n = el.querySelector('[data-a=new]');
     if (n) n.onclick = () => confirmStartOver();
+    const acct = el.querySelector('[data-a=acct]'), out = el.querySelector('[data-a=out]');
+    if (acct) acct.onclick = e => { e.preventDefault(); FR.sound.play('click'); FR.account.screen('new').then(intro); };
+    if (out) out.onclick = e => { e.preventDefault(); FR.dialog({ icon: 'question', title: 'Sign out', message: `Sign out of <b>${esc(FR.account.user)}</b>?<br><br>Your progress stays saved in your player account.`, buttons: ['Sign out', 'Cancel'] }).then(r => { if (r.button === 'Sign out') FR.account.signOut(); }); };
     show(el);
+  }
+
+  // where progress is kept: the player's account, or only this browser (with a way to sign in)
+  function saveLine() {
+    const A = FR.account || {};
+    if (A.user) return `Signed in as <b>${esc(A.user)}</b>: progress saves to your player account. <a href="#" data-a="out">Sign out</a>`;
+    if (A.available) return 'Progress saves in this browser. <a href="#" data-a="acct">Sign in or create a player</a> to continue on any computer.';
+    return 'Progress saves in this browser.';
   }
 
   function confirmStartOver() {
     return FR.dialog({ icon: 'warn', title: 'Start over', message: "Start over from the beginning?<br><br>Everything you've done at Frank's desk will be erased: the checklist, hints and time.", buttons: ['Start over', 'Cancel'] })
-      .then(r => { if (r.button === 'Start over') { FR.resetSave(); location.reload(); } });
+      .then(r => { if (r.button === 'Start over') Promise.resolve(FR.resetSave()).then(() => location.reload()); });
   }
 
   function boot() {
@@ -657,9 +668,11 @@
     FR.save();
     desktop(false);
     FR.bus.emit('login');
-  } else if (FR.puzzle.isSolved('login') && q.has('resume')) {
-    desktop(false);
   } else {
-    intro();
+    // signed-in players get their saved game first (or the sign-in screen); without the account server this resolves at once
+    (FR.account ? FR.account.start() : Promise.resolve()).then(() => {
+      if (FR.puzzle.isSolved('login') && q.has('resume')) desktop(false);
+      else intro();
+    });
   }
 })();

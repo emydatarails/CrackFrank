@@ -33,6 +33,8 @@ FR.apps = FR.apps || {};
   try { const s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (s && typeof s === 'object' && s.solved && typeof s.solved === 'object') FR.state = harden(Object.assign(fresh(), s)); } catch (e) {}
   FR.save = () => { try { localStorage.setItem(SAVE_KEY, JSON.stringify(FR.state)); } catch (e) { FR.storageOk = false; } };
   FR.resetSave = () => { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} FR.state = fresh(); };
+  // a saved state from anywhere else (the player-account server), validated like the local one
+  FR.loadState = s => (s && typeof s === 'object' && s.solved && typeof s.solved === 'object') ? harden(Object.assign(fresh(), s)) : null;
   FR.flags = {
     get: k => FR.state.flags[k],
     set(k, v) { FR.state.flags[k] = v; FR.save(); FR.bus.emit('flag', { k, v }); },

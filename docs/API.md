@@ -2,7 +2,7 @@
 
 Build: `python3 build.py` concatenates `src/xp.css`, `src/core.css`, `src/apps/*.css` and `src/core.js`, `src/fs.js`,
 `src/apps/*.js`, `src/boot.js` (in that order) into `dist/index.html`. Plain browser JS (ES2020), no modules, no
-imports, no network except the in-game Internet Explorer iframe. Each app file is an IIFE: `(() => { ... })();`.
+imports, no network except the in-game Internet Explorer iframe and the player-account calls in `src/account.js`. Each app file is an IIFE: `(() => { ... })();`.
 Prefix every CSS class with your app name (e.g. `.xl-`, `.oe-`, `.ex-`) to avoid collisions. XP.css (0.2.6) is loaded:
 `.window`, `.title-bar`, `.title-bar-text`, `.title-bar-controls`, `.window-body`, `button`, `input`, `select`,
 `fieldset`, `menu[role=tablist]`, `.status-bar`, `.status-bar-field`, `ul.tree-view` are all styled XP-like.
@@ -24,6 +24,10 @@ Test page: `dist/index.html?dev=1` skips intro/login (logged in, all items unloc
 - `FR.sound.play('ding'|'chord'|'error'|'mail'|'tada'|'click'|'unlock')`.
 - `FR.state` (persisted): `{ solved: {id: timestampMs}, flags: {}, hintsUsed: {id: n}, readMail: {} , startedAt }`.
   `FR.save()` persists. `FR.flags.get(k)`, `FR.flags.set(k, v)` (persists + emits 'flag').
+- `FR.loadState(obj)` → a validated state (or null) built from a save that came from elsewhere.
+- `FR.account` (src/account.js): `{ user (player name or null), available (account server reachable), start(), screen(mode), signOut() }`.
+  When signed in, `FR.save()` also syncs `FR.state` to `/api/save`, and `FR.resetSave()` returns a Promise that resolves once the
+  account's save is wiped. Anything that must survive a reload or a change of computer has to be in `FR.state`.
 - `FR.bus.on(evt, fn)`, `FR.bus.emit(evt, data)`. Events: 'solved' (id), 'flag' ({k,v}), 'login', 'fs-change'.
 - `FR.puzzle.solve(id)` — marks a checklist item solved (only if it's the current/unlocked one or earlier; else ignored and returns false),
   plays sound, emits 'solved'. `FR.puzzle.isSolved(id)`, `FR.puzzle.isUnlocked(id)`, `FR.puzzle.norm(str)`.

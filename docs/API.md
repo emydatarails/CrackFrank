@@ -46,7 +46,7 @@ Test page: `dist/index.html?dev=1` skips intro/login (logged in, all items unloc
   author?, title?, comments?, parent }`. Special folder ids: 'desktop', 'mycomputer', 'cdrive', 'mydocs', 'budget', 'board', 'bank',
   'cashdir'(hidden), 'personal', 'pics', 'recycle', 'bankzip' (a file node with app 'zip', whose `children` are listed by FR.fs.children('bankzip') once unlocked).
 - `FR.openFile(nodeOrId)` → dispatches to `FR.apps[node.app](node)`.
-- `FR.apps` — register your app: `FR.apps.excel = (node|null) => {...}`. App names: 'excel', 'mail' (Outlook Express; called with an .eml
+- `FR.apps` — register your app: `FR.apps.excel = (node|null) => {...}`. App names: 'erp' (ShowMe ERP, no args), 'excel', 'mail' (Outlook Express; called with an .eml
   node or null), 'explorer' (called with a folder node/id), 'zip', 'notepad', 'image', 'ie' (called with url string or null), 'calc', 'checklist'
   (core), 'recycle' (= explorer at 'recycle').
 - Text file contents: `FR.data.texts[fileId] = '...'` (defined by the shell-apps file). Workbook data: inside excel.js. Emails: inside outlook.js.

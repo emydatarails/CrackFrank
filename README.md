@@ -16,6 +16,7 @@ player accounts (`/api/*`, see below).
 | Path | What it is |
 |---|---|
 | `src/` | Game source (the real Packa logo is `packa-logo.svg` / `packa-logo-white.svg`, embedded by `build.py`): `core.js` (window manager, state, dialogs), `fs.js` (virtual file system), `boot.js` (intro, login, desktop, checklist, ending, config defaults), `apps/*.js|css` (Excel, Outlook Express, Explorer, IE, Notepad …), `assets.js` (embedded images), `sounds.js` (embedded Windows XP sounds), `xp.css` (XP.css 0.2.6). |
+| `src/apps/erp.js`, `src/apps/erp.css` | ShowMe ERP Classic, Packa's old ERP: transactions only, no budget, forecast or Board reporting (and no puzzle numbers). |
 | `src/account.js`, `src/account.css` | Player sign-in screen and cloud save (talks to `api/`). |
 | `src/score_rules.js` | The scoring rules. One copy, used by the game and by the server. |
 | `src/score.js`, `src/score.css` | Score in the checklist and ending, and the leaderboard page. |
@@ -145,6 +146,7 @@ node test/account_api_test.js            # player-account API against an in-memo
 node test/score_test.js                  # scoring rules + scoreboard API (no dependencies)
 pip install playwright && python3 test/play.py   # full honest playthrough in headless Chromium
 python3 test/account_play.py             # sign up, continue on another computer, guest → player, sign out, conflicts
+python3 test/erp_play.py                 # ShowMe ERP: every module, exports, no puzzle answers inside
 python3 test/score_play.py               # checklist score, paid hints, desktop shortcut → leaderboard, ending rank
 ```
 

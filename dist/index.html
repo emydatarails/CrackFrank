@@ -424,6 +424,52 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
 .fr-dicon-lnk .fr-ico::after { content: ''; position: absolute; left: 0; bottom: 0; width: 11px; height: 11px; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11 11'%3E%3Cpath d='M2.5 8.5C3 5.5 4.5 4 7.5 4V2l2.5 2.8-2.5 2.7V5.6C5.5 5.6 4 6.4 2.5 8.5z' fill='%230b3fa8'/%3E%3C/svg%3E") center / 11px no-repeat; border: 1px solid #7a7a7a; box-sizing: border-box; }
 .fr-dicon-lnk .fr-dl { -webkit-line-clamp: 3; line-clamp: 3; }   /* "Who Covered for Frank?" in full */
 
+/* ShowMe ERP Classic (src/apps/erp.js): a late-90s business app, grey forms and a navy header */
+.erp { display: flex; flex-direction: column; height: 100%; background: #d4d0c8; font: 11px Tahoma, Verdana, "DejaVu Sans", Arial, sans-serif; color: #111; }
+.erp-top { display: flex; align-items: center; justify-content: space-between; background: linear-gradient(90deg, #0b2f5b, #1d5a96); color: #fff; padding: 6px 12px; flex: none; }
+.erp-brand { font: 700 16px Arial, sans-serif; letter-spacing: .5px; }
+.erp-brand b { color: #ffd34d; }
+.erp-brand span { font: italic 400 12px Georgia, serif; color: #cfe0f5; margin-left: 4px; }
+.erp-co { font-size: 11px; color: #dfe9f7; }
+.erp-main { display: flex; flex: 1 1 auto; min-height: 0; }
+.erp-nav { flex: none; width: 168px; background: #ece9d8; border-right: 1px solid #a09d92; padding: 6px 0; overflow: auto; }
+.erp-g { font-weight: 700; color: #0b2f5b; padding: 7px 10px 3px; text-transform: uppercase; font-size: 10px; letter-spacing: .5px; }
+#fr-root .erp-n { display: block; width: 100%; text-align: left; background: none; border: 0; box-shadow: none; min-width: 0; min-height: 0; padding: 3px 10px 3px 18px; font: 11px Tahoma, Verdana, sans-serif; color: #111; cursor: pointer; border-radius: 0; }
+#fr-root .erp-n:hover { background: #dbe6f5; }
+#fr-root .erp-n.on { background: #316ac5; color: #fff; }
+.erp-pane { flex: 1 1 auto; min-width: 0; overflow: auto; background: #fff; }
+.erp-h { position: sticky; top: 0; display: flex; align-items: baseline; gap: 10px; background: linear-gradient(#f4f3ee, #dcd8cc); border-bottom: 1px solid #a09d92; padding: 6px 12px; }
+.erp-h b { font-size: 14px; color: #0b2f5b; }
+.erp-h span { color: #666; }
+.erp-body { padding: 10px 12px 16px; }
+.erp-body h3 { font-size: 12px; color: #0b2f5b; margin: 12px 0 5px; border-bottom: 1px solid #d6d2c4; padding-bottom: 2px; }
+.erp-body h3:first-child { margin-top: 2px; }
+.erp-t { border-collapse: collapse; width: 100%; margin-bottom: 8px; }
+.erp-t th { background: #e3dfd3; border: 1px solid #b5b1a4; text-align: left; padding: 3px 6px; font-weight: 400; white-space: nowrap; }
+.erp-t td { border: 1px solid #d6d2c4; padding: 3px 6px; vertical-align: middle; }
+.erp-t tbody tr:nth-child(even) td { background: #f7f6f1; }
+.erp-kv { border-collapse: collapse; margin-bottom: 10px; }
+.erp-kv th { text-align: left; font-weight: 400; color: #555; padding: 3px 14px 3px 0; white-space: nowrap; vertical-align: top; }
+.erp-kv td { padding: 3px 0; }
+.erp-box { border: 1px solid #b5b1a4; margin-top: 10px; }
+.erp-box-h { background: #e3dfd3; padding: 4px 8px; font-weight: 700; color: #0b2f5b; }
+.erp-box ul { margin: 6px 0; padding-left: 26px; line-height: 1.6; }
+.erp-note { margin: 8px 0; padding: 6px 8px; background: #ffffe1; border: 1px solid #c9c38b; }
+.erp-lock { display: flex; gap: 12px; align-items: flex-start; margin: 14px 0; padding: 12px; background: #f7f6f1; border: 1px solid #b5b1a4; }
+.erp-lock b { font-size: 12px; color: #0b2f5b; }
+.erp-lock p { margin: 4px 0 0; line-height: 1.5; color: #333; }
+.erp-periods { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-bottom: 6px; }
+.erp-periods span { border: 1px solid #b5b1a4; padding: 3px 5px; display: flex; flex-direction: column; background: #f7f6f1; }
+.erp-periods span i { font-style: normal; font-size: 10px; color: #666; }
+.erp-periods span.o { background: #e3f3df; border-color: #6aa55f; }
+.erp-periods span.f { color: #999; }
+.erp-ok { color: #1d6b3a; font-weight: 700; }
+.erp-warn { color: #9a6400; }
+.erp-bad { color: #a3261c; }
+.erp-dim { color: #777; }
+#fr-root .erp-b { min-width: 0; min-height: 0; padding: 1px 10px; font-size: 11px; }
+@media (max-width: 700px) { .erp-nav { width: 124px; } .erp-periods { grid-template-columns: repeat(4, 1fr); } }
+
 /* ===== Microsoft Excel 2003 clone (xl-) ===== */
 .xl-win { display: flex; flex-direction: column; }
 .xl-win > .fr-body, .xl-win .window-body.fr-body { flex: 1 1 auto; min-height: 0; margin: 0 !important; padding: 0 !important; display: flex; flex-direction: column; overflow: hidden; }
@@ -1539,6 +1585,8 @@ FR.apps = FR.apps || {};
   I.star = S('', `<path d="M16 3l3.8 8.2 8.9.9-6.7 6 1.9 8.8L16 22.4 8.1 26.9 10 18.1l-6.7-6 8.9-.9z" fill="#ffd33a" stroke="#b58800"/>`);
   I.volume = S('', `<path d="M4 12h6l7-6v20l-7-6H4z" fill="#e8ecf2" stroke="#3a4a60"/><path d="M21 11c2 2.5 2 7.5 0 10M24 8c4 4.5 4 11.5 0 16" fill="none" stroke="#e8ecf2" stroke-width="2"/>`);
   I.box = I.user;
+  // ShowMe ERP: a database drum with a green ledger page
+  I.erp = S(g('ep', [[0, '#e9f1f8'], [1, '#8fa9c4']]), `<path d="M4 7v17c0 2.2 5 4 11 4s11-1.8 11-4V7" fill="url(#ep)" stroke="#3f5a78"/><ellipse cx="15" cy="7" rx="11" ry="4" fill="#dce7f2" stroke="#3f5a78"/><path d="M4 13c0 2.2 5 4 11 4s11-1.8 11-4M4 19c0 2.2 5 4 11 4s11-1.8 11-4" fill="none" stroke="#3f5a78"/><rect x="17" y="14" width="13" height="16" rx="1" fill="#fff" stroke="#1d7a2b"/><path d="M19.5 18h8M19.5 21h8M19.5 24h8M19.5 27h5" stroke="#1d7a2b" stroke-width="1.2"/>`);
 
   FR.icons = I;
   FR.icon = (name, size = 32) => `<span class="fr-ico" style="width:${size}px;height:${size}px">${I[name] || I.txt}</span>`;
@@ -2087,6 +2135,190 @@ FR.apps = FR.apps || {};
 
 ;
 FR.data.logo = {"mark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"380 115 720 960\">\n\t<g fill=\"#a33a1e\">\n\t<path transform=\"translate(0,0)\" d=\"M 739.012 124.954 C 746.299 125.108 792.107 152.231 801.568 157.241 C 857.939 187.292 914.089 217.757 970.013 248.633 C 1002.41 266.267 1036.44 282.978 1067.87 302.375 C 1077.63 308.396 1085.74 313.72 1085.86 326.417 C 1086.08 351.573 1085.98 376.845 1085.98 402.057 L 1085.99 551.431 L 1085.98 632.062 C 1085.98 640.547 1086.53 679.529 1084.2 683.872 C 1077.25 696.867 1010.86 729.361 997.435 736.49 C 961.077 756.03 924.846 775.808 888.746 795.821 C 866.439 807.912 839.418 821.188 818.141 834.165 C 817.413 846.334 817.882 863.729 817.853 876.198 L 817.827 960.189 C 817.83 969.624 818.596 1010.85 815.94 1016.38 C 811.06 1026.53 751.402 1057.44 740.172 1062.37 C 725.407 1055.87 703.666 1042.83 688.458 1035.14 C 637.279 1009.26 587.044 980.465 536.581 953.122 L 445.382 903.629 C 433.053 896.967 403.057 882.182 394.091 873.977 C 391.236 855.614 392.226 822.232 392.226 802.393 L 392.267 683.196 L 392.293 446.602 C 392.277 406.318 392.227 366.033 392.273 325.751 C 392.284 316.285 393.912 312.548 402.342 307.68 C 429.088 292.234 456.078 277.323 483.335 262.803 L 562.116 220.11 C 621.189 188.475 679.185 155.404 739.012 124.954 z M 444.044 846.463 L 631.422 946.629 L 692.037 979.904 C 696.383 982.318 711.841 992.247 715.374 991.743 L 716.365 990.75 C 717.074 971.406 716.405 949.084 716.295 929.543 L 715.216 802.385 C 714.637 715.125 715.976 627.817 714.79 540.568 C 714.72 535.416 715.461 519.114 713.203 515.422 C 711.618 512.832 459.45 373.754 443.257 367.618 C 444.545 378.955 443.762 402.538 443.701 414.564 L 443.551 497.039 L 443.706 721.105 C 443.712 761.229 442.704 806.68 444.044 846.463 z M 475.628 324.551 C 548.592 361.888 619.395 405.852 692.687 442.747 C 702.745 447.81 732.502 466.376 740.991 468.94 C 758.085 457.905 782.396 445.764 800.437 436.019 L 888.794 387.906 L 955.86 351.364 C 969.929 343.641 991.412 331.595 1005.86 325.39 C 989.906 317.306 973.733 307.045 957.846 298.299 L 771.626 196.908 C 766.704 194.228 744.221 180.902 740.99 180.658 C 662.069 224.885 581.55 266.454 502.391 310.273 C 493.761 315.05 484.468 320.286 475.628 324.551 z M 817.637 542.114 C 818.497 577.31 817.422 614.59 817.721 650.096 C 817.872 668 818.904 704.732 817.225 721.464 C 818.514 721.841 818.286 722.018 819.338 721.789 L 923.865 665.793 C 935.647 659.466 982.907 637.308 984.731 625.853 C 989.801 594.002 987.805 557.158 987.393 524.573 L 987.159 452.484 L 985.885 450.745 C 968.517 461.927 946.094 472.597 927.484 482.307 C 903.614 494.936 879.843 507.752 856.174 520.755 C 847.246 525.604 824.967 537.015 817.637 542.114 z\"/>\n\t<path transform=\"translate(0,0)\" d=\"M 186.389 1139.36 C 193.598 1140.39 201.765 1139.55 208.975 1139.75 C 243.773 1140.71 281.755 1132.01 311.334 1155.19 C 337.742 1175.89 339.179 1219.91 318.322 1244.93 C 305.062 1260.84 288.845 1265.19 268.626 1266.69 C 256.469 1267.4 243.214 1267.12 231.061 1266.54 C 232.604 1281.95 231.851 1310.66 231.842 1327.16 C 219.73 1327.76 196.849 1328.13 185.164 1327.31 C 184.02 1307.18 185.543 1278.1 185.403 1257.18 L 185.251 1176.97 C 185.246 1169.88 183.923 1143.79 186.389 1139.36 z M 230.429 1181.58 C 231.53 1195.77 232.136 1214.26 230.845 1228.56 C 241.263 1228.25 251.935 1227.81 262.333 1227.8 C 267.148 1227.01 271.118 1226.44 275.817 1225.07 C 281.024 1219.21 283.234 1215.85 286.887 1208.83 C 285.939 1195.58 286.078 1192.98 276.47 1183.52 C 265.709 1180.27 261.492 1180.77 250.425 1181.56 C 243.094 1181.88 237.743 1181.83 230.429 1181.58 z\"/>\n\t<path transform=\"translate(0,0)\" d=\"M 1200.08 1139.56 C 1209.08 1140.55 1219.77 1138.54 1228.14 1141.42 C 1230.25 1142.05 1231.58 1144.95 1232.44 1146.92 C 1241.67 1168.13 1248.9 1190.45 1256.9 1212.15 L 1299.54 1327.42 C 1284.28 1326.97 1267.15 1328.46 1252.66 1327.14 C 1248.2 1315.92 1244.48 1304.41 1241.55 1292.69 C 1231.38 1292.64 1220.94 1292.9 1210.75 1293.04 C 1197.28 1293.22 1182.16 1293.8 1168.89 1292.48 C 1166.23 1304.02 1161.01 1317.3 1154.87 1327.33 C 1140.87 1327.66 1125.27 1327.33 1111.1 1327.38 C 1115.41 1311.96 1175.61 1149.04 1182.42 1141.24 C 1186.85 1139.28 1194.69 1139.81 1200.08 1139.56 z M 1182.61 1254.54 C 1188.23 1255.08 1200.57 1255.22 1204.1 1255.67 L 1226.53 1256.43 C 1223.74 1247.85 1207.72 1196.36 1203.26 1193.64 C 1200.85 1207 1188.21 1242.44 1182.61 1254.54 z\"/>\n\t<path transform=\"translate(0,0)\" d=\"M 457.977 1138.12 C 469.616 1140.8 489.42 1139.44 502.558 1140.69 C 509.176 1151.14 520.485 1184.26 525.43 1197.37 C 541.842 1240.53 557.913 1283.82 573.641 1327.24 C 558.037 1327.09 542.44 1327.97 526.773 1327.45 C 522.768 1318.34 516.556 1301.71 513.986 1292.48 C 508.762 1292.92 502.579 1292.87 497.25 1292.95 C 489.363 1292.96 450.703 1291.05 446.707 1292.97 C 439.425 1296.46 433.759 1319.19 430.756 1326.95 C 424.145 1327.78 392.639 1328.31 386.991 1326.61 C 385.547 1322.69 392.041 1307.69 393.711 1303.14 C 400.382 1285.03 407.232 1266.99 414.26 1249.01 C 427.474 1214.38 440.15 1179.22 453.526 1144.63 C 454.676 1141.66 455.482 1140.1 457.977 1138.12 z M 479.749 1255.9 L 501.448 1256.21 C 493.569 1242.85 484.531 1202.65 477.078 1195.61 L 476.798 1196.79 C 474.516 1206.2 457.67 1250.45 458.938 1255.21 C 464.486 1256.56 473.371 1255.72 479.749 1255.9 z\"/>\n\t<path transform=\"translate(0,0)\" d=\"M 992.684 1139.62 C 998.596 1138.92 1037.71 1138.79 1044.13 1139.33 C 1044.56 1144.92 1021.23 1170.64 1016.62 1176.18 L 975.267 1226.35 C 993.764 1252.31 1021.5 1285 1037.87 1310.35 C 1041.36 1315.65 1046.59 1321.36 1050.91 1327.89 C 1036 1328.29 1012.96 1327.81 998.22 1326.83 C 984.466 1315.96 946.296 1251.08 934.57 1251.26 C 929.925 1257.4 931.774 1315.4 931.824 1327.33 C 917.089 1327.52 901.887 1327.92 887.193 1327.51 C 884.493 1292.23 887.081 1248.44 886.329 1212.16 C 886.029 1197.66 885.456 1151.69 887.777 1141.39 C 890.703 1138.38 919.222 1139.19 927.366 1138.55 C 936.115 1138.11 929.089 1207.39 932.414 1211.63 C 936.571 1209.39 982.963 1149.12 991.96 1140.32 L 992.684 1139.62 z\"/>\n\t<path transform=\"translate(0,0)\" d=\"M 726.686 1136.43 C 757.858 1133.24 782.077 1147.45 803.396 1168.46 C 799.586 1173.53 781.168 1191.86 776.19 1195.64 C 771.977 1195.9 755.022 1182.1 742.514 1181.02 C 730.673 1179.48 715.018 1180.33 705.277 1188.28 C 670.626 1216.59 678.763 1281.32 727.969 1286.85 C 747.329 1289.03 760.059 1281.03 774.162 1269.37 C 779.704 1273.7 783.864 1277.7 788.931 1282.5 C 794.48 1286.91 799.93 1291.45 805.279 1296.1 C 770.407 1335.08 709.97 1342.81 669.629 1307.51 C 605.862 1251.7 637.991 1140.88 726.686 1136.43 z\"/>\n\t</g>\n</svg>", "markWhite": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"380 115 720 960\">\n\t<g fill=\"#ffffff\">\n\t<path transform=\"translate(0,0)\" d=\"M 739.012 124.954 C 746.299 125.108 792.107 152.231 801.568 157.241 C 857.939 187.292 914.089 217.757 970.013 248.633 C 1002.41 266.267 1036.44 282.978 1067.87 302.375 C 1077.63 308.396 1085.74 313.72 1085.86 326.417 C 1086.08 351.573 1085.98 376.845 1085.98 402.057 L 1085.99 551.431 L 1085.98 632.062 C 1085.98 640.547 1086.53 679.529 1084.2 683.872 C 1077.25 696.867 1010.86 729.361 997.435 736.49 C 961.077 756.03 924.846 775.808 888.746 795.821 C 866.439 807.912 839.418 821.188 818.141 834.165 C 817.413 846.334 817.882 863.729 817.853 876.198 L 817.827 960.189 C 817.83 969.624 818.596 1010.85 815.94 1016.38 C 811.06 1026.53 751.402 1057.44 740.172 1062.37 C 725.407 1055.87 703.666 1042.83 688.458 1035.14 C 637.279 1009.26 587.044 980.465 536.581 953.122 L 445.382 903.629 C 433.053 896.967 403.057 882.182 394.091 873.977 C 391.236 855.614 392.226 822.232 392.226 802.393 L 392.267 683.196 L 392.293 446.602 C 392.277 406.318 392.227 366.033 392.273 325.751 C 392.284 316.285 393.912 312.548 402.342 307.68 C 429.088 292.234 456.078 277.323 483.335 262.803 L 562.116 220.11 C 621.189 188.475 679.185 155.404 739.012 124.954 z M 444.044 846.463 L 631.422 946.629 L 692.037 979.904 C 696.383 982.318 711.841 992.247 715.374 991.743 L 716.365 990.75 C 717.074 971.406 716.405 949.084 716.295 929.543 L 715.216 802.385 C 714.637 715.125 715.976 627.817 714.79 540.568 C 714.72 535.416 715.461 519.114 713.203 515.422 C 711.618 512.832 459.45 373.754 443.257 367.618 C 444.545 378.955 443.762 402.538 443.701 414.564 L 443.551 497.039 L 443.706 721.105 C 443.712 761.229 442.704 806.68 444.044 846.463 z M 475.628 324.551 C 548.592 361.888 619.395 405.852 692.687 442.747 C 702.745 447.81 732.502 466.376 740.991 468.94 C 758.085 457.905 782.396 445.764 800.437 436.019 L 888.794 387.906 L 955.86 351.364 C 969.929 343.641 991.412 331.595 1005.86 325.39 C 989.906 317.306 973.733 307.045 957.846 298.299 L 771.626 196.908 C 766.704 194.228 744.221 180.902 740.99 180.658 C 662.069 224.885 581.55 266.454 502.391 310.273 C 493.761 315.05 484.468 320.286 475.628 324.551 z M 817.637 542.114 C 818.497 577.31 817.422 614.59 817.721 650.096 C 817.872 668 818.904 704.732 817.225 721.464 C 818.514 721.841 818.286 722.018 819.338 721.789 L 923.865 665.793 C 935.647 659.466 982.907 637.308 984.731 625.853 C 989.801 594.002 987.805 557.158 987.393 524.573 L 987.159 452.484 L 985.885 450.745 C 968.517 461.927 946.094 472.597 927.484 482.307 C 903.614 494.936 879.843 507.752 856.174 520.755 C 847.246 525.604 824.967 537.015 817.637 542.114 z\"/>\n\t<path transform=\"translate(0,0)\" d=\"M 186.389 1139.36 C 193.598 1140.39 201.765 1139.55 208.975 1139.75 C 243.773 1140.71 281.755 1132.01 311.334 1155.19 C 337.742 1175.89 339.179 1219.91 318.322 1244.93 C 305.062 1260.84 288.845 1265.19 268.626 1266.69 C 256.469 1267.4 243.214 1267.12 231.061 1266.54 C 232.604 1281.95 231.851 1310.66 231.842 1327.16 C 219.73 1327.76 196.849 1328.13 185.164 1327.31 C 184.02 1307.18 185.543 1278.1 185.403 1257.18 L 185.251 1176.97 C 185.246 1169.88 183.923 1143.79 186.389 1139.36 z M 230.429 1181.58 C 231.53 1195.77 232.136 1214.26 230.845 1228.56 C 241.263 1228.25 251.935 1227.81 262.333 1227.8 C 267.148 1227.01 271.118 1226.44 275.817 1225.07 C 281.024 1219.21 283.234 1215.85 286.887 1208.83 C 285.939 1195.58 286.078 1192.98 276.47 1183.52 C 265.709 1180.27 261.492 1180.77 250.425 1181.56 C 243.094 1181.88 237.743 1181.83 230.429 1181.58 z\"/>\n\t<path transform=\"translate(0,0)\" d=\"M 1200.08 1139.56 C 1209.08 1140.55 1219.77 1138.54 1228.14 1141.42 C 1230.25 1142.05 1231.58 1144.95 1232.44 1146.92 C 1241.67 1168.13 1248.9 1190.45 1256.9 1212.15 L 1299.54 1327.42 C 1284.28 1326.97 1267.15 1328.46 1252.66 1327.14 C 1248.2 1315.92 1244.48 1304.41 1241.55 1292.69 C 1231.38 1292.64 1220.94 1292.9 1210.75 1293.04 C 1197.28 1293.22 1182.16 1293.8 1168.89 1292.48 C 1166.23 1304.02 1161.01 1317.3 1154.87 1327.33 C 1140.87 1327.66 1125.27 1327.33 1111.1 1327.38 C 1115.41 1311.96 1175.61 1149.04 1182.42 1141.24 C 1186.85 1139.28 1194.69 1139.81 1200.08 1139.56 z M 1182.61 1254.54 C 1188.23 1255.08 1200.57 1255.22 1204.1 1255.67 L 1226.53 1256.43 C 1223.74 1247.85 1207.72 1196.36 1203.26 1193.64 C 1200.85 1207 1188.21 1242.44 1182.61 1254.54 z\"/>\n\t<path transform=\"translate(0,0)\" d=\"M 457.977 1138.12 C 469.616 1140.8 489.42 1139.44 502.558 1140.69 C 509.176 1151.14 520.485 1184.26 525.43 1197.37 C 541.842 1240.53 557.913 1283.82 573.641 1327.24 C 558.037 1327.09 542.44 1327.97 526.773 1327.45 C 522.768 1318.34 516.556 1301.71 513.986 1292.48 C 508.762 1292.92 502.579 1292.87 497.25 1292.95 C 489.363 1292.96 450.703 1291.05 446.707 1292.97 C 439.425 1296.46 433.759 1319.19 430.756 1326.95 C 424.145 1327.78 392.639 1328.31 386.991 1326.61 C 385.547 1322.69 392.041 1307.69 393.711 1303.14 C 400.382 1285.03 407.232 1266.99 414.26 1249.01 C 427.474 1214.38 440.15 1179.22 453.526 1144.63 C 454.676 1141.66 455.482 1140.1 457.977 1138.12 z M 479.749 1255.9 L 501.448 1256.21 C 493.569 1242.85 484.531 1202.65 477.078 1195.61 L 476.798 1196.79 C 474.516 1206.2 457.67 1250.45 458.938 1255.21 C 464.486 1256.56 473.371 1255.72 479.749 1255.9 z\"/>\n\t<path transform=\"translate(0,0)\" d=\"M 992.684 1139.62 C 998.596 1138.92 1037.71 1138.79 1044.13 1139.33 C 1044.56 1144.92 1021.23 1170.64 1016.62 1176.18 L 975.267 1226.35 C 993.764 1252.31 1021.5 1285 1037.87 1310.35 C 1041.36 1315.65 1046.59 1321.36 1050.91 1327.89 C 1036 1328.29 1012.96 1327.81 998.22 1326.83 C 984.466 1315.96 946.296 1251.08 934.57 1251.26 C 929.925 1257.4 931.774 1315.4 931.824 1327.33 C 917.089 1327.52 901.887 1327.92 887.193 1327.51 C 884.493 1292.23 887.081 1248.44 886.329 1212.16 C 886.029 1197.66 885.456 1151.69 887.777 1141.39 C 890.703 1138.38 919.222 1139.19 927.366 1138.55 C 936.115 1138.11 929.089 1207.39 932.414 1211.63 C 936.571 1209.39 982.963 1149.12 991.96 1140.32 L 992.684 1139.62 z\"/>\n\t<path transform=\"translate(0,0)\" d=\"M 726.686 1136.43 C 757.858 1133.24 782.077 1147.45 803.396 1168.46 C 799.586 1173.53 781.168 1191.86 776.19 1195.64 C 771.977 1195.9 755.022 1182.1 742.514 1181.02 C 730.673 1179.48 715.018 1180.33 705.277 1188.28 C 670.626 1216.59 678.763 1281.32 727.969 1286.85 C 747.329 1289.03 760.059 1281.03 774.162 1269.37 C 779.704 1273.7 783.864 1277.7 788.931 1282.5 C 794.48 1286.91 799.93 1291.45 805.279 1296.1 C 770.407 1335.08 709.97 1342.81 669.629 1307.51 C 605.862 1251.7 637.991 1140.88 726.686 1136.43 z\"/>\n\t</g>\n</svg>"};
+;
+/* FRANK'S COMPUTER — ShowMe ERP Classic 4.2: Packa's ERP. Old, grey, not fancy, and it works.
+   It holds the transactions (vendors, customers, inventory, POs, period close); the budget, the forecast and the Board
+   Pack live in Frank's Excel files. That's the joke: the data exists, nothing connects it.
+   CANON: this app must never show a puzzle number (EBITDA, DSCR, capex, payroll, tons, cash, bridge bars, passwords).
+   See docs/CANON_DECISIONS.md → "Packa's ERP". */
+(() => {
+  const $ = FR.$, esc = FR.esc;
+  const PRODUCT = 'ShowMe ERP Classic 4.2';
+  let exported = 1284;   // reports exported to Excel this year; every "Run" adds one (Frank's only workflow)
+
+  const table = (head, rows, cls = '') => `<table class="erp-t ${cls}"><thead><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+    <tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  const kv = rows => `<table class="erp-kv">${rows.map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('')}</table>`;
+  const note = (t, cls = '') => `<div class="erp-note ${cls}">${t}</div>`;
+  const locked = (t, sub) => `<div class="erp-lock">${FR.icon('lock', 32)}<div><b>${t}</b><p>${sub}</p></div></div>`;
+
+  /* ---------- screens (html only; no puzzle numbers) ---------- */
+  const S = {
+    home: ['Home', 'Company 01 &middot; Sedalia, MO', () => `
+      <h3>Welcome, FWARMINGTON</h3>
+      ${kv([
+        ['Company', '01 &mdash; PACKA CORPORATION'],
+        ['Fiscal year', 'Calendar (FY2026)'],
+        ['Current period', 'P10 &mdash; October 2026 <span class="erp-ok">Open</span>'],
+        ['Last period close', 'P09 September 2026 &mdash; closed 10/07/2026 by FWARMINGTON'],
+        ['Last log on', 'FWARMINGTON &middot; 10/16/2026 11:48 PM &middot; this workstation'],
+        ['Database', 'PACKA-SQL01 (server closet, behind the mop bucket)'],
+      ])}
+      <div class="erp-box"><div class="erp-box-h">Messages (4)</div><ul>
+        <li>3 purchase orders are waiting for your approval.</li>
+        <li>Journal entry JE-10-0042 <i>Q3 accrual true-up</i> is waiting for approval by FWARMINGTON.</li>
+        <li>Your password expires in 3 days. <span class="erp-dim">(It has said that since 2017.)</span></li>
+        <li>Your support contract expired on 12/31/2014. Please call your Show-Me representative. <span class="erp-dim">(He retired.)</span></li>
+      </ul></div>`],
+
+    gl: ['General Ledger', 'Periods &middot; Chart of accounts &middot; Journal entries', () => `
+      <h3>Period status &mdash; FY2026</h3>
+      <div class="erp-periods">${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((m, i) =>
+        `<span class="${i < 9 ? 'c' : i === 9 ? 'o' : 'f'}"><b>P${String(i + 1).padStart(2, '0')}</b>${m}<i>${i < 9 ? 'Closed' : i === 9 ? 'Open' : 'Future'}</i></span>`).join('')}</div>
+      <h3>Chart of accounts (excerpt)</h3>
+      ${table(['Account', 'Description', 'Type'], [
+        ['1000', 'Cash &mdash; Operating (Prairie Ledger Bank)', 'Asset'], ['1010', 'Cash &mdash; Payroll clearing', 'Asset'],
+        ['1200', 'Accounts receivable &mdash; Trade', 'Asset'], ['1300', 'Inventory &mdash; Raw materials', 'Asset'],
+        ['1310', 'Inventory &mdash; Finished goods', 'Asset'], ['1500', 'Machinery &amp; equipment', 'Asset'],
+        ['2000', 'Accounts payable &mdash; Trade', 'Liability'], ['2100', 'Accrued payroll', 'Liability'],
+        ['2500', 'Term Loan A &mdash; Prairie Ledger Bank', 'Liability'], ['2510', 'Equipment loan', 'Liability'],
+        ['4000', 'Sales &mdash; Corrugated boxes', 'Revenue'], ['4100', 'Sales &mdash; Die-cut &amp; specialty', 'Revenue'],
+        ['5000', 'COGS &mdash; Materials', 'Expense'], ['5200', 'COGS &mdash; Freight', 'Expense'],
+        ['6000', 'SG&amp;A &mdash; Salaries', 'Expense'], ['6400', 'Rent &amp; leases', 'Expense'], ['6900', 'Other operating expense', 'Expense'],
+      ])}
+      <h3>Journal entries waiting for approval</h3>
+      ${table(['Entry', 'Description', 'Prepared by', 'Status'], [
+        ['JE-10-0042', 'Q3 accrual true-up', 'J. Reyes', '<span class="erp-warn">Waiting for FWARMINGTON</span>'],
+        ['JE-10-0043', 'Reclass: cowboy hat to Marketing', 'D. Hollis', '<span class="erp-bad">Rejected (D. Kessler)</span>'],
+      ])}
+      ${note('Balances: run a Trial Balance from <b>Reports</b>. It exports to Excel. Everything does.')}`],
+
+    ap: ['Accounts Payable', 'Vendor master', () => `
+      ${table(['Vendor', 'Name', 'City', 'Terms', 'Status'], [
+        ['V0101', 'Ozark Kraft Mills', 'Springfield, MO', 'Net 30', 'Active'],
+        ['V0114', 'Sedalia Machine Works', 'Sedalia, MO', 'Net 30', 'Active'],
+        ['V0120', 'Heartland Pallet Co.', 'Warsaw, MO', 'Net 15', 'Active'],
+        ['V0133', 'Katy Freight Lines', 'Sedalia, MO', 'Net 30', 'Active'],
+        ['V0140', 'Sedalia Power &amp; Light', 'Sedalia, MO', 'Net 10', 'Active'],
+        ['V0152', 'Missouri Foam &amp; Crating', 'Columbia, MO', 'Net 30', 'Active'],
+        ['V0166', 'Ink &amp; Plate Supply', 'Kansas City, MO', 'Net 30', 'Active'],
+        ['V0199', 'Sedalia Industrial Park LLC (warehouse lease)', 'Sedalia, MO', 'Monthly', 'Active'],
+        ['V0212', 'Cheat Sheet Club (membership)', 'Riga, Latvia', '&mdash;', '<span class="erp-bad">Blocked: personal expense (D. Kessler)</span>'],
+      ])}
+      ${locked('Invoice history is restricted', 'Paid invoices and payment details need the AP Manager role. Nobody at Packa has had it since 2016.')}`],
+
+    ar: ['Accounts Receivable', 'Customer master', () => `
+      ${table(['Customer', 'Name', 'City', 'Terms', 'Credit'], [
+        ['C1001', 'Katy Trail Bottling Co.', 'Boonville, MO', 'Net 30', 'OK'],
+        ['C1002', 'Sedalia Feed &amp; Seed', 'Sedalia, MO', 'Net 30', 'OK'],
+        ['C1003', 'Lake of the Ozarks Candle Works', 'Osage Beach, MO', 'Net 45', 'OK'],
+        ['C1004', 'Heartland Pet Supply', 'Columbia, MO', 'Net 30', 'OK'],
+        ['C1005', 'Show-Me Barbecue Sauce Co.', 'Kansas City, MO', 'Net 30', 'OK'],
+        ['C1006', 'Mid-Missouri Hardware &amp; Mail Order', 'Jefferson City, MO', 'Net 30', 'OK'],
+        ['C1007', 'State Fair Concessions', 'Sedalia, MO', 'Due on receipt', '<span class="erp-dim">August only</span>'],
+        ['C1008', 'Hollis Western Wear', 'Sedalia, MO', 'Net 60', '<span class="erp-bad">On hold &mdash; "ask Drew" (his cousin)</span>'],
+      ])}`],
+
+    inv: ['Inventory', 'Item master &middot; Warehouse 01', () => `
+      ${table(['Item', 'Description', 'UOM', 'On hand'], [
+        ['FG-RSC-121212', 'Regular slotted carton 12&times;12&times;12', 'EA', '18,400'],
+        ['FG-RSC-181212', 'Regular slotted carton 18&times;12&times;12', 'EA', '9,750'],
+        ['FG-MLR-0906', 'Die-cut mailer 9&times;6', 'EA', '22,300'],
+        ['FG-PAL-4840', 'Pallet box 48&times;40', 'EA', '610'],
+        ['RM-LNR-42', 'Linerboard 42# (rolls)', 'ROLL', '<span class="erp-dim">not tracked here &mdash; count sheet in Karen\'s office</span>'],
+        ['RM-MED-26', 'Corrugating medium 26# (rolls)', 'ROLL', '<span class="erp-dim">see RM-LNR-42</span>'],
+        ['SUP-GLUE', 'Starch adhesive', 'DRUM', '38'],
+      ])}
+      ${note('Last physical count: 06/30/2026. Cycle counts: "soon" (K. Wills).')}`],
+
+    po: ['Purchasing', 'Purchase orders waiting for approval', () => `
+      ${table(['PO', 'Vendor', 'Description', 'Requested by', ''], [
+        ['PO-26-0917', 'Heartland Pallet Co.', 'Pallets, 48&times;40 heat-treated', 'K. Wills', '<button class="erp-b" data-approve>Approve</button>'],
+        ['PO-26-0918', 'Missouri Foam &amp; Crating', 'Foam inserts for the candle account', 'T. Bracken', '<button class="erp-b" data-approve>Approve</button>'],
+        ['PO-26-0919', 'Ink &amp; Plate Supply', 'Flexo plates, new BBQ sauce artwork', 'T. Bracken', '<button class="erp-b" data-approve>Approve</button>'],
+      ])}`],
+
+    prod: ['Production', 'Work orders &middot; Plant', () => `
+      ${kv([['Open work orders', '42'], ['Shifts', 'Two (second shift added in September &mdash; K. Wills)'], ['Machines', 'Flexo folder-gluer, rotary die-cutter, glue station'], ['Days without an incident', '<span class="erp-dim">See the sign. The sign has notes.</span>']])}`],
+
+    pay: ['Payroll &amp; HR', '', () => locked('Module not licensed', "Payroll hasn't run in ShowMe since 2016. It runs on Rachel's spreadsheet and the bank's portal. Headcount questions: Rachel.")],
+
+    bud: ['Budgeting', '', () => `${locked('Budget module: last used FY2019', 'Note on the FY2019 budget, by F. Warmington (03/2019): <i>"Excel is faster."</i><br>The FY27 budget is in My Documents &rsaquo; FY27 Budget. Pick the right version.')}`],
+
+    cash: ['Cash Forecast', '', () => locked('Not included in ShowMe ERP Classic', 'Cash forecasting is part of ShowMe Professional (released 2009). Packa is on Classic. Cash forecasting at Packa lives in Excel.')],
+
+    board: ['Board Reporting', '', () => locked('No Board reporting in ShowMe', "The Board Pack is not an ERP report. It's Frank's folders, Frank's spreadsheets and Frank's head.")],
+
+    rep: ['Reports', 'Report Writer', () => `
+      ${table(['Report', 'Last run', ''], [
+        ['Trial Balance', '10/16/2026 11:31 PM', ''], ['AP Aging', '10/16/2026 11:33 PM', ''], ['AR Aging', '10/16/2026 11:34 PM', ''],
+        ['Inventory Valuation', '09/30/2026 6:12 PM', ''], ['Sales by Customer', '10/05/2026 9:02 AM', ''], ['Vendor 1099 Summary', '01/27/2026 4:40 PM', ''],
+      ].map(r => { r[2] = `<button class="erp-b" data-run="${r[0]}">Run</button>`; return r; }))}
+      ${note(`Reports exported to Excel this year: <b class="erp-count">${exported.toLocaleString('en-US')}</b>`)}`],
+
+    int: ['Integrations', 'Connected systems', () => `
+      ${kv([['Connected systems', 'None'], ['Export formats', 'CSV, fixed-width text, fax'], ['Import', 'Disabled by your administrator (Drew)'], ['Workflow', 'Export &rarr; Excel &rarr; Frank']])}`],
+  };
+
+  const NAV = [
+    ['Company', [['home', 'Home']]],
+    ['Financials', [['gl', 'General Ledger'], ['ap', 'Accounts Payable'], ['ar', 'Accounts Receivable']]],
+    ['Operations', [['inv', 'Inventory'], ['po', 'Purchasing'], ['prod', 'Production']]],
+    ['People', [['pay', 'Payroll &amp; HR']]],
+    ['Planning', [['bud', 'Budgeting'], ['cash', 'Cash Forecast'], ['board', 'Board Reporting']]],
+    ['Tools', [['rep', 'Reports'], ['int', 'Integrations']]],
+  ];
+
+  function about() {
+    FR.dialog({ icon: 'info', title: 'About ' + PRODUCT, width: 400, message: `<b>${PRODUCT}</b> (build 1187)<br>&copy; 1998&ndash;2011 Show-Me Business Systems, Inc., Jefferson City, Missouri<br><br>Licensed to: PACKA CORPORATION (5 users)<br>Support contract: expired 12/31/2014<br><br><i>"It's not fancy. It works."</i>` });
+  }
+
+  function erp() {
+    if (FR.wm.wins.has('erp')) { const w = FR.wm.wins.get('erp'); w.restore(); w.focus(); return w; }
+    const root = $(`<div class="erp">
+      <div class="erp-top"><div class="erp-brand"><b>ShowMe</b> ERP <span>Classic</span></div><div class="erp-co">PACKA CORPORATION &middot; Company 01</div></div>
+      <div class="erp-main"><nav class="erp-nav">${NAV.map(([g, items]) => `<div class="erp-g">${g}</div>${items.map(([k, t]) => `<button class="erp-n" data-k="${k}">${t}</button>`).join('')}`).join('')}</nav>
+      <div class="erp-pane"></div></div></div>`);
+    const pane = root.querySelector('.erp-pane');
+    const show = k => {
+      const [t, sub, body] = S[k];
+      root.querySelectorAll('.erp-n').forEach(b => b.classList.toggle('on', b.dataset.k === k));
+      pane.innerHTML = `<div class="erp-h"><b>${t}</b><span>${sub}</span></div><div class="erp-body">${body()}</div>`;
+      pane.scrollTop = 0;
+      win.setStatus(0, `<span>${t.replace(/&amp;/g, '&')}</span>`);
+    };
+    const menu = [
+      { label: 'File', items: [{ label: 'Print...', action: () => FR.dialog({ icon: 'error', title: PRODUCT, message: 'Printer "HP LaserJet 4 — Finance (no toner)" is not responding.' }) }, { sep: true }, { label: 'Exit', action: () => win.close() }] },
+      { label: 'Modules', items: NAV.flatMap(([, items]) => items).map(([k, t]) => ({ label: t.replace(/&amp;/g, '&'), action: () => show(k) })) },
+      { label: 'Help', items: [{ label: 'Contents', action: () => FR.dialog({ icon: 'warn', title: PRODUCT, message: 'Help file SHOWME.HLP not found.<br><br>(It was on a floppy disk.)' }) }, { label: 'Contact support...', action: () => FR.dialog({ icon: 'info', title: PRODUCT, message: 'Your support contract expired on 12/31/2014.<br><br>Please call your Show-Me representative. (He retired.)' }) }, { sep: true }, { label: 'About ShowMe ERP', action: about }] },
+    ];
+    const small = innerWidth < 900;
+    const win = FR.wm.open({ id: 'erp', title: `${PRODUCT} — PACKA CORPORATION — FWARMINGTON`, icon: 'erp', width: 820, height: 540, maximized: small, className: 'erp-win', menu, content: root,
+      statusBar: ['Home', 'User: FWARMINGTON', 'Period: P10 Oct 2026 (Open)', 'PACKA-SQL01'] });
+    root.addEventListener('click', e => {
+      const n = e.target.closest('.erp-n'); if (n) { FR.sound.play('click'); show(n.dataset.k); return; }
+      if (e.target.closest('[data-approve]')) {
+        FR.dialog({ icon: 'lock', title: PRODUCT, message: 'Approval requires the approver\'s password.<br><br>The approver is FWARMINGTON. The approver is not here.' });
+        return;
+      }
+      const r = e.target.closest('[data-run]');
+      if (r) {
+        r.disabled = true; r.textContent = 'Running…';
+        setTimeout(() => {
+          exported++;
+          const c = pane.querySelector('.erp-count'); if (c) c.textContent = exported.toLocaleString('en-US');
+          if (r.isConnected) { r.disabled = false; r.textContent = 'Run'; }
+          const file = `${r.dataset.run.replace(/[^A-Za-z0-9]+/g, '_')}_P10_2026 (${exported}).csv`;
+          FR.dialog({ icon: 'info', title: 'ShowMe Report Writer', width: 430, message: `The report is too wide for the screen (214 columns).<br><br>Exported to <b>C:\\ShowMe\\Exports\\${esc(file)}</b> instead.<br><br><span style="color:#666">Frank opens these in Excel. Then he builds another spreadsheet.</span>` });
+        }, 900);
+      }
+    });
+    show('home');
+    return win;
+  }
+  FR.apps.erp = erp;
+})();
+
 ;
 /* Frank's Computer — "Microsoft Excel 2003" clone: formula engine, grid UI, Frank's workbooks */
 (() => {
@@ -8447,6 +8679,7 @@ Website:      still says 'Director'. Steve. Don't ask.
       { n: 'Internet Explorer', i: 'ie', a: () => FR.apps.ie(null) },
       { n: 'Outlook Express', i: 'mail', a: () => FR.apps.mail(null) },
       { n: 'Microsoft Excel', i: 'excel', a: () => FR.apps.excel(null) },
+      { n: 'ShowMe ERP', i: 'erp', a: () => FR.apps.erp() },
       { n: 'Board Pack — TO DO', i: 'checklist', a: () => openChecklist() },
       ...(FR.score.available() ? [{ n: 'Who Covered for Frank?', i: 'ie', a: () => FR.score.open(), shortcut: true }] : []),
       ...FR.fs.children('desktop', { showHidden: false }).map(n => ({ n: n.name, i: n.icon, a: () => FR.openFile(n), node: n })),
@@ -8594,7 +8827,7 @@ Website:      still says 'Director'. Steve. Don't ask.
       <div class="fr-start-body"><div class="fr-start-l"></div><div class="fr-start-r"></div></div><div class="fr-start-foot"></div></div>`);
     const L = m.querySelector('.fr-start-l'), R = m.querySelector('.fr-start-r'), F = m.querySelector('.fr-start-foot');
     L.append(it('ie', 'Internet', 'Internet Explorer', () => FR.apps.ie(null)), it('mail', 'E-mail', 'Outlook Express', () => FR.apps.mail(null)), $('<div class="fr-sm-sep"></div>'),
-      it('excel', 'Microsoft Excel', '', () => FR.apps.excel(null)), it('checklist', 'Board Pack — TO DO', '', openChecklist), it('notepad', 'Notepad', '', () => FR.apps.notepad(null)), it('calc', 'Calculator', '', () => FR.apps.calc()),
+      it('excel', 'Microsoft Excel', '', () => FR.apps.excel(null)), it('erp', 'ShowMe ERP', 'Packa Corporation', () => FR.apps.erp()), it('checklist', 'Board Pack — TO DO', '', openChecklist), it('notepad', 'Notepad', '', () => FR.apps.notepad(null)), it('calc', 'Calculator', '', () => FR.apps.calc()),
       ...(FR.score.available() ? [it('ie', 'Who Covered for Frank?', 'Board Pack Rescue leaderboard', () => FR.score.open())] : []),
       ...(FR.puzzle.isSolved('frank') ? [it('star', 'Show the ending again', '', () => ending())] : []),
       $('<div class="fr-sm-sep"></div>'), it('star', 'All Programs', '', () => FR.dialog({ icon: 'info', title: 'All Programs', message: 'Frank uninstalled everything except Excel, Outlook and Solitaire.<br>Then he uninstalled Solitaire.' }), 'fr-sm-all'));

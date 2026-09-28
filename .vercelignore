@@ -5,3 +5,4 @@ test/play.py
 INSTALL_WITH_CLAUDE_CODE.md
 test/account_play.py
 test/score_play.py
+test/erp_play.py

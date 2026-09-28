@@ -13,7 +13,8 @@
   // dev shortcuts (?dev=1, ?solve=) only work locally, never on the public site
   const LOCAL = location.protocol === 'file:' || /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname);
   const DEV = LOCAL && q.has('dev');
-  const LOGO = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(PACKA_LOGO())));
+  // the real Packa mark (src/packa-logo-white.svg, embedded by build.py); every place it appears is a dark background
+  const LOGO = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(FR.data.logo.markWhite)));
 
   // Render every icon once, off-screen, so gradient ids always resolve (even when the first copy is hidden)
   const sprite = $('<div class="fr-sprite" aria-hidden="true"></div>');
@@ -120,7 +121,7 @@
 
   function boot() {
     const el = $(`<div class="fr-screen fr-boot">
-      <div class="fr-boot-logo"><img src="${LOGO}" alt=""><div>Packa Corp<small>WORKSTATION · PACKA-FPA-01</small></div></div>
+      <div class="fr-boot-logo"><img src="${LOGO}" alt=""><div>Packa Corporation<small>WORKSTATION · PACKA-FPA-01</small></div></div>
       <div class="fr-boot-bar"><i><b></b><b></b><b></b></i></div>
       <div class="fr-boot-foot"><span>Copyright © Packa Corporation IT</span><span>Loading Frank's profile…</span></div></div>`);
     show(el);
@@ -136,7 +137,7 @@
     const el = $(`<div class="fr-screen fr-login">
       <div class="fr-login-top"></div>
       <div class="fr-login-mid">
-        <div class="fr-login-left"><div class="fr-brand"><img src="${LOGO}" alt="">Packa<sup>corp</sup></div><p>Frank's account is the only one. Obviously.</p></div>
+        <div class="fr-login-left"><div class="fr-brand"><img src="${LOGO}" alt="Packa Corporation logo"><div>PACKA CORPORATION<small>Packaging &amp; Corrugated Products</small></div></div><p>Frank's account is the only one. Obviously.</p></div>
         <div class="fr-login-div"></div>
         <div class="fr-login-right">
           <div class="fr-user"><div class="fr-avatar"><img src="${FR.data.images.frankAvatar}" alt="Frank's account picture"></div>
@@ -653,10 +654,6 @@
   /* =========================================================== ART */
   function WALLPAPER() {
     return `<img class="fr-wall-img" src="${FR.data.images.wallpaper}" alt="" draggable="false">`;
-  }
-  function PACKA_LOGO() {
-    // simplified Packa hex-box mark (from the company logo colours)
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><path d="M32 3 56 16v28L32 61 8 44V16z" fill="#a33a1e"/><path d="M32 3 56 16 32 29 8 16z" fill="#c9582f"/><path d="M32 29v32L8 44V16z" fill="#7e2a14"/><path d="M18 21l24 13" stroke="#f2efe9" stroke-width="4"/><path d="M20 46v-9l8 4.5" fill="none" stroke="#f2efe9" stroke-width="3"/></svg>`;
   }
 
   /* =========================================================== START */

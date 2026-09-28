@@ -11,6 +11,15 @@ xp = re.sub(r'@font-face\{[^}]*\}', '', xp)  # all external woff files (we don't
 css = xp + '\n' + rd(os.path.join(src, 'core.css')) + '\n' + rd(os.path.join(src, 'account.css')) + '\n' + '\n'.join(rd(p) for p in sorted(glob.glob(os.path.join(src, 'apps', '*.css'))))
 order = ['core.js', 'icons.js', 'fs.js', 'assets.js', 'sounds.js', 'account.js']
 js = '\n;\n'.join(rd(os.path.join(src, f)) for f in order)
+# the real Packa logo (src/packa-logo*.svg): the box mark sits above the PACKA letters, so cropping the viewBox
+# to the top gives the mark alone (for the Start button, boot screen and favicon)
+MARK_VIEWBOX = 'viewBox="380 115 720 960"'
+logo_full = rd(os.path.join(src, 'packa-logo.svg')).strip()
+logo_full_white = rd(os.path.join(src, 'packa-logo-white.svg')).strip()
+crop = lambda svg: re.sub(r'viewBox="[^"]*"', MARK_VIEWBOX, svg, count=1)
+import json
+logos = {'mark': crop(logo_full), 'markWhite': crop(logo_full_white)}
+js += '\n;\nFR.data.logo = ' + json.dumps(logos) + ';'
 js += '\n;\n' + '\n;\n'.join(rd(p) for p in sorted(glob.glob(os.path.join(src, 'apps', '*.js'))))
 js += '\n;\n' + rd(os.path.join(src, 'boot.js'))
 js = js.replace('</script', '<\\/script')
@@ -27,7 +36,8 @@ if not page_url and os.environ.get('VERCEL_PROJECT_PRODUCTION_URL'):
 desc = meta.get('description', "Frank, Packa Corp's FP&A manager, is missing. The Board meets at 9:00 AM. All you have is his computer.")
 og_img = meta.get('image', 'og-image.png')
 if page_url and not og_img.startswith('http'): og_img = page_url.rstrip('/') + '/' + og_img
-FAV = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M32 3 56 16v28L32 61 8 44V16z' fill='%23a33a1e'/%3E%3Cpath d='M32 3 56 16 32 29 8 16z' fill='%23c9582f'/%3E%3Cpath d='M32 29v32L8 44V16z' fill='%237e2a14'/%3E%3C/svg%3E"
+import urllib.parse
+FAV = 'data:image/svg+xml,' + urllib.parse.quote(logos['mark'], safe='')
 e = lambda x: _h.escape(x, quote=True)
 head_extra = (f'<meta name="description" content="{e(desc)}">'
               f'<meta property="og:type" content="website"><meta property="og:title" content="{e(title)}">'

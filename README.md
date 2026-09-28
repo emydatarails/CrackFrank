@@ -15,7 +15,7 @@ player accounts (`/api/*`, see below).
 
 | Path | What it is |
 |---|---|
-| `src/` | Game source: `core.js` (window manager, state, dialogs), `fs.js` (virtual file system), `boot.js` (intro, login, desktop, checklist, ending, config defaults), `apps/*.js|css` (Excel, Outlook Express, Explorer, IE, Notepad …), `assets.js` (embedded images), `sounds.js` (embedded Windows XP sounds), `xp.css` (XP.css 0.2.6). |
+| `src/` | Game source (the real Packa logo is `packa-logo.svg` / `packa-logo-white.svg`, embedded by `build.py`): `core.js` (window manager, state, dialogs), `fs.js` (virtual file system), `boot.js` (intro, login, desktop, checklist, ending, config defaults), `apps/*.js|css` (Excel, Outlook Express, Explorer, IE, Notepad …), `assets.js` (embedded images), `sounds.js` (embedded Windows XP sounds), `xp.css` (XP.css 0.2.6). |
 | `src/account.js`, `src/account.css` | Player sign-in screen and cloud save (talks to `api/`). |
 | `api/` | Vercel functions for player accounts: `register`, `login`, `logout`, `me`, `save` (shared code in `_lib.js`). No npm dependencies. |
 | `build.py` | Concatenates `src/` into `dist/index.html` and copies `public/` next to it. Python 3, standard library only. |

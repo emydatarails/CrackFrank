@@ -374,6 +374,41 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
 .fr-intro .fr-save-line a { color: #17263f; font-weight: 700; }
 @media (max-width: 520px) { .fr-acct .fr-stamp { position: static; display: inline-block; margin: -10px 0 12px; transform: rotate(-3deg); font-size: 16px; } }
 
+/* Live Standings page on the in-game Excel World Championship site (src/score.js; base .ch styles in apps/shell.css) */
+.st-nav { background: #e3e9f5; border-bottom: 1px solid #c5cde0; padding: 0 18px; display: flex; gap: 2px; font-size: 12px; }
+.st-nav a { padding: 6px 12px; color: #1f3f7a; cursor: pointer; text-decoration: underline; }
+.st-nav a.on { background: #fff; font-weight: bold; text-decoration: none; cursor: default; border: 1px solid #c5cde0; border-bottom-color: #fff; margin-bottom: -1px; }
+.st-live { display: inline-flex; align-items: center; gap: 6px; font: bold 11px Verdana, sans-serif; color: #c0161b; letter-spacing: 1px; margin-top: 6px; }
+.st-live i { width: 9px; height: 9px; border-radius: 50%; background: #e0201f; animation: stBlink 1.2s steps(2, start) infinite; }
+@keyframes stBlink { to { visibility: hidden; } }
+.st-mine { background: #fff6d6; border: 1px solid #e3cf6a; padding: 6px 10px; margin: 0 0 12px; font-size: 12px; }
+.st-t td, .st-t th { white-space: nowrap; }
+.st-t td.st-name { white-space: normal; word-break: break-word; font-weight: bold; color: #1f3f7a; }
+.st-t td.st-score { font: bold 13px Verdana, sans-serif; text-align: right; }
+.st-t th:nth-child(3) { text-align: right; }
+.st-rank span { display: inline-block; min-width: 20px; text-align: center; font-weight: bold; color: #555; }
+.st-m1 span, .st-m2 span, .st-m3 span { border-radius: 50%; width: 22px; height: 22px; line-height: 22px; color: #fff; text-shadow: 0 1px 1px rgba(0,0,0,.4); }
+.st-m1 span { background: radial-gradient(circle at 35% 30%, #ffe680, #d4a017); }
+.st-m2 span { background: radial-gradient(circle at 35% 30%, #f2f2f2, #9da3ab); }
+.st-m3 span { background: radial-gradient(circle at 35% 30%, #f1c08f, #b06a2c); }
+.st-done { color: #1d6b3a; font-weight: bold; }
+.st-t tr.st-me td { background: #fff3b0; }
+.st-t tr.st-gap td { text-align: center; color: #999; padding: 1px; }
+.st-msg { margin: 18px 0; padding: 16px; text-align: center; color: #444; border: 1px dashed #c5cde0; background: #f7f9fd; }
+.st-msg small { color: #777; }
+.st-note { margin: 8px 0 0; color: #555; font-size: 11px; }
+.st-count { margin: 6px 0 0; color: #666; font-size: 11px; }
+@media (max-width: 560px) { .st-t th:nth-child(5), .st-t td:nth-child(5), .st-t th:nth-child(7), .st-t td:nth-child(7) { display: none; } }
+/* score on the checklist footer and the ending screen */
+.ck-foot a.ck-score { color: #0b3fa8; font-weight: 700; }
+.fr-end-stats .fr-end-score { border-color: #ffcf5a; }
+.fr-end-stats .fr-end-score b { color: #ffcf5a; }
+.fr-end-card p.fr-end-rank { font-size: 14px; color: #fff; min-height: 1em; margin: -6px auto 8px; }
+.fr-end-card p.fr-end-rank:empty { display: none; }
+/* desktop shortcut to the standings: the little Windows shortcut arrow */
+.fr-dicon-lnk .fr-ico { position: relative; }
+.fr-dicon-lnk .fr-ico::after { content: ''; position: absolute; left: 0; bottom: 0; width: 11px; height: 11px; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11 11'%3E%3Cpath d='M2.5 8.5C3 5.5 4.5 4 7.5 4V2l2.5 2.8-2.5 2.7V5.6C5.5 5.6 4 6.4 2.5 8.5z' fill='%230b3fa8'/%3E%3C/svg%3E") center / 11px no-repeat; border: 1px solid #7a7a7a; box-sizing: border-box; }
+
 /* ===== Microsoft Excel 2003 clone (xl-) ===== */
 .xl-win { display: flex; flex-direction: column; }
 .xl-win > .fr-body, .xl-win .window-body.fr-body { flex: 1 1 auto; min-height: 0; margin: 0 !important; padding: 0 !important; display: flex; flex-direction: column; overflow: hidden; }
@@ -1855,6 +1890,9 @@ FR.apps = FR.apps || {};
     }, () => {});
   };
 
+  // send any unsaved progress now (the Live Standings page calls this before loading)
+  A.sync = () => flush(false);
+
   A.signOut = () => Promise.resolve(flush(false))
     .then(() => api('logout', 'POST', {}).catch(() => {}))
     .then(() => { clearTimeout(timer); A.user = null; localReset(); store.set(OWNER, ''); store.del(GUEST); store.del(SYNC); location.reload(); });
@@ -1916,6 +1954,117 @@ FR.apps = FR.apps || {};
     document.getElementById('fr-root').appendChild(el);
     setTimeout(() => u.focus(), 50);
   });
+})();
+
+;
+/* FRANK'S COMPUTER — scoring rules. ONE copy, used by the game (build.py concatenates it) and by the scoreboard
+   server (api/_lib.js requires it), so the score a player sees is exactly the score on the board.
+   Change the numbers here only. */
+(() => {
+  const R = {
+    ITEMS: ['login', 'version', 'unlock', 'ebitda', 'dscr', 'cash', 'bridge', 'forboard', 'send', 'frank'],
+    PER_SOLVED: 1000,      // each checklist item done
+    PER_WRONG: 50,         // each wrong guess (password boxes, checklist answers)
+    PER_HINT: 100,         // each hint after the free ones
+    FREE_HINTS: 10,        // every player gets this many hints at no cost
+    MAX_HINTS_PER_ITEM: 3,
+  };
+
+  // state = FR.state (or a saved copy of it). Never trusts the shape: anything odd counts as zero.
+  R.calc = st => {
+    st = st && typeof st === 'object' ? st : {};
+    const solvedMap = st.solved && typeof st.solved === 'object' ? st.solved : {};
+    const hintMap = st.hintsUsed && typeof st.hintsUsed === 'object' ? st.hintsUsed : {};
+    const solved = R.ITEMS.filter(id => solvedMap[id]).length;
+    const hints = R.ITEMS.reduce((n, id) => { const h = Math.floor(+hintMap[id]); return n + (h > 0 ? Math.min(h, R.MAX_HINTS_PER_ITEM) : 0); }, 0);
+    const w = Math.floor(+st.wrong);
+    const wrong = w > 0 ? Math.min(w, 1e6) : 0;
+    const paidHints = Math.max(0, hints - R.FREE_HINTS);
+    const score = Math.max(0, solved * R.PER_SOLVED - wrong * R.PER_WRONG - paidHints * R.PER_HINT);
+    const finished = solved === R.ITEMS.length;
+    const t = +(finished && st.finishPlayMs != null ? st.finishPlayMs : st.playMs);
+    const timeMs = t > 0 && isFinite(t) ? Math.floor(t) : 0;
+    return { score, solved, total: R.ITEMS.length, hints, paidHints, freeLeft: Math.max(0, R.FREE_HINTS - hints), wrong, finished, timeMs };
+  };
+
+  // sort key for the board: higher score first, then less time at the desk
+  R.rankValue = c => c.score * 1e7 + (1e7 - 1 - Math.min(Math.floor(c.timeMs / 1000), 1e7 - 1));
+
+  if (typeof module === 'object' && module.exports) module.exports = R;
+  else window.FR.scoreRules = R;
+})();
+
+;
+/* FRANK'S COMPUTER — score and the Live Standings page. Rules: src/score_rules.js (shared with the server).
+   The standings are a page on the in-game Excel World Championship site (championship.example/standings), shown by
+   Frank's Internet Explorer (src/apps/shell.js) and filled from GET /api/scores. They need the player-account server
+   (FR.account.available); without it the score still shows in the game and the page says the standings are offline. */
+(() => {
+  const esc = FR.esc, R = FR.scoreRules;
+  const fmt = n => Math.round(n).toLocaleString('en-US');
+  const dur = ms => FR.clock && FR.clock.dur ? FR.clock.dur(ms) : Math.round(ms / 60000) + ' min';
+  const URL_ = 'http://championship.example/standings';
+  const TITLE = 'Board Pack Rescue — Live Standings';
+
+  FR.score = {
+    rules: R,
+    fmt,
+    url: URL_,
+    title: TITLE,
+    now: () => R.calc(FR.state),
+    available: () => !!(FR.account && FR.account.available),
+    // the standings, with the signed-in player's latest progress sent first so their row is current
+    fetch: () => Promise.resolve(FR.account && FR.account.sync ? FR.account.sync() : null)
+      .then(() => fetch('/api/scores', { credentials: 'same-origin', cache: 'no-store' }))
+      .then(r => r.ok ? r.json() : Promise.reject(new Error('scores ' + r.status))),
+    // open the standings in Frank's Internet Explorer (closing the ending screen, which sits on top of the desktop)
+    open: () => { document.querySelectorAll('.fr-end').forEach(e => e.remove()); FR.apps.ie(URL_); },
+    render,
+    rulesLine: () => `Each riddle solved +${fmt(R.PER_SOLVED)} · each wrong answer −${R.PER_WRONG} · ${R.FREE_HINTS} free hints, then −${R.PER_HINT} per hint`,
+  };
+
+  const shell = inner => `<div class="ch st">
+    <div class="ch-top"><b>MICROSOFT EXCEL WORLD CHAMPIONSHIP</b> &middot; Las Vegas, NV &middot; October 17&ndash;19, 2026</div>
+    <div class="st-nav"><a class="cc-lnk" data-url="http://championship.example/schedule">Schedule</a><a class="on">Live Standings</a></div>
+    <div class="ch-body">
+      <div class="st-live"><i></i>LIVE</div>
+      <h1>${esc(TITLE)}</h1>
+      <p class="ch-sub"><b>Desk Division</b> &mdash; the only event played from home. Half the FP&amp;A world is in Vegas this week, and somebody still has to finish the Board Pack before the 9:00 AM Board meeting. Ranked by points, then by time at the desk.</p>
+      ${inner}
+      <div class="ch-note"><b>Scoring.</b> ${esc(FR.score.rulesLine())}. Your first finished Board Pack is the one that counts.</div>
+      <div class="ch-foot">Standings update live; press Refresh for the latest. Sponsored by the Spreadsheet Speedrun Association. Not affiliated with any finance software company. Especially not with the one that keeps emailing us.</div>
+    </div></div>`;
+
+  const medal = r => r <= 3 ? ` st-m${r}` : '';
+  const row = (e, me) => `<tr class="${me ? 'st-me' : ''}"><td class="st-rank${medal(e.rank)}"><span>${e.rank}</span></td>
+    <td class="st-name">${esc(e.name)}${me ? ' <i>(you)</i>' : ''}</td><td class="st-score">${fmt(e.score)}</td>
+    <td>${e.finished ? '<span class="st-done">Board Pack sent</span>' : `At the desk &middot; ${e.solved}/${R.ITEMS.length}`}</td>
+    <td>${e.hints}</td><td>${e.wrong}</td><td>${esc(dur(e.timeMs))}</td></tr>`;
+
+  // fill an IE page element; isCurrent() is false once the player has navigated away (the answer arrives late)
+  function render(page, isCurrent = () => true) {
+    const c = FR.score.now();
+    const mine = c.solved ? `<div class="st-mine"><b>Your Board Pack right now:</b> ${fmt(c.score)} points &middot; ${c.solved}/${c.total} done &middot; ${c.hints} hint${c.hints === 1 ? '' : 's'} (${c.freeLeft} free left) &middot; ${c.wrong} wrong</div>` : '';
+    if (!FR.score.available()) {
+      page.innerHTML = shell(`${mine}<div class="st-msg">The live standings are offline. (The championship Wi-Fi is also in Vegas.)<br><small>They're in the online game, for players with a player account.</small></div>`);
+      return;
+    }
+    page.innerHTML = shell(`${mine}<div class="st-msg">Loading standings&hellip;</div>`);
+    FR.score.fetch().then(d => {
+      if (!isCurrent() || !page.isConnected) return;
+      const signedIn = !!(FR.account && FR.account.user);
+      const note = !signedIn ? `<p class="st-note">You're playing without a badge (no player account), so you're not in the standings. Create a player on the start screen to enter.</p>`
+        : !d.me ? `<p class="st-note">You'll appear here once you've ticked off your first item.</p>`
+        : d.me.finished && !c.finished ? `<p class="st-note">Your standing is from your first finished Board Pack: ${fmt(d.me.score)} points.</p>` : '';
+      if (!d.top.length) { page.innerHTML = shell(`${mine}<div class="st-msg">No entries yet. The Desk Division is wide open.</div>${note}`); return; }
+      const meRank = d.me ? d.me.rank : -1;
+      page.innerHTML = shell(`${mine}<table class="ch-t st-t"><thead><tr><th>#</th><th>Player</th><th>Points</th><th>Status</th><th>Hints</th><th>Wrong</th><th>Time</th></tr></thead><tbody>
+        ${d.top.map(e => row(e, e.rank === meRank)).join('')}
+        ${d.me && !d.me.inTop ? `<tr class="st-gap"><td colspan="7">&hellip;</td></tr>${row(d.me, true)}` : ''}
+        </tbody></table><p class="st-count">${fmt(d.players)} player${d.players === 1 ? '' : 's'} in the Desk Division</p>${note}`);
+      const me = page.querySelector('.st-me'); if (me) me.scrollIntoView({ block: 'nearest' });
+    }, () => { if (isCurrent() && page.isConnected) page.innerHTML = shell(`${mine}<div class="st-msg">The standings didn't load. Press Refresh to try again.</div>`); });
+  }
 })();
 
 ;
@@ -7349,6 +7498,7 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
         ${row('Mon 10/19, 7:00 PM', '<b>GRAND FINAL</b> &mdash; live on the big screen', 'Pool deck')}
         ${row('Tue 10/20, 11:00 AM', 'Awards brunch. Flights home. Reality.', 'Caf&eacute; Sierra')}
         </table>
+        <div class="ch-note"><b>Can't make it to Vegas?</b> The Desk Division plays from home. <a class="cc-lnk" data-url="http://championship.example/standings">&raquo; Board Pack Rescue &mdash; Live Standings</a></div>
         <div class="ch-note"><b>Team entries close Friday 10/16.</b> Companion registrations must match the name on the boarding pass. No exceptions, no "he is basically my colleague".</div>
         <div class="ch-foot">Sponsored by the Spreadsheet Speedrun Association. Not affiliated with any finance software company. Especially not with the one that keeps emailing us.</div>
       </div></div>`;
@@ -7362,7 +7512,7 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
     const host = u.hostname.toLowerCase().replace(/^www\./, '');
     if (host === 'packacorp.com') return { kind: 'site', url: SITE + (u.pathname || '/') + u.search + u.hash, path: u.pathname || '/' };
     if (host === 'cheatsheetclub.example') { const sub = (u.pathname.replace(/^\/kristians\/?/, '').split('/')[0] || '').toLowerCase(); return { kind: 'club', url: CLUB + (sub ? '/' + sub : ''), sub: ['sheets', 'gallery', 'webinars', 'links', 'prev', 'next'].includes(sub) ? sub : '' }; }
-    if (host === 'championship.example') return { kind: 'champ', url: u.href };
+    if (host === 'championship.example') return /^\/standings/i.test(u.pathname) ? { kind: 'standings', url: 'http://championship.example/standings' } : { kind: 'champ', url: u.href };
     if (host === 'datarails.com' || host.endsWith('.datarails.com')) return { kind: 'blocked', url: u.href };
     return { kind: 'error', url: u.href };
   }
@@ -7445,6 +7595,10 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
         page.innerHTML = clubPage(r.sub); win.setTitle("Kristians' Cheat Sheet Club :: Unofficial Fan Site (of the official club) - Internet Explorer"); status('Done');
       } else if (r.kind === 'champ') {
         page.innerHTML = champPage(); win.setTitle('Microsoft Excel World Championship — Schedule - Internet Explorer'); status('Done');
+      } else if (r.kind === 'standings') {
+        // the players' Live Standings (src/score.js); it loads from the account server, so it can arrive after a navigation
+        win.setTitle(`${FR.score.title} - Internet Explorer`); status('Done');
+        FR.score.render(page, () => cur() === r);
       } else if (r.kind === 'blank') {
         page.innerHTML = '<div class="ie-blank"></div>'; win.setTitle('about:blank - Internet Explorer'); status('Done');
       } else {
@@ -8170,7 +8324,8 @@ Website:      still says 'Director'. Steve. Don't ask.
   }
 
   function confirmStartOver() {
-    return FR.dialog({ icon: 'warn', title: 'Start over', message: "Start over from the beginning?<br><br>Everything you've done at Frank's desk will be erased: the checklist, hints and time.", buttons: ['Start over', 'Cancel'] })
+    const keeps = FR.account && FR.account.user && FR.puzzle.isSolved('frank') ? '<br><br>Your place in the Live Standings stays: only your first finished game counts.' : '';
+    return FR.dialog({ icon: 'warn', title: 'Start over', message: "Start over from the beginning?<br><br>Everything you've done at Frank's desk will be erased: the checklist, hints and time." + keeps, buttons: ['Start over', 'Cancel'] })
       .then(r => { if (r.button === 'Start over') Promise.resolve(FR.resetSave()).then(() => location.reload()); });
   }
 
@@ -8275,13 +8430,14 @@ Website:      still says 'Director'. Steve. Don't ask.
       { n: 'Outlook Express', i: 'mail', a: () => FR.apps.mail(null) },
       { n: 'Microsoft Excel', i: 'excel', a: () => FR.apps.excel(null) },
       { n: 'Board Pack — TO DO', i: 'checklist', a: () => openChecklist() },
+      ...(FR.score.available() ? [{ n: 'Vegas Live Standings', i: 'ie', a: () => FR.score.open(), shortcut: true }] : []),
       ...FR.fs.children('desktop', { showHidden: false }).map(n => ({ n: n.name, i: n.icon, a: () => FR.openFile(n), node: n })),
     ];
     const box = el.querySelector('.fr-icons');
     const touch = matchMedia('(pointer: coarse)').matches;
     icons.forEach(ic => {
       // long file names: allow breaks after _ and . ; two lines max (full name on hover / when selected)
-      const d = $(`<div class="fr-dicon" tabindex="0">${FR.icon(ic.i, 32)}<span class="fr-dl">${esc(ic.n).replace(/([_.])/g, '$1<wbr>')}</span></div>`);
+      const d = $(`<div class="fr-dicon${ic.shortcut ? ' fr-dicon-lnk' : ''}" tabindex="0">${FR.icon(ic.i, 32)}<span class="fr-dl">${esc(ic.n).replace(/([_.])/g, '$1<wbr>')}</span></div>`);
       d.title = ic.n;
       const select = () => { box.querySelectorAll('.sel').forEach(s => s.classList.remove('sel')); d.classList.add('sel'); };
       d.onclick = e => { e.stopPropagation(); select(); if (touch) ic.a(); };
@@ -8421,6 +8577,7 @@ Website:      still says 'Director'. Steve. Don't ask.
     const L = m.querySelector('.fr-start-l'), R = m.querySelector('.fr-start-r'), F = m.querySelector('.fr-start-foot');
     L.append(it('ie', 'Internet', 'Internet Explorer', () => FR.apps.ie(null)), it('mail', 'E-mail', 'Outlook Express', () => FR.apps.mail(null)), $('<div class="fr-sm-sep"></div>'),
       it('excel', 'Microsoft Excel', '', () => FR.apps.excel(null)), it('checklist', 'Board Pack — TO DO', '', openChecklist), it('notepad', 'Notepad', '', () => FR.apps.notepad(null)), it('calc', 'Calculator', '', () => FR.apps.calc()),
+      ...(FR.score.available() ? [it('ie', 'Live Standings', 'Excel World Championship', () => FR.score.open())] : []),
       ...(FR.puzzle.isSolved('frank') ? [it('star', 'Show the ending again', '', () => ending())] : []),
       $('<div class="fr-sm-sep"></div>'), it('star', 'All Programs', '', () => FR.dialog({ icon: 'info', title: 'All Programs', message: 'Frank uninstalled everything except Excel, Outlook and Solitaire.<br>Then he uninstalled Solitaire.' }), 'fr-sm-all'));
     R.append(it('mydocs', 'My Documents', '', () => FR.apps.explorer('mydocs')), it('image', 'My Pictures', '', () => FR.apps.explorer('pics')), it('computer', 'My Computer', '', () => FR.apps.explorer('mycomputer')),
@@ -8458,7 +8615,7 @@ Website:      still says 'Director'. Steve. Don't ask.
       <h3>How to play</h3><p>Open <b>Board Pack — TO DO</b> (desktop or the clipboard in the tray) to see where you stand. Items unlock one by one. The orange dots show how hard each one is. Each one has <b>Look in</b> shortcuts that open the right folder, email or web page. Some items tick themselves when you crack something in Excel or Outlook; others ask you to pick or type an answer.</p>
       <p>Double-click to open files and folders. Right-click files (on the desktop too) for Properties. Excel works like Excel: type formulas, and select cells to see their Sum in the status bar.</p>
       <h3>Where are the clues?</h3><p>In Frank's email, his Excel files, his folders (some are hidden), his Recycle Bin, and on <a href="${CONFIG.siteUrl}" target="_blank" rel="noopener">www.packacorp.com</a> — the company website. Keep it open in another tab.</p>
-      <h3>Stuck?</h3><p>Emily from finance installed a Datarails FinanceOS trial on Frank's machine (day 13 of 14). Every checklist item has an <b>Ask FinanceOS</b> button with three hints, from a gentle nudge to the full answer. Hints count toward your final score.</p>
+      <h3>Stuck?</h3><p>Emily from finance installed a Datarails FinanceOS trial on Frank's machine (day 13 of 14). Every checklist item has an <b>Ask FinanceOS</b> button with three hints, from a gentle nudge to the full answer.</p><h3>Score</h3><p>${esc(FR.score.rulesLine())}.${FR.score.available() ? ' Signed-in players are ranked on the <b>Live Standings</b> of the Excel World Championship site (the shortcut on the desktop); your first finished game is the one that counts.' : ''}</p>
       <h3>Progress</h3><p>Your progress saves in this browser. Log off and come back any time.</p></div>` });
   }
 
@@ -8486,6 +8643,7 @@ Website:      still says 'Director'. Steve. Don't ask.
     const wrap = w.body.querySelector('.ck-wrap');
     if (!wrap) return;
     const done = ITEMS.filter(i => FR.puzzle.isSolved(i.id)).length;
+    const sc = FR.score.now();
     const scrollTop = wrap.querySelector('.ck-list') ? wrap.querySelector('.ck-list').scrollTop : 0;
     // keep a half-typed answer (and focus) across re-renders triggered by mail/flag events
     const oldInp = wrap.querySelector('.ck-item.open .ck-ans input');
@@ -8493,8 +8651,10 @@ Website:      still says 'Director'. Steve. Don't ask.
     wrap.innerHTML = `<div class="ck-head">${FR.icon('checklist', 34)}<div><h2>BOARD PACK — due Tue 9:00 AM</h2><p>Frank's to-do list. Get all ten done and Packa survives.</p></div></div>
       <div class="ck-prog"><progress max="${ITEMS.length}" value="${done}"></progress><b>${done} of ${ITEMS.length} done</b></div>
       <div class="ck-list"></div>
-      <div class="ck-foot"><span class="ck-meta">Time at the desk: <span class="ck-time">${FR.clock.dur(FR.clock.playMs())}</span> · Hints used: ${Object.values(FR.state.hintsUsed).reduce((a, b) => a + b, 0)}</span><button class="ck-help">How to play</button></div>`;
+      <div class="ck-foot"><span class="ck-meta">${FR.score.available() ? '<a href="#" class="ck-score">' : '<b class="ck-score">'}Score: ${FR.score.fmt(sc.score)}${FR.score.available() ? '</a>' : '</b>'} · ${sc.freeLeft ? `Free hints left: ${sc.freeLeft}` : `Hints: −${FR.score.rules.PER_HINT} each`} · Time: <span class="ck-time">${FR.clock.dur(FR.clock.playMs())}</span></span><button class="ck-help">How to play</button></div>`;
     wrap.querySelector('.ck-help').onclick = openHelp;
+    const scoreLink = wrap.querySelector('a.ck-score');
+    if (scoreLink) scoreLink.onclick = e => { e.preventDefault(); FR.score.open(); };
     const list = wrap.querySelector('.ck-list');
     FR.state.unlockedAt = FR.state.unlockedAt || {};
     ITEMS.forEach((it, idx) => {
@@ -8512,7 +8672,7 @@ Website:      still says 'Director'. Steve. Don't ask.
         ${active ? `<div class="ck-fb"></div>` : ''}
         ${active && it.auto && it.id !== 'login' ? `<div class="ck-auto">Ticks itself when you do it.</div>` : ''}
         <div class="ck-hints"></div>
-        ${active ? `<div class="ck-hrow"><button class="ck-hbtn" ${used >= 3 ? 'disabled' : ''}>${FOS_MARK}<span>${used >= 3 ? 'FinanceOS has nothing more' : used ? `Ask FinanceOS (${used}/3)` : 'Ask FinanceOS'}</span></button></div>` : ''}
+        ${active ? `<div class="ck-hrow"><button class="ck-hbtn" ${used >= 3 ? 'disabled' : ''}>${FOS_MARK}<span>${used >= 3 ? 'FinanceOS has nothing more' : (used ? `Ask FinanceOS (${used}/3)` : 'Ask FinanceOS') + (sc.freeLeft ? '' : ` · −${FR.score.rules.PER_HINT} pts`)}</span></button></div>` : ''}
         ${solved && FR.state.answers && FR.state.answers[it.id] ? `<div class="ck-solved-val">✓ ${esc(FR.state.answers[it.id])}</div>` : ''}
         ${solved && justSolved === it.id ? `<div class="ck-stamp">DONE</div>` : ''}
       </div></div>`);
@@ -8523,12 +8683,17 @@ Website:      still says 'Director'. Steve. Don't ask.
       if (active) for (let i = 0; i < used; i++) hbox.appendChild($(`<div class="ck-hint ck-fos"><div class="ck-fos-h">${FOS_MARK}<b>Datarails FinanceOS</b><span>· Emily's trial · hint ${i + 1}/3</span></div><div class="ck-fos-p">${esc(FOS_PREFACE[(idx + i) % FOS_PREFACE.length])}</div><div class="ck-fos-t">${esc(it.hints[i])}</div></div>`));
       const hb = row.querySelector('.ck-hbtn');
       if (hb) hb.onclick = () => {
-        if ((FR.state.hintsUsed[it.id] || 0) >= 3) return;
-        if ((FR.state.hintsUsed[it.id] || 0) === 2) {
-          FR.dialog({ icon: 'question', title: 'FinanceOS Assist', message: "This one gives the answer away. FinanceOS won't judge. Emily might.", buttons: ['Show it', 'Cancel'] }).then(r => { if (r.button === 'Show it') { FR.state.hintsUsed[it.id] = 3; FR.save(); renderChecklist(w); } });
+        const n = FR.state.hintsUsed[it.id] || 0;
+        if (n >= 3) return;
+        const take = () => { FR.state.hintsUsed[it.id] = n + 1; FR.save(); FR.sound.play('ding'); renderChecklist(w); };
+        // the free hints are gone: every hint now costs points, so ask first
+        const cost = FR.score.now().freeLeft ? '' : `You've used your ${FR.score.rules.FREE_HINTS} free hints. This one costs <b>${FR.score.rules.PER_HINT} points</b>.`;
+        if (n === 2 || cost) {
+          FR.dialog({ icon: 'question', title: 'FinanceOS Assist', message: [n === 2 ? "This one gives the answer away. FinanceOS won't judge. Emily might." : '', cost].filter(Boolean).join('<br><br>'), buttons: [n === 2 ? 'Show it' : 'Use a hint', 'Cancel'] })
+            .then(r => { if (r.button === 'Show it' || r.button === 'Use a hint') take(); });
           return;
         }
-        FR.state.hintsUsed[it.id] = (FR.state.hintsUsed[it.id] || 0) + 1; FR.save(); FR.sound.play('ding'); renderChecklist(w);
+        take();
       };
       const fb = row.querySelector('.ck-fb');
       const tryAnswer = (value, shown, ok) => {
@@ -8686,20 +8851,31 @@ Website:      still says 'Director'. Steve. Don't ask.
     document.querySelectorAll('.fr-balloon, .fr-start').forEach(b => b.remove());
     const t = FR.clock.dur(FR.state.finishPlayMs != null ? FR.state.finishPlayMs : FR.clock.playMs());
     const hints = Object.values(FR.state.hintsUsed).reduce((a, b) => a + b, 0);
+    const sc = FR.score.now();
     const e = $(`<div class="fr-end"><div class="fr-end-card">
       <div class="fr-kicker">Board Pack delivered · Survival package approved</div>
       <h1>Packa Corp is saved.<br>Frank is in Vegas.</h1>
       <p>You rebuilt Packa's numbers from a pile of "FINAL" files, a hidden folder, a change log and one man's head. The Board saw the real runway, the bank got a true covenant certificate, and the emergency plan passed.</p>
-      <div class="fr-end-stats"><div><b>${t}</b><span>Time at Frank's desk</span></div><div><b>${hints}</b><span>Hints used</span></div><div><b>${FR.state.wrong || 0}</b><span>Wrong guesses</span></div></div>
+      <div class="fr-end-stats"><div class="fr-end-score"><b>${FR.score.fmt(sc.score)}</b><span>Score</span></div><div><b>${t}</b><span>Time at Frank's desk</span></div><div><b>${hints}</b><span>Hints used</span></div><div><b>${FR.state.wrong || 0}</b><span>Wrong guesses</span></div></div>
+      <p class="fr-end-rank"></p>
       <div class="fr-end-line"></div>
       <p><b style="color:#fff">Packa doesn't run on Datarails.</b> So when Frank walked through the wall, the truth nearly went with him.</p>
       <p>Datarails FinanceOS connects your ERP, CRM, HRIS and Excel data in one governed layer, so the budget, the cash forecast and the covenant math come from the same numbers — and nobody has to be Frank.</p>
       <p class="fr-end-fos">Hints courtesy of Emily's FinanceOS trial. Day 13 of 14.</p>
       <div class="fr-end-cta"><a class="pri" href="${CONFIG.ctaUrl}" target="_blank" rel="noopener">${esc(CONFIG.ctaLabel)}</a>
         ${CONFIG.seriesUrl ? `<a class="sec" href="${CONFIG.seriesUrl}" target="_blank" rel="noopener">Watch "Frank Is Missing"</a>` : ''}
+        ${FR.score.available() ? '<button class="sec" data-a="board">Live Standings</button>' : ''}
         <button class="sec" data-a="back">Back to Frank's desk</button><button class="sec" data-a="again">Play again</button></div>
     </div></div>`);
     e.querySelector('[data-a=back]').onclick = () => e.remove();
+    const sbBtn = e.querySelector('[data-a=board]');
+    if (sbBtn) sbBtn.onclick = () => FR.score.open();
+    // where this game landed on the board (or how to get on it)
+    const rankEl = e.querySelector('.fr-end-rank');
+    if (FR.score.available() && !(FR.account && FR.account.user)) rankEl.textContent = "Playing without an account, so this score isn't in the Live Standings.";
+    else if (FR.score.available()) FR.score.fetch().then(d => {
+      if (d.me) rankEl.innerHTML = `You're <b>#${d.me.rank}</b> of ${FR.score.fmt(d.players)} in the Desk Division's Live Standings${d.me.score !== sc.score ? ` with your first finished game (${FR.score.fmt(d.me.score)} points)` : ''}.`;
+    }, () => {});
     e.querySelector('[data-a=again]').onclick = () => confirmStartOver();
     root.appendChild(e);
     FR.sound.play('tada');

@@ -17,7 +17,7 @@ module.exports = L.handler(['POST'], async (req, res, body) => {
   let rev = 0, state = null;
   if (body.state && typeof body.state === 'object' && !Array.isArray(body.state)) {
     const json = JSON.stringify({ state: body.state, rev: 1, updatedAt: Date.now() });
-    if (json.length <= L.MAX_SAVE) { await L.redis('SET', L.K.save(id), json); rev = 1; state = body.state; }
+    if (json.length <= L.MAX_SAVE) { await L.redis('SET', L.K.save(id), json); rev = 1; state = body.state; await L.updateBoard(id, null, state); }
   }
   await L.createSession(res, req, id);
   L.send(res, 201, { user: name, state, rev });

@@ -1557,6 +1557,7 @@
         ${row('Mon 10/19, 7:00 PM', '<b>GRAND FINAL</b> &mdash; live on the big screen', 'Pool deck')}
         ${row('Tue 10/20, 11:00 AM', 'Awards brunch. Flights home. Reality.', 'Caf&eacute; Sierra')}
         </table>
+        <div class="ch-note"><b>Can't make it to Vegas?</b> The Desk Division plays from home. <a class="cc-lnk" data-url="http://championship.example/standings">&raquo; Board Pack Rescue &mdash; Live Standings</a></div>
         <div class="ch-note"><b>Team entries close Friday 10/16.</b> Companion registrations must match the name on the boarding pass. No exceptions, no "he is basically my colleague".</div>
         <div class="ch-foot">Sponsored by the Spreadsheet Speedrun Association. Not affiliated with any finance software company. Especially not with the one that keeps emailing us.</div>
       </div></div>`;
@@ -1570,7 +1571,7 @@
     const host = u.hostname.toLowerCase().replace(/^www\./, '');
     if (host === 'packacorp.com') return { kind: 'site', url: SITE + (u.pathname || '/') + u.search + u.hash, path: u.pathname || '/' };
     if (host === 'cheatsheetclub.example') { const sub = (u.pathname.replace(/^\/kristians\/?/, '').split('/')[0] || '').toLowerCase(); return { kind: 'club', url: CLUB + (sub ? '/' + sub : ''), sub: ['sheets', 'gallery', 'webinars', 'links', 'prev', 'next'].includes(sub) ? sub : '' }; }
-    if (host === 'championship.example') return { kind: 'champ', url: u.href };
+    if (host === 'championship.example') return /^\/standings/i.test(u.pathname) ? { kind: 'standings', url: 'http://championship.example/standings' } : { kind: 'champ', url: u.href };
     if (host === 'datarails.com' || host.endsWith('.datarails.com')) return { kind: 'blocked', url: u.href };
     return { kind: 'error', url: u.href };
   }
@@ -1653,6 +1654,10 @@
         page.innerHTML = clubPage(r.sub); win.setTitle("Kristians' Cheat Sheet Club :: Unofficial Fan Site (of the official club) - Internet Explorer"); status('Done');
       } else if (r.kind === 'champ') {
         page.innerHTML = champPage(); win.setTitle('Microsoft Excel World Championship — Schedule - Internet Explorer'); status('Done');
+      } else if (r.kind === 'standings') {
+        // the players' Live Standings (src/score.js); it loads from the account server, so it can arrive after a navigation
+        win.setTitle(`${FR.score.title} - Internet Explorer`); status('Done');
+        FR.score.render(page, () => cur() === r);
       } else if (r.kind === 'blank') {
         page.innerHTML = '<div class="ie-blank"></div>'; win.setTitle('about:blank - Internet Explorer'); status('Done');
       } else {

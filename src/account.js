@@ -101,6 +101,9 @@
     }, () => {});
   };
 
+  // send any unsaved progress now (the Live Standings page calls this before loading)
+  A.sync = () => flush(false);
+
   A.signOut = () => Promise.resolve(flush(false))
     .then(() => api('logout', 'POST', {}).catch(() => {}))
     .then(() => { clearTimeout(timer); A.user = null; localReset(); store.set(OWNER, ''); store.del(GUEST); store.del(SYNC); location.reload(); });

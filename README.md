@@ -17,7 +17,9 @@ player accounts (`/api/*`, see below).
 |---|---|
 | `src/` | Game source (the real Packa logo is `packa-logo.svg` / `packa-logo-white.svg`, embedded by `build.py`): `core.js` (window manager, state, dialogs), `fs.js` (virtual file system), `boot.js` (intro, login, desktop, checklist, ending, config defaults), `apps/*.js|css` (Excel, Outlook Express, Explorer, IE, Notepad …), `assets.js` (embedded images), `sounds.js` (embedded Windows XP sounds), `xp.css` (XP.css 0.2.6). |
 | `src/account.js`, `src/account.css` | Player sign-in screen and cloud save (talks to `api/`). |
-| `api/` | Vercel functions for player accounts: `register`, `login`, `logout`, `me`, `save` (shared code in `_lib.js`). No npm dependencies. |
+| `src/score_rules.js` | The scoring rules. One copy, used by the game and by the server. |
+| `src/score.js`, `src/score.css` | Score in the checklist and ending, and the Live Standings page. |
+| `api/` | Vercel functions for player accounts and the scoreboard: `register`, `login`, `logout`, `me`, `save`, `scores` (shared code in `_lib.js`). No npm dependencies. |
 | `build.py` | Concatenates `src/` into `dist/index.html` and copies `public/` next to it. Python 3, standard library only. |
 | `config.json` | Site links, end-screen CTA and share-card metadata, injected at build time. |
 | `public/` | Static files copied into the build (`og-image.png` share card). |
@@ -100,6 +102,34 @@ Run it locally without Vercel or a database:
 python3 build.py && node test/local_server.js 8000    # http://localhost:8000/ with an in-memory database
 ```
 
+### Score and Live Standings
+
+| | Points |
+|---|---|
+| Each checklist item solved (10 in all) | +1,000 |
+| Each wrong guess (password boxes, checklist answers) | −50 |
+| Hints | first 10 free, then −100 each (a hint asks before it costs) |
+
+The score never goes below 0; a perfect game is 10,000. Change the numbers in `src/score_rules.js` only: the game and
+the server both load that file.
+
+- The score shows in the checklist footer (with the free hints left) and on the ending screen, with the player's rank.
+- The leaderboard is **"Board Pack Rescue — Live Standings"**, a page on the in-game Excel World Championship site
+  (`http://championship.example/standings`, the event Frank is at in Vegas), shown in Frank's Internet Explorer. Its
+  story: the championship's *Desk Division*, "the only event played from home", for whoever is stuck finishing the
+  Board Pack while everyone else is in Vegas. Open it from the **Vegas Live Standings** shortcut on the desktop, the
+  Start menu, the Schedule page's link, the score in the checklist, or the ending screen.
+- It lists the top 50 by points, ties broken by less time at the desk, with medals for the top three. The signed-in
+  player's row is highlighted, and shown under the list if they're outside the top 50. Without the account server the
+  shortcut is hidden and the page says the standings are offline.
+- Only signed-in players are on the board, under their player name. The board follows a player's game until they
+  finish it; their **first finished game** is then locked in, so replaying with the answers known doesn't count.
+  Starting over before finishing takes them off the board until they solve a riddle again.
+- The server computes the score from the saved game (`api/_lib.js` → `updateBoard`), not from a number the browser
+  sends. The save itself comes from the browser, so a determined player could still forge one; this is a campaign
+  game, not a tournament.
+- Redis keys: `fc:board` (sorted set) and `fc:board:info` (hash). To reset the board, delete both.
+
 ### The in-game browser and packacorp.com
 
 The in-game Internet Explorer shows packacorp.com in an iframe. If the site sends `X-Frame-Options: DENY/SAMEORIGIN`,
@@ -113,8 +143,10 @@ listed in `docs/PACKA_SITE_GAME_CLUES.md`.
 ```bash
 node test/excel_engine_test.js           # spreadsheet engine + answer checks (no dependencies)
 node test/account_api_test.js            # player-account API against an in-memory Redis (no dependencies)
+node test/score_test.js                  # scoring rules + scoreboard API (no dependencies)
 pip install playwright && python3 test/play.py   # full honest playthrough in headless Chromium
 python3 test/account_play.py             # sign up, continue on another computer, guest → player, sign out, conflicts
+python3 test/score_play.py               # checklist score, paid hints, desktop shortcut → Live Standings, ending rank
 ```
 
 ## Sounds

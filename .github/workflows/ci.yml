@@ -25,3 +25,5 @@ jobs:
         run: node test/excel_engine_test.js
       - name: Player-account API tests
         run: node test/account_api_test.js
+      - name: Scoring and scoreboard tests
+        run: node test/score_test.js

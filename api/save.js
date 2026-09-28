@@ -16,5 +16,6 @@ module.exports = L.handler(['PUT'], async (req, res, body) => {
   const json = JSON.stringify({ state: st, rev, updatedAt: Date.now() });
   if (json.length > L.MAX_SAVE) return L.send(res, 413, { error: 'too-large' });
   await L.redis('SET', L.K.save(id), json);
+  await L.updateBoard(id, cur.state, st);
   L.send(res, 200, { rev });
 });

@@ -2,6 +2,7 @@
 // Redis is Upstash's REST API over fetch, passwords are scrypt from node:crypto.
 // Files starting with "_" are not deployed as their own endpoint.
 const crypto = require('crypto');
+const RULES = require('../src/score_rules.js');   // the same scoring code the game runs
 
 const SESSION_DAYS = 30;
 const COOKIE = 'fc_session';
@@ -28,6 +29,8 @@ const K = {
   save: u => `fc:save:${u}`,
   sess: h => `fc:sess:${h}`,
   rate: (kind, id) => `fc:rl:${kind}:${id}`,
+  board: 'fc:board',            // sorted set: player id → RULES.rankValue
+  boardInfo: 'fc:board:info',   // hash: player id → {name, score, solved, hints, wrong, finished, timeMs, at}
 };
 
 /* ---------- passwords + sessions ---------- */
@@ -126,7 +129,30 @@ async function loadSave(username) {
   try { const s = JSON.parse(raw); return { state: s.state || null, rev: s.rev || 0 }; } catch (e) { return { state: null, rev: 0 }; }
 }
 
+/* ---------- scoreboard ---------- */
+// Called after every save. The board follows the player's game until they finish it once; that first finished
+// game is their scoreboard entry for good (a replay with the answers known doesn't count).
+async function updateBoard(id, prevState, state) {
+  const next = RULES.calc(state);
+  if (prevState) {
+    const prev = RULES.calc(prevState);
+    if (prev.score === next.score && prev.solved === next.solved && prev.hints === next.hints && prev.wrong === next.wrong) return;
+  }
+  const raw = await redis('HGET', K.boardInfo, id);
+  const cur = raw ? JSON.parse(raw) : null;
+  if (cur && cur.finished) return;
+  if (!next.solved) {                       // "Start over" before finishing: off the board until they play again
+    if (cur) { await redis('ZREM', K.board, id); await redis('HDEL', K.boardInfo, id); }
+    return;
+  }
+  const user = JSON.parse((await redis('GET', K.user(id))) || '{}');
+  const entry = { name: user.name || id, score: next.score, solved: next.solved, hints: next.hints, wrong: next.wrong, finished: next.finished, timeMs: next.timeMs, at: Date.now() };
+  await redis('HSET', K.boardInfo, id, JSON.stringify(entry));
+  await redis('ZADD', K.board, RULES.rankValue(next), id);
+}
+
 module.exports = {
+  RULES, updateBoard,
   redis, K, USER_RE, MAX_SAVE, hashPassword, checkPassword, createSession, currentUser, endSession,
   limited, send, clientIp, handler, loadSave,
 };

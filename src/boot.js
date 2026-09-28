@@ -96,12 +96,15 @@
         <button class="fr-bigbtn" data-a="go">${hasSave ? 'Continue at Frank\'s desk' : "Sit down at Frank's desk"}</button>
         ${hasSave ? '<button class="fr-bigbtn" data-a="new">Start over</button>' : ''}
         <a class="fr-small" href="${CONFIG.siteUrl}" target="_blank" rel="noopener">Open packacorp.com ↗</a>
+        ${FR.score.available() ? '<a class="fr-small" href="#" data-a="board">Scoreboard</a>' : ''}
       </div>
       <p class="fr-small fr-save-line" style="margin-top:14px">Made for finance people. Best on a laptop or desktop. ${saveLine()}</p>
     </div></div>`);
     el.querySelector('[data-a=go]').onclick = () => { FR.sound.play('click'); if (!FR.state.startedAt) { FR.state.startedAt = Date.now(); FR.save(); } boot(); };
     const n = el.querySelector('[data-a=new]');
     if (n) n.onclick = () => confirmStartOver();
+    const board = el.querySelector('[data-a=board]');
+    if (board) board.onclick = e => { e.preventDefault(); FR.sound.play('click'); FR.score.open(); };
     const acct = el.querySelector('[data-a=acct]'), out = el.querySelector('[data-a=out]');
     if (acct) acct.onclick = e => { e.preventDefault(); FR.sound.play('click'); FR.account.screen('new').then(intro); };
     if (out) out.onclick = e => { e.preventDefault(); FR.dialog({ icon: 'question', title: 'Sign out', message: `Sign out of <b>${esc(FR.account.user)}</b>?<br><br>Your progress stays saved in your player account.`, buttons: ['Sign out', 'Cancel'] }).then(r => { if (r.button === 'Sign out') FR.account.signOut(); }); };
@@ -117,7 +120,8 @@
   }
 
   function confirmStartOver() {
-    return FR.dialog({ icon: 'warn', title: 'Start over', message: "Start over from the beginning?<br><br>Everything you've done at Frank's desk will be erased: the checklist, hints and time.", buttons: ['Start over', 'Cancel'] })
+    const keeps = FR.account && FR.account.user && FR.puzzle.isSolved('frank') ? '<br><br>Your scoreboard score stays: only your first finished game counts.' : '';
+    return FR.dialog({ icon: 'warn', title: 'Start over', message: "Start over from the beginning?<br><br>Everything you've done at Frank's desk will be erased: the checklist, hints and time." + keeps, buttons: ['Start over', 'Cancel'] })
       .then(r => { if (r.button === 'Start over') Promise.resolve(FR.resetSave()).then(() => location.reload()); });
   }
 
@@ -368,6 +372,7 @@
     const L = m.querySelector('.fr-start-l'), R = m.querySelector('.fr-start-r'), F = m.querySelector('.fr-start-foot');
     L.append(it('ie', 'Internet', 'Internet Explorer', () => FR.apps.ie(null)), it('mail', 'E-mail', 'Outlook Express', () => FR.apps.mail(null)), $('<div class="fr-sm-sep"></div>'),
       it('excel', 'Microsoft Excel', '', () => FR.apps.excel(null)), it('checklist', 'Board Pack — TO DO', '', openChecklist), it('notepad', 'Notepad', '', () => FR.apps.notepad(null)), it('calc', 'Calculator', '', () => FR.apps.calc()),
+      ...(FR.score.available() ? [it('star', 'Scoreboard', 'Board Pack Challenge', () => FR.score.open())] : []),
       ...(FR.puzzle.isSolved('frank') ? [it('star', 'Show the ending again', '', () => ending())] : []),
       $('<div class="fr-sm-sep"></div>'), it('star', 'All Programs', '', () => FR.dialog({ icon: 'info', title: 'All Programs', message: 'Frank uninstalled everything except Excel, Outlook and Solitaire.<br>Then he uninstalled Solitaire.' }), 'fr-sm-all'));
     R.append(it('mydocs', 'My Documents', '', () => FR.apps.explorer('mydocs')), it('image', 'My Pictures', '', () => FR.apps.explorer('pics')), it('computer', 'My Computer', '', () => FR.apps.explorer('mycomputer')),
@@ -405,7 +410,7 @@
       <h3>How to play</h3><p>Open <b>Board Pack — TO DO</b> (desktop or the clipboard in the tray) to see where you stand. Items unlock one by one. The orange dots show how hard each one is. Each one has <b>Look in</b> shortcuts that open the right folder, email or web page. Some items tick themselves when you crack something in Excel or Outlook; others ask you to pick or type an answer.</p>
       <p>Double-click to open files and folders. Right-click files (on the desktop too) for Properties. Excel works like Excel: type formulas, and select cells to see their Sum in the status bar.</p>
       <h3>Where are the clues?</h3><p>In Frank's email, his Excel files, his folders (some are hidden), his Recycle Bin, and on <a href="${CONFIG.siteUrl}" target="_blank" rel="noopener">www.packacorp.com</a> — the company website. Keep it open in another tab.</p>
-      <h3>Stuck?</h3><p>Emily from finance installed a Datarails FinanceOS trial on Frank's machine (day 13 of 14). Every checklist item has an <b>Ask FinanceOS</b> button with three hints, from a gentle nudge to the full answer. Hints count toward your final score.</p>
+      <h3>Stuck?</h3><p>Emily from finance installed a Datarails FinanceOS trial on Frank's machine (day 13 of 14). Every checklist item has an <b>Ask FinanceOS</b> button with three hints, from a gentle nudge to the full answer.</p><h3>Score</h3><p>${esc(FR.score.rulesLine())}.${FR.score.available() ? ' Signed-in players go on the <b>Scoreboard</b> (Start menu); your first finished game is the one that counts.' : ''}</p>
       <h3>Progress</h3><p>Your progress saves in this browser. Log off and come back any time.</p></div>` });
   }
 
@@ -433,6 +438,7 @@
     const wrap = w.body.querySelector('.ck-wrap');
     if (!wrap) return;
     const done = ITEMS.filter(i => FR.puzzle.isSolved(i.id)).length;
+    const sc = FR.score.now();
     const scrollTop = wrap.querySelector('.ck-list') ? wrap.querySelector('.ck-list').scrollTop : 0;
     // keep a half-typed answer (and focus) across re-renders triggered by mail/flag events
     const oldInp = wrap.querySelector('.ck-item.open .ck-ans input');
@@ -440,8 +446,10 @@
     wrap.innerHTML = `<div class="ck-head">${FR.icon('checklist', 34)}<div><h2>BOARD PACK — due Tue 9:00 AM</h2><p>Frank's to-do list. Get all ten done and Packa survives.</p></div></div>
       <div class="ck-prog"><progress max="${ITEMS.length}" value="${done}"></progress><b>${done} of ${ITEMS.length} done</b></div>
       <div class="ck-list"></div>
-      <div class="ck-foot"><span class="ck-meta">Time at the desk: <span class="ck-time">${FR.clock.dur(FR.clock.playMs())}</span> · Hints used: ${Object.values(FR.state.hintsUsed).reduce((a, b) => a + b, 0)}</span><button class="ck-help">How to play</button></div>`;
+      <div class="ck-foot"><span class="ck-meta">${FR.score.available() ? '<a href="#" class="ck-score">' : '<b class="ck-score">'}Score: ${FR.score.fmt(sc.score)}${FR.score.available() ? '</a>' : '</b>'} · ${sc.freeLeft ? `Free hints left: ${sc.freeLeft}` : `Hints: −${FR.score.rules.PER_HINT} each`} · Time: <span class="ck-time">${FR.clock.dur(FR.clock.playMs())}</span></span><button class="ck-help">How to play</button></div>`;
     wrap.querySelector('.ck-help').onclick = openHelp;
+    const scoreLink = wrap.querySelector('a.ck-score');
+    if (scoreLink) scoreLink.onclick = e => { e.preventDefault(); FR.score.open(); };
     const list = wrap.querySelector('.ck-list');
     FR.state.unlockedAt = FR.state.unlockedAt || {};
     ITEMS.forEach((it, idx) => {
@@ -459,7 +467,7 @@
         ${active ? `<div class="ck-fb"></div>` : ''}
         ${active && it.auto && it.id !== 'login' ? `<div class="ck-auto">Ticks itself when you do it.</div>` : ''}
         <div class="ck-hints"></div>
-        ${active ? `<div class="ck-hrow"><button class="ck-hbtn" ${used >= 3 ? 'disabled' : ''}>${FOS_MARK}<span>${used >= 3 ? 'FinanceOS has nothing more' : used ? `Ask FinanceOS (${used}/3)` : 'Ask FinanceOS'}</span></button></div>` : ''}
+        ${active ? `<div class="ck-hrow"><button class="ck-hbtn" ${used >= 3 ? 'disabled' : ''}>${FOS_MARK}<span>${used >= 3 ? 'FinanceOS has nothing more' : (used ? `Ask FinanceOS (${used}/3)` : 'Ask FinanceOS') + (sc.freeLeft ? '' : ` · −${FR.score.rules.PER_HINT} pts`)}</span></button></div>` : ''}
         ${solved && FR.state.answers && FR.state.answers[it.id] ? `<div class="ck-solved-val">✓ ${esc(FR.state.answers[it.id])}</div>` : ''}
         ${solved && justSolved === it.id ? `<div class="ck-stamp">DONE</div>` : ''}
       </div></div>`);
@@ -470,12 +478,17 @@
       if (active) for (let i = 0; i < used; i++) hbox.appendChild($(`<div class="ck-hint ck-fos"><div class="ck-fos-h">${FOS_MARK}<b>Datarails FinanceOS</b><span>· Emily's trial · hint ${i + 1}/3</span></div><div class="ck-fos-p">${esc(FOS_PREFACE[(idx + i) % FOS_PREFACE.length])}</div><div class="ck-fos-t">${esc(it.hints[i])}</div></div>`));
       const hb = row.querySelector('.ck-hbtn');
       if (hb) hb.onclick = () => {
-        if ((FR.state.hintsUsed[it.id] || 0) >= 3) return;
-        if ((FR.state.hintsUsed[it.id] || 0) === 2) {
-          FR.dialog({ icon: 'question', title: 'FinanceOS Assist', message: "This one gives the answer away. FinanceOS won't judge. Emily might.", buttons: ['Show it', 'Cancel'] }).then(r => { if (r.button === 'Show it') { FR.state.hintsUsed[it.id] = 3; FR.save(); renderChecklist(w); } });
+        const n = FR.state.hintsUsed[it.id] || 0;
+        if (n >= 3) return;
+        const take = () => { FR.state.hintsUsed[it.id] = n + 1; FR.save(); FR.sound.play('ding'); renderChecklist(w); };
+        // the free hints are gone: every hint now costs points, so ask first
+        const cost = FR.score.now().freeLeft ? '' : `You've used your ${FR.score.rules.FREE_HINTS} free hints. This one costs <b>${FR.score.rules.PER_HINT} points</b>.`;
+        if (n === 2 || cost) {
+          FR.dialog({ icon: 'question', title: 'FinanceOS Assist', message: [n === 2 ? "This one gives the answer away. FinanceOS won't judge. Emily might." : '', cost].filter(Boolean).join('<br><br>'), buttons: [n === 2 ? 'Show it' : 'Use a hint', 'Cancel'] })
+            .then(r => { if (r.button === 'Show it' || r.button === 'Use a hint') take(); });
           return;
         }
-        FR.state.hintsUsed[it.id] = (FR.state.hintsUsed[it.id] || 0) + 1; FR.save(); FR.sound.play('ding'); renderChecklist(w);
+        take();
       };
       const fb = row.querySelector('.ck-fb');
       const tryAnswer = (value, shown, ok) => {
@@ -633,20 +646,31 @@
     document.querySelectorAll('.fr-balloon, .fr-start').forEach(b => b.remove());
     const t = FR.clock.dur(FR.state.finishPlayMs != null ? FR.state.finishPlayMs : FR.clock.playMs());
     const hints = Object.values(FR.state.hintsUsed).reduce((a, b) => a + b, 0);
+    const sc = FR.score.now();
     const e = $(`<div class="fr-end"><div class="fr-end-card">
       <div class="fr-kicker">Board Pack delivered · Survival package approved</div>
       <h1>Packa Corp is saved.<br>Frank is in Vegas.</h1>
       <p>You rebuilt Packa's numbers from a pile of "FINAL" files, a hidden folder, a change log and one man's head. The Board saw the real runway, the bank got a true covenant certificate, and the emergency plan passed.</p>
-      <div class="fr-end-stats"><div><b>${t}</b><span>Time at Frank's desk</span></div><div><b>${hints}</b><span>Hints used</span></div><div><b>${FR.state.wrong || 0}</b><span>Wrong guesses</span></div></div>
+      <div class="fr-end-stats"><div class="fr-end-score"><b>${FR.score.fmt(sc.score)}</b><span>Score</span></div><div><b>${t}</b><span>Time at Frank's desk</span></div><div><b>${hints}</b><span>Hints used</span></div><div><b>${FR.state.wrong || 0}</b><span>Wrong guesses</span></div></div>
+      <p class="fr-end-rank"></p>
       <div class="fr-end-line"></div>
       <p><b style="color:#fff">Packa doesn't run on Datarails.</b> So when Frank walked through the wall, the truth nearly went with him.</p>
       <p>Datarails FinanceOS connects your ERP, CRM, HRIS and Excel data in one governed layer, so the budget, the cash forecast and the covenant math come from the same numbers — and nobody has to be Frank.</p>
       <p class="fr-end-fos">Hints courtesy of Emily's FinanceOS trial. Day 13 of 14.</p>
       <div class="fr-end-cta"><a class="pri" href="${CONFIG.ctaUrl}" target="_blank" rel="noopener">${esc(CONFIG.ctaLabel)}</a>
         ${CONFIG.seriesUrl ? `<a class="sec" href="${CONFIG.seriesUrl}" target="_blank" rel="noopener">Watch "Frank Is Missing"</a>` : ''}
+        ${FR.score.available() ? '<button class="sec" data-a="board">Scoreboard</button>' : ''}
         <button class="sec" data-a="back">Back to Frank's desk</button><button class="sec" data-a="again">Play again</button></div>
     </div></div>`);
     e.querySelector('[data-a=back]').onclick = () => e.remove();
+    const sbBtn = e.querySelector('[data-a=board]');
+    if (sbBtn) sbBtn.onclick = () => FR.score.open();
+    // where this game landed on the board (or how to get on it)
+    const rankEl = e.querySelector('.fr-end-rank');
+    if (FR.score.available() && !(FR.account && FR.account.user)) rankEl.textContent = 'Playing without an account, so this score is not on the scoreboard.';
+    else if (FR.score.available()) FR.score.fetch().then(d => {
+      if (d.me) rankEl.innerHTML = `You're <b>#${d.me.rank}</b> of ${FR.score.fmt(d.players)} on the scoreboard${d.me.score !== sc.score ? ` with your first finished game (${FR.score.fmt(d.me.score)} points)` : ''}.`;
+    }, () => {});
     e.querySelector('[data-a=again]').onclick = () => confirmStartOver();
     root.appendChild(e);
     FR.sound.play('tada');

@@ -1,5 +1,6 @@
-"""Score and Live Standings through the real UI: checklist score, free-hint countdown, the cost prompt after 10 hints,
-the desktop shortcut to the championship site's standings, and the ending screen's score and rank. Runs on test/local_server.js (in-memory Redis).
+"""Score and the "Board Pack Rescue - Who Covered for Frank?" leaderboard through the real UI: checklist score, free-hint
+countdown, the cost prompt after 10 hints, the desktop shortcut to the leaderboard on Packa's intranet, and the ending
+screen's score and rank. Runs on test/local_server.js (in-memory Redis).
 Usage: python3 test/score_play.py   (needs node and Playwright's Chromium, like test/play.py)"""
 import os, subprocess, sys
 from playwright.sync_api import sync_playwright
@@ -68,40 +69,42 @@ try:
         pg.locator('.fr-dialog .fr-dlg-btns button', has_text='Use a hint').click(); pg.wait_for_timeout(300)
         ok('Score: 900' in pg.inner_text('.ck-wrap .ck-foot'), 'paid hint: 1,000 − 100 = 900')
 
-        # the Live Standings: a desktop shortcut to the Excel World Championship site in Internet Explorer
-        icon = pg.locator('.fr-dicon.fr-dicon-lnk', has_text='Live Standings')
-        ok(icon.count() == 1, 'desktop has the "Vegas Live Standings" shortcut')
+        # the leaderboard: a desktop shortcut to Packa's intranet in Internet Explorer
+        icon = pg.locator('.fr-dicon.fr-dicon-lnk', has_text='Who Covered for Frank?')
+        ok(icon.count() == 1, 'desktop has the "Who Covered for Frank?" shortcut')
         icon.dblclick(); pg.wait_for_selector('.ie-page .st-t', timeout=6000)
         ie_title = pg.evaluate("() => FR.wm.wins.get('ie').el.querySelector('.fr-title').textContent")
-        ok(ie_title == 'Board Pack Rescue — Live Standings - Internet Explorer', 'opens Internet Explorer: ' + ie_title)
-        ok(pg.input_value('.ie-addr input') == 'http://championship.example/standings', 'address bar: championship.example/standings')
-        ok(pg.inner_text('.ie-page h1') == 'Board Pack Rescue — Live Standings', 'page title: ' + pg.inner_text('.ie-page h1'))
+        ok(ie_title == 'Board Pack Rescue - Who Covered for Frank? - Internet Explorer', 'opens Internet Explorer: ' + ie_title)
+        ok(pg.input_value('.ie-addr input') == 'http://intranet.packacorp.local/who-covered-for-frank', 'address bar: ' + pg.input_value('.ie-addr input'))
+        ok(pg.inner_text('.ie-page h1') == 'Board Pack Rescue - Who Covered for Frank?', 'page title: ' + pg.inner_text('.ie-page h1'))
+        page_text = pg.inner_text('.ie-page')
+        ok('PACKA CORPORATION' in page_text and 'Championship' not in page_text and 'Vegas' not in page_text.split('Ranked by')[0], 'Packa intranet frame, no championship theme')
         rows = pg.eval_on_selector_all('.st-t tbody tr', 'rs => rs.map(r => r.innerText.replace(/\\s+/g, " ").trim())')
         ok(len(rows) == 2 and rows[0].startswith('1 Rival 950') and rows[1].startswith('2 Scorer (you) 900'), 'standings: ' + ' | '.join(rows))
         ok(pg.locator('.st-t tr.st-me').count() == 1 and pg.locator('.st-t .st-m1').count() == 1, 'your row highlighted, #1 gets the gold medal')
         pg.screenshot(path=f'{OUT}/standings.png')
 
-        # site navigation: Schedule tab and back via the schedule's link
-        pg.locator('.st-nav a', has_text='Schedule').click(); pg.wait_for_timeout(300)
-        ok(pg.input_value('.ie-addr input').endswith('/schedule'), 'Schedule tab opens the schedule')
-        pg.locator('.ie-page .cc-lnk', has_text='Live Standings').click(); pg.wait_for_selector('.ie-page .st-t', timeout=6000)
-        ok(True, 'the schedule links back to the standings')
+        # typing the intranet address works too, and the championship schedule no longer links here
+        pg.fill('.ie-addr input', 'http://championship.example/schedule'); pg.press('.ie-addr input', 'Enter'); pg.wait_for_timeout(300)
+        ok('Who Covered' not in pg.inner_text('.ie-page') and 'Standings' not in pg.inner_text('.ie-page'), 'championship schedule has no leaderboard link')
+        pg.fill('.ie-addr input', 'intranet.packacorp.local'); pg.press('.ie-addr input', 'Enter'); pg.wait_for_selector('.ie-page .st-t', timeout=6000)
+        ok(True, 'typing intranet.packacorp.local opens the leaderboard')
 
         # Start menu entry opens the same page
         pg.evaluate("() => { document.querySelectorAll('.fr-win').forEach(w => { const c = w.querySelector('[aria-label=Close]'); if (c && /Internet Explorer/.test(w.innerText)) c.click(); }); }")
         pg.wait_for_timeout(300)
         pg.click('.fr-startbtn'); pg.wait_for_timeout(300)
-        pg.locator('.fr-sm-item', has_text='Live Standings').click(); pg.wait_for_selector('.ie-page .st-t', timeout=6000)
-        ok(True, 'Start menu → Live Standings')
+        pg.locator('.fr-sm-item', has_text='Who Covered for Frank?').click(); pg.wait_for_selector('.ie-page .st-t', timeout=6000)
+        ok(True, 'Start menu → Who Covered for Frank?')
 
         # finish (skip to the end) and check the ending screen
         pg.evaluate("() => { FR.puzzle.ORDER.forEach(id => FR.state.solved[id] = FR.state.solved[id] || Date.now()); FR.state.finishedAt = Date.now(); FR.state.finishPlayMs = FR.clock.playMs(); FR.save(); FR.ending(); }")
         pg.wait_for_timeout(2500)
         ok(pg.inner_text('.fr-end-score b') == '9,900', 'ending shows the score (10,000 − 100)')
-        ok('#1 of 2' in pg.inner_text('.fr-end-rank'), 'ending shows the rank: ' + pg.inner_text('.fr-end-rank'))
+        ok("#1 of 2 people who have covered for Frank" in pg.inner_text('.fr-end-rank'), 'ending shows the rank: ' + pg.inner_text('.fr-end-rank'))
         pg.screenshot(path=f'{OUT}/score_ending.png')
         pg.click('.fr-end-cta [data-a=board]'); pg.wait_for_timeout(400)
-        ok(pg.locator('.fr-end').count() == 0, 'ending → Live Standings closes the ending screen')
+        ok(pg.locator('.fr-end').count() == 0, 'ending → "Who covered for Frank?" closes the ending screen')
         pg.wait_for_selector('.ie-page .st-me', timeout=6000)
         ok(pg.locator('.st-t tr.st-me td.st-rank').inner_text() == '1' and 'Board Pack sent' in pg.inner_text('.st-t tr.st-me'), 'you are #1, marked Board Pack sent')
         b.close()

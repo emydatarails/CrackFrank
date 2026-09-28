@@ -1,0 +1,45 @@
+/* ShowMe ERP Classic (src/apps/erp.js): a late-90s business app, grey forms and a navy header */
+.erp { display: flex; flex-direction: column; height: 100%; background: #d4d0c8; font: 11px Tahoma, Verdana, "DejaVu Sans", Arial, sans-serif; color: #111; }
+.erp-top { display: flex; align-items: center; justify-content: space-between; background: linear-gradient(90deg, #0b2f5b, #1d5a96); color: #fff; padding: 6px 12px; flex: none; }
+.erp-brand { font: 700 16px Arial, sans-serif; letter-spacing: .5px; }
+.erp-brand b { color: #ffd34d; }
+.erp-brand span { font: italic 400 12px Georgia, serif; color: #cfe0f5; margin-left: 4px; }
+.erp-co { font-size: 11px; color: #dfe9f7; }
+.erp-main { display: flex; flex: 1 1 auto; min-height: 0; }
+.erp-nav { flex: none; width: 168px; background: #ece9d8; border-right: 1px solid #a09d92; padding: 6px 0; overflow: auto; }
+.erp-g { font-weight: 700; color: #0b2f5b; padding: 7px 10px 3px; text-transform: uppercase; font-size: 10px; letter-spacing: .5px; }
+#fr-root .erp-n { display: block; width: 100%; text-align: left; background: none; border: 0; box-shadow: none; min-width: 0; min-height: 0; padding: 3px 10px 3px 18px; font: 11px Tahoma, Verdana, sans-serif; color: #111; cursor: pointer; border-radius: 0; }
+#fr-root .erp-n:hover { background: #dbe6f5; }
+#fr-root .erp-n.on { background: #316ac5; color: #fff; }
+.erp-pane { flex: 1 1 auto; min-width: 0; overflow: auto; background: #fff; }
+.erp-h { position: sticky; top: 0; display: flex; align-items: baseline; gap: 10px; background: linear-gradient(#f4f3ee, #dcd8cc); border-bottom: 1px solid #a09d92; padding: 6px 12px; }
+.erp-h b { font-size: 14px; color: #0b2f5b; }
+.erp-h span { color: #666; }
+.erp-body { padding: 10px 12px 16px; }
+.erp-body h3 { font-size: 12px; color: #0b2f5b; margin: 12px 0 5px; border-bottom: 1px solid #d6d2c4; padding-bottom: 2px; }
+.erp-body h3:first-child { margin-top: 2px; }
+.erp-t { border-collapse: collapse; width: 100%; margin-bottom: 8px; }
+.erp-t th { background: #e3dfd3; border: 1px solid #b5b1a4; text-align: left; padding: 3px 6px; font-weight: 400; white-space: nowrap; }
+.erp-t td { border: 1px solid #d6d2c4; padding: 3px 6px; vertical-align: middle; }
+.erp-t tbody tr:nth-child(even) td { background: #f7f6f1; }
+.erp-kv { border-collapse: collapse; margin-bottom: 10px; }
+.erp-kv th { text-align: left; font-weight: 400; color: #555; padding: 3px 14px 3px 0; white-space: nowrap; vertical-align: top; }
+.erp-kv td { padding: 3px 0; }
+.erp-box { border: 1px solid #b5b1a4; margin-top: 10px; }
+.erp-box-h { background: #e3dfd3; padding: 4px 8px; font-weight: 700; color: #0b2f5b; }
+.erp-box ul { margin: 6px 0; padding-left: 26px; line-height: 1.6; }
+.erp-note { margin: 8px 0; padding: 6px 8px; background: #ffffe1; border: 1px solid #c9c38b; }
+.erp-lock { display: flex; gap: 12px; align-items: flex-start; margin: 14px 0; padding: 12px; background: #f7f6f1; border: 1px solid #b5b1a4; }
+.erp-lock b { font-size: 12px; color: #0b2f5b; }
+.erp-lock p { margin: 4px 0 0; line-height: 1.5; color: #333; }
+.erp-periods { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-bottom: 6px; }
+.erp-periods span { border: 1px solid #b5b1a4; padding: 3px 5px; display: flex; flex-direction: column; background: #f7f6f1; }
+.erp-periods span i { font-style: normal; font-size: 10px; color: #666; }
+.erp-periods span.o { background: #e3f3df; border-color: #6aa55f; }
+.erp-periods span.f { color: #999; }
+.erp-ok { color: #1d6b3a; font-weight: 700; }
+.erp-warn { color: #9a6400; }
+.erp-bad { color: #a3261c; }
+.erp-dim { color: #777; }
+#fr-root .erp-b { min-width: 0; min-height: 0; padding: 1px 10px; font-size: 11px; }
+@media (max-width: 700px) { .erp-nav { width: 124px; } .erp-periods { grid-template-columns: repeat(4, 1fr); } }

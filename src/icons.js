@@ -73,6 +73,8 @@
   I.star = S('', `<path d="M16 3l3.8 8.2 8.9.9-6.7 6 1.9 8.8L16 22.4 8.1 26.9 10 18.1l-6.7-6 8.9-.9z" fill="#ffd33a" stroke="#b58800"/>`);
   I.volume = S('', `<path d="M4 12h6l7-6v20l-7-6H4z" fill="#e8ecf2" stroke="#3a4a60"/><path d="M21 11c2 2.5 2 7.5 0 10M24 8c4 4.5 4 11.5 0 16" fill="none" stroke="#e8ecf2" stroke-width="2"/>`);
   I.box = I.user;
+  // ShowMe ERP: a database drum with a green ledger page
+  I.erp = S(g('ep', [[0, '#e9f1f8'], [1, '#8fa9c4']]), `<path d="M4 7v17c0 2.2 5 4 11 4s11-1.8 11-4V7" fill="url(#ep)" stroke="#3f5a78"/><ellipse cx="15" cy="7" rx="11" ry="4" fill="#dce7f2" stroke="#3f5a78"/><path d="M4 13c0 2.2 5 4 11 4s11-1.8 11-4M4 19c0 2.2 5 4 11 4s11-1.8 11-4" fill="none" stroke="#3f5a78"/><rect x="17" y="14" width="13" height="16" rx="1" fill="#fff" stroke="#1d7a2b"/><path d="M19.5 18h8M19.5 21h8M19.5 24h8M19.5 27h5" stroke="#1d7a2b" stroke-width="1.2"/>`);
 
   FR.icons = I;
   FR.icon = (name, size = 32) => `<span class="fr-ico" style="width:${size}px;height:${size}px">${I[name] || I.txt}</span>`;

@@ -1,13 +1,27 @@
-/* Live Standings page on the in-game Excel World Championship site (src/score.js; base .ch styles in apps/shell.css) */
-.st-nav { background: #e3e9f5; border-bottom: 1px solid #c5cde0; padding: 0 18px; display: flex; gap: 2px; font-size: 12px; }
-.st-nav a { padding: 6px 12px; color: #1f3f7a; cursor: pointer; text-decoration: underline; }
-.st-nav a.on { background: #fff; font-weight: bold; text-decoration: none; cursor: default; border: 1px solid #c5cde0; border-bottom-color: #fff; margin-bottom: -1px; }
+/* "Board Pack Rescue - Who Covered for Frank?" on Packa's intranet (src/score.js): Packa red + navy, 2006 intranet */
+.st { min-height: 100%; background: #f4f1ea; font: 12px Tahoma, Verdana, "DejaVu Sans", Arial, sans-serif; color: #222; }
+.st-top { display: flex; align-items: center; gap: 10px; background: #17263f; color: #fff; padding: 8px 18px; border-bottom: 4px solid #a33a1e; }
+.st-top img { height: 34px; width: auto; }
+.st-top b { display: block; font-size: 15px; letter-spacing: 2px; }
+.st-top span { display: block; font-size: 11px; color: #c9d3e6; margin-top: 2px; }
+.st-top em { margin-left: auto; font: bold 10px Tahoma, sans-serif; color: #f1c9bd; border: 1px solid #a33a1e; padding: 2px 6px; letter-spacing: 1px; text-transform: uppercase; font-style: normal; }
+.st-crumb { background: #e7e1d3; border-bottom: 1px solid #cfc6b3; padding: 5px 18px; font-size: 11px; color: #6b5a3e; }
+.st-crumb b { color: #17263f; }
+.st-body { max-width: 780px; margin: 0 auto; padding: 12px 18px 30px; }
+.st-body h1 { font: bold 22px Verdana, sans-serif; color: #a33a1e; margin: 4px 0 6px; }
+.st-sub { margin: 0 0 12px; color: #444; line-height: 1.5; }
 .st-live { display: inline-flex; align-items: center; gap: 6px; font: bold 11px Verdana, sans-serif; color: #c0161b; letter-spacing: 1px; margin-top: 6px; }
 .st-live i { width: 9px; height: 9px; border-radius: 50%; background: #e0201f; animation: stBlink 1.2s steps(2, start) infinite; }
 @keyframes stBlink { to { visibility: hidden; } }
+.st-t { border-collapse: collapse; width: 100%; background: #fff; }
+.st-t th { background: #17263f; color: #fff; text-align: left; padding: 5px 8px; border: 1px solid #17263f; font-weight: bold; }
+.st-t td { padding: 5px 8px; border: 1px solid #d6cfbf; vertical-align: middle; }
+.st-t tbody tr:nth-child(even) td { background: #faf8f3; }
+.st-rules { margin: 14px 0; padding: 8px 10px; background: #fff; border: 1px solid #d6cfbf; border-left: 4px solid #a33a1e; }
+.st-foot { color: #777; font-size: 10px; }
 .st-mine { background: #fff6d6; border: 1px solid #e3cf6a; padding: 6px 10px; margin: 0 0 12px; font-size: 12px; }
 .st-t td, .st-t th { white-space: nowrap; }
-.st-t td.st-name { white-space: normal; word-break: break-word; font-weight: bold; color: #1f3f7a; }
+.st-t td.st-name { white-space: normal; word-break: break-word; font-weight: bold; color: #17263f; }
 .st-t td.st-score { font: bold 13px Verdana, sans-serif; text-align: right; }
 .st-t th:nth-child(3) { text-align: right; }
 .st-rank span { display: inline-block; min-width: 20px; text-align: center; font-weight: bold; color: #555; }
@@ -16,9 +30,9 @@
 .st-m2 span { background: radial-gradient(circle at 35% 30%, #f2f2f2, #9da3ab); }
 .st-m3 span { background: radial-gradient(circle at 35% 30%, #f1c08f, #b06a2c); }
 .st-done { color: #1d6b3a; font-weight: bold; }
-.st-t tr.st-me td { background: #fff3b0; }
+.st-t tr.st-me td, .st-t tbody tr.st-me:nth-child(even) td { background: #fff3b0; }
 .st-t tr.st-gap td { text-align: center; color: #999; padding: 1px; }
-.st-msg { margin: 18px 0; padding: 16px; text-align: center; color: #444; border: 1px dashed #c5cde0; background: #f7f9fd; }
+.st-msg { margin: 18px 0; padding: 16px; text-align: center; color: #444; border: 1px dashed #cfc6b3; background: #fff; }
 .st-msg small { color: #777; }
 .st-note { margin: 8px 0 0; color: #555; font-size: 11px; }
 .st-count { margin: 6px 0 0; color: #666; font-size: 11px; }
@@ -29,6 +43,7 @@
 .fr-end-stats .fr-end-score b { color: #ffcf5a; }
 .fr-end-card p.fr-end-rank { font-size: 14px; color: #fff; min-height: 1em; margin: -6px auto 8px; }
 .fr-end-card p.fr-end-rank:empty { display: none; }
-/* desktop shortcut to the standings: the little Windows shortcut arrow */
+/* desktop shortcut to the leaderboard: the little Windows shortcut arrow */
 .fr-dicon-lnk .fr-ico { position: relative; }
 .fr-dicon-lnk .fr-ico::after { content: ''; position: absolute; left: 0; bottom: 0; width: 11px; height: 11px; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11 11'%3E%3Cpath d='M2.5 8.5C3 5.5 4.5 4 7.5 4V2l2.5 2.8-2.5 2.7V5.6C5.5 5.6 4 6.4 2.5 8.5z' fill='%230b3fa8'/%3E%3C/svg%3E") center / 11px no-repeat; border: 1px solid #7a7a7a; box-sizing: border-box; }
+.fr-dicon-lnk .fr-dl { -webkit-line-clamp: 3; line-clamp: 3; }   /* "Who Covered for Frank?" in full */

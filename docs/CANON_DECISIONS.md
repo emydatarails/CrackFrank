@@ -17,6 +17,7 @@
 - NOTES_to_whoever_finds_this.txt dates = change log dates: Jul 14 / Aug 11 / Sep 08 / Sep 28 / Oct 06 / Oct 16.
 - "Freight is the residual. Calculate it, don't type it." replaces "Freight is the plug" everywhere.
 - Diane's v6 comment → "Karen confirms 2nd shift is on payroll since Sept. 118. Matches the website. Good."
+- Packa's ERP: **ShowMe ERP Classic 4.2** (fictional; Show-Me Business Systems, Jefferson City, MO; support expired 12/31/2014), app `src/apps/erp.js`. It holds transactions only: vendors, customers, inventory, POs, period close (P09 Sep 2026 closed 10/07 by Frank; P10 Oct open). No budget (module last used FY2019: "Excel is faster."), no cash forecast, no Board reporting, no payroll (Rachel's spreadsheet + bank portal), paid-invoice history locked, containerboard not tracked in it. It must never show a puzzle number or give a puzzle a shortcut (EBITDA, DSCR, capex paid in cash / invoice #4471, payroll run, tons, cash weeks, bridge bars, passwords). Everything "exports to Excel". No Datarails mention inside it.
 - Frank's reveal email: To Joshua Reyes, Cc Diane Kessler (not to Frank); "sorry about the birthday card" (no cupcake); cut the lines that repeat the emergency plan.
 
 ## CORE (core.js / boot.js / core.css) — owner: core agent

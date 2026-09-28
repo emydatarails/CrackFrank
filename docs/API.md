@@ -29,7 +29,7 @@ Test page: `dist/index.html?dev=1` skips intro/login (logged in, all items unloc
   When signed in, `FR.save()` also syncs `FR.state` to `/api/save`, and `FR.resetSave()` returns a Promise that resolves once the
   account's save is wiped. Anything that must survive a reload or a change of computer has to be in `FR.state`.
 - `FR.score` (src/score.js): `now()` → `{ score, solved, total, hints, paidHints, freeLeft, wrong, finished, timeMs }` for `FR.state`;
-  `open()` opens the Live Standings (championship.example/standings) in IE; `render(pageEl, isCurrent)` fills an IE page; `available()`; `rules` (= `FR.scoreRules`, src/score_rules.js). `FR.account.sync()` sends unsaved progress.
+  `open()` opens the leaderboard (intranet.packacorp.local/who-covered-for-frank) in IE; `render(pageEl, isCurrent)` fills an IE page; `available()`; `rules` (= `FR.scoreRules`, src/score_rules.js). `FR.account.sync()` sends unsaved progress.
 - `FR.bus.on(evt, fn)`, `FR.bus.emit(evt, data)`. Events: 'solved' (id), 'flag' ({k,v}), 'login', 'fs-change'.
 - `FR.puzzle.solve(id)` — marks a checklist item solved (only if it's the current/unlocked one or earlier; else ignored and returns false),
   plays sound, emits 'solved'. `FR.puzzle.isSolved(id)`, `FR.puzzle.isUnlocked(id)`, `FR.puzzle.norm(str)`.
@@ -46,7 +46,7 @@ Test page: `dist/index.html?dev=1` skips intro/login (logged in, all items unloc
   author?, title?, comments?, parent }`. Special folder ids: 'desktop', 'mycomputer', 'cdrive', 'mydocs', 'budget', 'board', 'bank',
   'cashdir'(hidden), 'personal', 'pics', 'recycle', 'bankzip' (a file node with app 'zip', whose `children` are listed by FR.fs.children('bankzip') once unlocked).
 - `FR.openFile(nodeOrId)` → dispatches to `FR.apps[node.app](node)`.
-- `FR.apps` — register your app: `FR.apps.excel = (node|null) => {...}`. App names: 'excel', 'mail' (Outlook Express; called with an .eml
+- `FR.apps` — register your app: `FR.apps.excel = (node|null) => {...}`. App names: 'erp' (ShowMe ERP, no args), 'excel', 'mail' (Outlook Express; called with an .eml
   node or null), 'explorer' (called with a folder node/id), 'zip', 'notepad', 'image', 'ie' (called with url string or null), 'calc', 'checklist'
   (core), 'recycle' (= explorer at 'recycle').
 - Text file contents: `FR.data.texts[fileId] = '...'` (defined by the shell-apps file). Workbook data: inside excel.js. Emails: inside outlook.js.

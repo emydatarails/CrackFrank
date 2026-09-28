@@ -117,7 +117,7 @@
   }
 
   function confirmStartOver() {
-    const keeps = FR.account && FR.account.user && FR.puzzle.isSolved('frank') ? '<br><br>Your place in the Live Standings stays: only your first finished game counts.' : '';
+    const keeps = FR.account && FR.account.user && FR.puzzle.isSolved('frank') ? '<br><br>Your place on the leaderboard stays: only your first finished game counts.' : '';
     return FR.dialog({ icon: 'warn', title: 'Start over', message: "Start over from the beginning?<br><br>Everything you've done at Frank's desk will be erased: the checklist, hints and time." + keeps, buttons: ['Start over', 'Cancel'] })
       .then(r => { if (r.button === 'Start over') Promise.resolve(FR.resetSave()).then(() => location.reload()); });
   }
@@ -222,8 +222,9 @@
       { n: 'Internet Explorer', i: 'ie', a: () => FR.apps.ie(null) },
       { n: 'Outlook Express', i: 'mail', a: () => FR.apps.mail(null) },
       { n: 'Microsoft Excel', i: 'excel', a: () => FR.apps.excel(null) },
+      { n: 'ShowMe ERP', i: 'erp', a: () => FR.apps.erp() },
       { n: 'Board Pack — TO DO', i: 'checklist', a: () => openChecklist() },
-      ...(FR.score.available() ? [{ n: 'Vegas Live Standings', i: 'ie', a: () => FR.score.open(), shortcut: true }] : []),
+      ...(FR.score.available() ? [{ n: 'Who Covered for Frank?', i: 'ie', a: () => FR.score.open(), shortcut: true }] : []),
       ...FR.fs.children('desktop', { showHidden: false }).map(n => ({ n: n.name, i: n.icon, a: () => FR.openFile(n), node: n })),
     ];
     const box = el.querySelector('.fr-icons');
@@ -369,8 +370,8 @@
       <div class="fr-start-body"><div class="fr-start-l"></div><div class="fr-start-r"></div></div><div class="fr-start-foot"></div></div>`);
     const L = m.querySelector('.fr-start-l'), R = m.querySelector('.fr-start-r'), F = m.querySelector('.fr-start-foot');
     L.append(it('ie', 'Internet', 'Internet Explorer', () => FR.apps.ie(null)), it('mail', 'E-mail', 'Outlook Express', () => FR.apps.mail(null)), $('<div class="fr-sm-sep"></div>'),
-      it('excel', 'Microsoft Excel', '', () => FR.apps.excel(null)), it('checklist', 'Board Pack — TO DO', '', openChecklist), it('notepad', 'Notepad', '', () => FR.apps.notepad(null)), it('calc', 'Calculator', '', () => FR.apps.calc()),
-      ...(FR.score.available() ? [it('ie', 'Live Standings', 'Excel World Championship', () => FR.score.open())] : []),
+      it('excel', 'Microsoft Excel', '', () => FR.apps.excel(null)), it('erp', 'ShowMe ERP', 'Packa Corporation', () => FR.apps.erp()), it('checklist', 'Board Pack — TO DO', '', openChecklist), it('notepad', 'Notepad', '', () => FR.apps.notepad(null)), it('calc', 'Calculator', '', () => FR.apps.calc()),
+      ...(FR.score.available() ? [it('ie', 'Who Covered for Frank?', 'Board Pack Rescue leaderboard', () => FR.score.open())] : []),
       ...(FR.puzzle.isSolved('frank') ? [it('star', 'Show the ending again', '', () => ending())] : []),
       $('<div class="fr-sm-sep"></div>'), it('star', 'All Programs', '', () => FR.dialog({ icon: 'info', title: 'All Programs', message: 'Frank uninstalled everything except Excel, Outlook and Solitaire.<br>Then he uninstalled Solitaire.' }), 'fr-sm-all'));
     R.append(it('mydocs', 'My Documents', '', () => FR.apps.explorer('mydocs')), it('image', 'My Pictures', '', () => FR.apps.explorer('pics')), it('computer', 'My Computer', '', () => FR.apps.explorer('mycomputer')),
@@ -408,7 +409,7 @@
       <h3>How to play</h3><p>Open <b>Board Pack — TO DO</b> (desktop or the clipboard in the tray) to see where you stand. Items unlock one by one. The orange dots show how hard each one is. Each one has <b>Look in</b> shortcuts that open the right folder, email or web page. Some items tick themselves when you crack something in Excel or Outlook; others ask you to pick or type an answer.</p>
       <p>Double-click to open files and folders. Right-click files (on the desktop too) for Properties. Excel works like Excel: type formulas, and select cells to see their Sum in the status bar.</p>
       <h3>Where are the clues?</h3><p>In Frank's email, his Excel files, his folders (some are hidden), his Recycle Bin, and on <a href="${CONFIG.siteUrl}" target="_blank" rel="noopener">www.packacorp.com</a> — the company website. Keep it open in another tab.</p>
-      <h3>Stuck?</h3><p>Emily from finance installed a Datarails FinanceOS trial on Frank's machine (day 13 of 14). Every checklist item has an <b>Ask FinanceOS</b> button with three hints, from a gentle nudge to the full answer.</p><h3>Score</h3><p>${esc(FR.score.rulesLine())}.${FR.score.available() ? ' Signed-in players are ranked on the <b>Live Standings</b> of the Excel World Championship site (the shortcut on the desktop); your first finished game is the one that counts.' : ''}</p>
+      <h3>Stuck?</h3><p>Emily from finance installed a Datarails FinanceOS trial on Frank's machine (day 13 of 14). Every checklist item has an <b>Ask FinanceOS</b> button with three hints, from a gentle nudge to the full answer.</p><h3>Score</h3><p>${esc(FR.score.rulesLine())}.${FR.score.available() ? ' Signed-in players are ranked on <b>Board Pack Rescue - Who Covered for Frank?</b> on Packa\'s intranet (the shortcut on the desktop); your first finished game is the one that counts.' : ''}</p>
       <h3>Progress</h3><p>Your progress saves in this browser. Log off and come back any time.</p></div>` });
   }
 
@@ -657,7 +658,7 @@
       <p class="fr-end-fos">Hints courtesy of Emily's FinanceOS trial. Day 13 of 14.</p>
       <div class="fr-end-cta"><a class="pri" href="${CONFIG.ctaUrl}" target="_blank" rel="noopener">${esc(CONFIG.ctaLabel)}</a>
         ${CONFIG.seriesUrl ? `<a class="sec" href="${CONFIG.seriesUrl}" target="_blank" rel="noopener">Watch "Frank Is Missing"</a>` : ''}
-        ${FR.score.available() ? '<button class="sec" data-a="board">Live Standings</button>' : ''}
+        ${FR.score.available() ? '<button class="sec" data-a="board">Who covered for Frank?</button>' : ''}
         <button class="sec" data-a="back">Back to Frank's desk</button><button class="sec" data-a="again">Play again</button></div>
     </div></div>`);
     e.querySelector('[data-a=back]').onclick = () => e.remove();
@@ -665,9 +666,9 @@
     if (sbBtn) sbBtn.onclick = () => FR.score.open();
     // where this game landed on the board (or how to get on it)
     const rankEl = e.querySelector('.fr-end-rank');
-    if (FR.score.available() && !(FR.account && FR.account.user)) rankEl.textContent = "Playing without an account, so this score isn't in the Live Standings.";
+    if (FR.score.available() && !(FR.account && FR.account.user)) rankEl.textContent = "Playing without an account, so this score isn't on the leaderboard.";
     else if (FR.score.available()) FR.score.fetch().then(d => {
-      if (d.me) rankEl.innerHTML = `You're <b>#${d.me.rank}</b> of ${FR.score.fmt(d.players)} in the Desk Division's Live Standings${d.me.score !== sc.score ? ` with your first finished game (${FR.score.fmt(d.me.score)} points)` : ''}.`;
+      if (d.me) rankEl.innerHTML = `You're <b>#${d.me.rank}</b> of ${FR.score.fmt(d.players)} ${d.players === 1 ? 'person who has' : 'people who have'} covered for Frank${d.me.score !== sc.score ? ` with your first finished game (${FR.score.fmt(d.me.score)} points)` : ''}.`;
     }, () => {});
     e.querySelector('[data-a=again]').onclick = () => confirmStartOver();
     root.appendChild(e);

@@ -374,35 +374,40 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
 .fr-intro .fr-save-line a { color: #17263f; font-weight: 700; }
 @media (max-width: 520px) { .fr-acct .fr-stamp { position: static; display: inline-block; margin: -10px 0 12px; transform: rotate(-3deg); font-size: 16px; } }
 
-/* scoreboard window (src/score.js): an XP window over everything, including the ending screen */
-.sb-shade { position: fixed; inset: 0; z-index: 270000; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; padding: 16px; }
-.sb-win { width: min(640px, 100%); max-height: calc(100vh - 32px); display: flex; flex-direction: column; font-family: Tahoma, Verdana, "DejaVu Sans", Arial, sans-serif; }
-.sb-win .window-body { display: flex; flex-direction: column; gap: 8px; min-height: 0; overflow: hidden; font-size: 12px; }
-.sb-rules { margin: 0; color: #444; font-size: 11px; line-height: 1.45; }
-.sb-mine { background: #ffffe1; border: 1px solid #c9c38b; padding: 5px 8px; font-size: 11.5px; }
-.sb-mine:empty { display: none; }
-.sb-body { min-height: 0; display: flex; flex-direction: column; }
-.sb-scroll { overflow: auto; max-height: 52vh; border: 1px solid #7f9db9; background: #fff; }
-.sb-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-.sb-table th { position: sticky; top: 0; background: linear-gradient(#fff, #ece9d8); border-bottom: 1px solid #aca899; text-align: left; padding: 4px 7px; font-weight: 400; white-space: nowrap; }
-.sb-table td { padding: 4px 7px; border-bottom: 1px solid #eee; white-space: nowrap; }
-.sb-table td.sb-name { white-space: normal; word-break: break-word; }
-.sb-table td.sb-rank { color: #666; width: 1%; }
-.sb-table td.sb-score { font-weight: 700; }
-.sb-table tr.sb-me td { background: #316ac5; color: #fff; }
-.sb-table tr.sb-me td.sb-rank { color: #dfe8fb; }
-.sb-table tr.sb-gap td { text-align: center; color: #999; padding: 1px; }
-.sb-msg { margin: 14px 0; text-align: center; color: #444; }
-.sb-note { margin: 6px 0 0; color: #555; font-size: 11px; line-height: 1.45; }
-.sb-count { margin: 5px 0 0; color: #666; font-size: 11px; }
-.sb-foot { display: flex; justify-content: flex-end; }
-@media (max-width: 520px) { .sb-table th:nth-child(5), .sb-table td:nth-child(5), .sb-table th:nth-child(7), .sb-table td:nth-child(7) { display: none; } }
+/* Live Standings page on the in-game Excel World Championship site (src/score.js; base .ch styles in apps/shell.css) */
+.st-nav { background: #e3e9f5; border-bottom: 1px solid #c5cde0; padding: 0 18px; display: flex; gap: 2px; font-size: 12px; }
+.st-nav a { padding: 6px 12px; color: #1f3f7a; cursor: pointer; text-decoration: underline; }
+.st-nav a.on { background: #fff; font-weight: bold; text-decoration: none; cursor: default; border: 1px solid #c5cde0; border-bottom-color: #fff; margin-bottom: -1px; }
+.st-live { display: inline-flex; align-items: center; gap: 6px; font: bold 11px Verdana, sans-serif; color: #c0161b; letter-spacing: 1px; margin-top: 6px; }
+.st-live i { width: 9px; height: 9px; border-radius: 50%; background: #e0201f; animation: stBlink 1.2s steps(2, start) infinite; }
+@keyframes stBlink { to { visibility: hidden; } }
+.st-mine { background: #fff6d6; border: 1px solid #e3cf6a; padding: 6px 10px; margin: 0 0 12px; font-size: 12px; }
+.st-t td, .st-t th { white-space: nowrap; }
+.st-t td.st-name { white-space: normal; word-break: break-word; font-weight: bold; color: #1f3f7a; }
+.st-t td.st-score { font: bold 13px Verdana, sans-serif; text-align: right; }
+.st-t th:nth-child(3) { text-align: right; }
+.st-rank span { display: inline-block; min-width: 20px; text-align: center; font-weight: bold; color: #555; }
+.st-m1 span, .st-m2 span, .st-m3 span { border-radius: 50%; width: 22px; height: 22px; line-height: 22px; color: #fff; text-shadow: 0 1px 1px rgba(0,0,0,.4); }
+.st-m1 span { background: radial-gradient(circle at 35% 30%, #ffe680, #d4a017); }
+.st-m2 span { background: radial-gradient(circle at 35% 30%, #f2f2f2, #9da3ab); }
+.st-m3 span { background: radial-gradient(circle at 35% 30%, #f1c08f, #b06a2c); }
+.st-done { color: #1d6b3a; font-weight: bold; }
+.st-t tr.st-me td { background: #fff3b0; }
+.st-t tr.st-gap td { text-align: center; color: #999; padding: 1px; }
+.st-msg { margin: 18px 0; padding: 16px; text-align: center; color: #444; border: 1px dashed #c5cde0; background: #f7f9fd; }
+.st-msg small { color: #777; }
+.st-note { margin: 8px 0 0; color: #555; font-size: 11px; }
+.st-count { margin: 6px 0 0; color: #666; font-size: 11px; }
+@media (max-width: 560px) { .st-t th:nth-child(5), .st-t td:nth-child(5), .st-t th:nth-child(7), .st-t td:nth-child(7) { display: none; } }
 /* score on the checklist footer and the ending screen */
 .ck-foot a.ck-score { color: #0b3fa8; font-weight: 700; }
 .fr-end-stats .fr-end-score { border-color: #ffcf5a; }
 .fr-end-stats .fr-end-score b { color: #ffcf5a; }
 .fr-end-card p.fr-end-rank { font-size: 14px; color: #fff; min-height: 1em; margin: -6px auto 8px; }
 .fr-end-card p.fr-end-rank:empty { display: none; }
+/* desktop shortcut to the standings: the little Windows shortcut arrow */
+.fr-dicon-lnk .fr-ico { position: relative; }
+.fr-dicon-lnk .fr-ico::after { content: ''; position: absolute; left: 0; bottom: 0; width: 11px; height: 11px; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11 11'%3E%3Cpath d='M2.5 8.5C3 5.5 4.5 4 7.5 4V2l2.5 2.8-2.5 2.7V5.6C5.5 5.6 4 6.4 2.5 8.5z' fill='%230b3fa8'/%3E%3C/svg%3E") center / 11px no-repeat; border: 1px solid #7a7a7a; box-sizing: border-box; }
 
 /* ===== Microsoft Excel 2003 clone (xl-) ===== */
 .xl-win { display: flex; flex-direction: column; }
@@ -1885,7 +1890,7 @@ FR.apps = FR.apps || {};
     }, () => {});
   };
 
-  // send any unsaved progress now (the scoreboard calls this before loading)
+  // send any unsaved progress now (the Live Standings page calls this before loading)
   A.sync = () => flush(false);
 
   A.signOut = () => Promise.resolve(flush(false))
@@ -1990,69 +1995,75 @@ FR.apps = FR.apps || {};
 })();
 
 ;
-/* FRANK'S COMPUTER — score and scoreboard. Rules: src/score_rules.js (shared with the server). Board: GET /api/scores.
-   The board needs the player-account server (FR.account.available); without it the score still shows in the game. */
+/* FRANK'S COMPUTER — score and the Live Standings page. Rules: src/score_rules.js (shared with the server).
+   The standings are a page on the in-game Excel World Championship site (championship.example/standings), shown by
+   Frank's Internet Explorer (src/apps/shell.js) and filled from GET /api/scores. They need the player-account server
+   (FR.account.available); without it the score still shows in the game and the page says the standings are offline. */
 (() => {
-  const $ = FR.$, esc = FR.esc, R = FR.scoreRules;
+  const esc = FR.esc, R = FR.scoreRules;
   const fmt = n => Math.round(n).toLocaleString('en-US');
   const dur = ms => FR.clock && FR.clock.dur ? FR.clock.dur(ms) : Math.round(ms / 60000) + ' min';
+  const URL_ = 'http://championship.example/standings';
+  const TITLE = 'Board Pack Rescue — Live Standings';
 
   FR.score = {
     rules: R,
     fmt,
+    url: URL_,
+    title: TITLE,
     now: () => R.calc(FR.state),
     available: () => !!(FR.account && FR.account.available),
-    // the board, with the signed-in player's latest progress sent first so their row is current
+    // the standings, with the signed-in player's latest progress sent first so their row is current
     fetch: () => Promise.resolve(FR.account && FR.account.sync ? FR.account.sync() : null)
       .then(() => fetch('/api/scores', { credentials: 'same-origin', cache: 'no-store' }))
       .then(r => r.ok ? r.json() : Promise.reject(new Error('scores ' + r.status))),
-    open,
+    // open the standings in Frank's Internet Explorer (closing the ending screen, which sits on top of the desktop)
+    open: () => { document.querySelectorAll('.fr-end').forEach(e => e.remove()); FR.apps.ie(URL_); },
+    render,
     rulesLine: () => `Each riddle solved +${fmt(R.PER_SOLVED)} · each wrong answer −${R.PER_WRONG} · ${R.FREE_HINTS} free hints, then −${R.PER_HINT} per hint`,
   };
 
-  function row(e, me) {
-    return `<tr class="${me ? 'sb-me' : ''}"><td class="sb-rank">${e.rank}</td><td class="sb-name">${esc(e.name)}${me ? ' <i>(you)</i>' : ''}</td>
-      <td class="sb-score">${fmt(e.score)}</td><td>${e.solved}/${R.ITEMS.length}${e.finished ? ' ✓' : ''}</td><td>${e.hints}</td><td>${e.wrong}</td><td>${esc(dur(e.timeMs))}</td></tr>`;
-  }
+  const shell = inner => `<div class="ch st">
+    <div class="ch-top"><b>MICROSOFT EXCEL WORLD CHAMPIONSHIP</b> &middot; Las Vegas, NV &middot; October 17&ndash;19, 2026</div>
+    <div class="st-nav"><a class="cc-lnk" data-url="http://championship.example/schedule">Schedule</a><a class="on">Live Standings</a></div>
+    <div class="ch-body">
+      <div class="st-live"><i></i>LIVE</div>
+      <h1>${esc(TITLE)}</h1>
+      <p class="ch-sub"><b>Desk Division</b> &mdash; the only event played from home. Half the FP&amp;A world is in Vegas this week, and somebody still has to finish the Board Pack before the 9:00 AM Board meeting. Ranked by points, then by time at the desk.</p>
+      ${inner}
+      <div class="ch-note"><b>Scoring.</b> ${esc(FR.score.rulesLine())}. Your first finished Board Pack is the one that counts.</div>
+      <div class="ch-foot">Standings update live; press Refresh for the latest. Sponsored by the Spreadsheet Speedrun Association. Not affiliated with any finance software company. Especially not with the one that keeps emailing us.</div>
+    </div></div>`;
 
-  function open() {
-    document.querySelectorAll('.sb-shade').forEach(x => x.remove());
-    const el = $(`<div class="sb-shade"><div class="window sb-win" role="dialog" aria-modal="true" aria-label="Scoreboard">
-      <div class="title-bar"><div class="title-bar-text">Scoreboard — Board Pack Challenge</div><div class="title-bar-controls"><button aria-label="Close"></button></div></div>
-      <div class="window-body">
-        <p class="sb-rules">${esc(FR.score.rulesLine())}. Your first finished game is the one that counts.</p>
-        <div class="sb-mine"></div>
-        <div class="sb-body"><p class="sb-msg">Loading the scoreboard…</p></div>
-        <div class="sb-foot"><button class="sb-close">Close</button></div>
-      </div></div></div>`);
-    const close = () => { el.remove(); document.removeEventListener('keydown', onKey, true); };
-    const onKey = e => { if (e.key === 'Escape') { e.stopPropagation(); e.preventDefault(); close(); } };
-    el.querySelectorAll('[aria-label=Close], .sb-close').forEach(b => b.onclick = () => { FR.sound.play('click'); close(); });
-    el.onclick = e => { if (e.target === el) close(); };
-    document.addEventListener('keydown', onKey, true);
-    document.body.appendChild(el);
-    el.querySelector('.sb-close').focus();
+  const medal = r => r <= 3 ? ` st-m${r}` : '';
+  const row = (e, me) => `<tr class="${me ? 'st-me' : ''}"><td class="st-rank${medal(e.rank)}"><span>${e.rank}</span></td>
+    <td class="st-name">${esc(e.name)}${me ? ' <i>(you)</i>' : ''}</td><td class="st-score">${fmt(e.score)}</td>
+    <td>${e.finished ? '<span class="st-done">Board Pack sent</span>' : `At the desk &middot; ${e.solved}/${R.ITEMS.length}`}</td>
+    <td>${e.hints}</td><td>${e.wrong}</td><td>${esc(dur(e.timeMs))}</td></tr>`;
 
-    // this browser's game, as the game itself counts it
-    const c = FR.score.now(), mine = el.querySelector('.sb-mine');
-    if (c.solved) mine.innerHTML = `<b>This game:</b> ${fmt(c.score)} points · ${c.solved}/${c.total} riddles · ${c.hints} hint${c.hints === 1 ? '' : 's'} (${c.freeLeft} free left) · ${c.wrong} wrong`;
-
-    const body = el.querySelector('.sb-body');
-    if (!FR.score.available()) { body.innerHTML = `<p class="sb-msg">The scoreboard is available in the online game, with a player account.</p>`; return; }
+  // fill an IE page element; isCurrent() is false once the player has navigated away (the answer arrives late)
+  function render(page, isCurrent = () => true) {
+    const c = FR.score.now();
+    const mine = c.solved ? `<div class="st-mine"><b>Your Board Pack right now:</b> ${fmt(c.score)} points &middot; ${c.solved}/${c.total} done &middot; ${c.hints} hint${c.hints === 1 ? '' : 's'} (${c.freeLeft} free left) &middot; ${c.wrong} wrong</div>` : '';
+    if (!FR.score.available()) {
+      page.innerHTML = shell(`${mine}<div class="st-msg">The live standings are offline. (The championship Wi-Fi is also in Vegas.)<br><small>They're in the online game, for players with a player account.</small></div>`);
+      return;
+    }
+    page.innerHTML = shell(`${mine}<div class="st-msg">Loading standings&hellip;</div>`);
     FR.score.fetch().then(d => {
-      if (!el.isConnected) return;
+      if (!isCurrent() || !page.isConnected) return;
       const signedIn = !!(FR.account && FR.account.user);
-      const note = !signedIn ? `<p class="sb-note">You're playing without an account, so your score isn't on the board. Sign in or create a player from the start screen to add it.</p>`
-        : !d.me ? `<p class="sb-note">You'll appear here once you've solved your first riddle.</p>`
-        : d.me.finished && !c.finished ? `<p class="sb-note">Your board score is from your first finished game: ${fmt(d.me.score)} points.</p>` : '';
-      if (!d.top.length) { body.innerHTML = `<p class="sb-msg">Nobody is on the board yet. Be the first.</p>${note}`; return; }
-      const meId = d.me ? d.me.rank : -1;
-      body.innerHTML = `<div class="sb-scroll"><table class="sb-table"><thead><tr><th>#</th><th>Player</th><th>Score</th><th>Riddles</th><th>Hints</th><th>Wrong</th><th>Time</th></tr></thead><tbody>
-        ${d.top.map(e => row(e, e.rank === meId)).join('')}
-        ${d.me && !d.me.inTop ? `<tr class="sb-gap"><td colspan="7">⋯</td></tr>${row(d.me, true)}` : ''}
-        </tbody></table></div><p class="sb-count">${fmt(d.players)} player${d.players === 1 ? '' : 's'} on the board</p>${note}`;
-      const meRow = body.querySelector('.sb-me'); if (meRow) meRow.scrollIntoView({ block: 'nearest' });
-    }, () => { if (el.isConnected) body.innerHTML = `<p class="sb-msg">Couldn't load the scoreboard. Try again in a moment.</p>`; });
+      const note = !signedIn ? `<p class="st-note">You're playing without a badge (no player account), so you're not in the standings. Create a player on the start screen to enter.</p>`
+        : !d.me ? `<p class="st-note">You'll appear here once you've ticked off your first item.</p>`
+        : d.me.finished && !c.finished ? `<p class="st-note">Your standing is from your first finished Board Pack: ${fmt(d.me.score)} points.</p>` : '';
+      if (!d.top.length) { page.innerHTML = shell(`${mine}<div class="st-msg">No entries yet. The Desk Division is wide open.</div>${note}`); return; }
+      const meRank = d.me ? d.me.rank : -1;
+      page.innerHTML = shell(`${mine}<table class="ch-t st-t"><thead><tr><th>#</th><th>Player</th><th>Points</th><th>Status</th><th>Hints</th><th>Wrong</th><th>Time</th></tr></thead><tbody>
+        ${d.top.map(e => row(e, e.rank === meRank)).join('')}
+        ${d.me && !d.me.inTop ? `<tr class="st-gap"><td colspan="7">&hellip;</td></tr>${row(d.me, true)}` : ''}
+        </tbody></table><p class="st-count">${fmt(d.players)} player${d.players === 1 ? '' : 's'} in the Desk Division</p>${note}`);
+      const me = page.querySelector('.st-me'); if (me) me.scrollIntoView({ block: 'nearest' });
+    }, () => { if (isCurrent() && page.isConnected) page.innerHTML = shell(`${mine}<div class="st-msg">The standings didn't load. Press Refresh to try again.</div>`); });
   }
 })();
 
@@ -7487,6 +7498,7 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
         ${row('Mon 10/19, 7:00 PM', '<b>GRAND FINAL</b> &mdash; live on the big screen', 'Pool deck')}
         ${row('Tue 10/20, 11:00 AM', 'Awards brunch. Flights home. Reality.', 'Caf&eacute; Sierra')}
         </table>
+        <div class="ch-note"><b>Can't make it to Vegas?</b> The Desk Division plays from home. <a class="cc-lnk" data-url="http://championship.example/standings">&raquo; Board Pack Rescue &mdash; Live Standings</a></div>
         <div class="ch-note"><b>Team entries close Friday 10/16.</b> Companion registrations must match the name on the boarding pass. No exceptions, no "he is basically my colleague".</div>
         <div class="ch-foot">Sponsored by the Spreadsheet Speedrun Association. Not affiliated with any finance software company. Especially not with the one that keeps emailing us.</div>
       </div></div>`;
@@ -7500,7 +7512,7 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
     const host = u.hostname.toLowerCase().replace(/^www\./, '');
     if (host === 'packacorp.com') return { kind: 'site', url: SITE + (u.pathname || '/') + u.search + u.hash, path: u.pathname || '/' };
     if (host === 'cheatsheetclub.example') { const sub = (u.pathname.replace(/^\/kristians\/?/, '').split('/')[0] || '').toLowerCase(); return { kind: 'club', url: CLUB + (sub ? '/' + sub : ''), sub: ['sheets', 'gallery', 'webinars', 'links', 'prev', 'next'].includes(sub) ? sub : '' }; }
-    if (host === 'championship.example') return { kind: 'champ', url: u.href };
+    if (host === 'championship.example') return /^\/standings/i.test(u.pathname) ? { kind: 'standings', url: 'http://championship.example/standings' } : { kind: 'champ', url: u.href };
     if (host === 'datarails.com' || host.endsWith('.datarails.com')) return { kind: 'blocked', url: u.href };
     return { kind: 'error', url: u.href };
   }
@@ -7583,6 +7595,10 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
         page.innerHTML = clubPage(r.sub); win.setTitle("Kristians' Cheat Sheet Club :: Unofficial Fan Site (of the official club) - Internet Explorer"); status('Done');
       } else if (r.kind === 'champ') {
         page.innerHTML = champPage(); win.setTitle('Microsoft Excel World Championship — Schedule - Internet Explorer'); status('Done');
+      } else if (r.kind === 'standings') {
+        // the players' Live Standings (src/score.js); it loads from the account server, so it can arrive after a navigation
+        win.setTitle(`${FR.score.title} - Internet Explorer`); status('Done');
+        FR.score.render(page, () => cur() === r);
       } else if (r.kind === 'blank') {
         page.innerHTML = '<div class="ie-blank"></div>'; win.setTitle('about:blank - Internet Explorer'); status('Done');
       } else {
@@ -8287,15 +8303,12 @@ Website:      still says 'Director'. Steve. Don't ask.
         <button class="fr-bigbtn" data-a="go">${hasSave ? 'Continue at Frank\'s desk' : "Sit down at Frank's desk"}</button>
         ${hasSave ? '<button class="fr-bigbtn" data-a="new">Start over</button>' : ''}
         <a class="fr-small" href="${CONFIG.siteUrl}" target="_blank" rel="noopener">Open packacorp.com ↗</a>
-        ${FR.score.available() ? '<a class="fr-small" href="#" data-a="board">Scoreboard</a>' : ''}
       </div>
       <p class="fr-small fr-save-line" style="margin-top:14px">Made for finance people. Best on a laptop or desktop. ${saveLine()}</p>
     </div></div>`);
     el.querySelector('[data-a=go]').onclick = () => { FR.sound.play('click'); if (!FR.state.startedAt) { FR.state.startedAt = Date.now(); FR.save(); } boot(); };
     const n = el.querySelector('[data-a=new]');
     if (n) n.onclick = () => confirmStartOver();
-    const board = el.querySelector('[data-a=board]');
-    if (board) board.onclick = e => { e.preventDefault(); FR.sound.play('click'); FR.score.open(); };
     const acct = el.querySelector('[data-a=acct]'), out = el.querySelector('[data-a=out]');
     if (acct) acct.onclick = e => { e.preventDefault(); FR.sound.play('click'); FR.account.screen('new').then(intro); };
     if (out) out.onclick = e => { e.preventDefault(); FR.dialog({ icon: 'question', title: 'Sign out', message: `Sign out of <b>${esc(FR.account.user)}</b>?<br><br>Your progress stays saved in your player account.`, buttons: ['Sign out', 'Cancel'] }).then(r => { if (r.button === 'Sign out') FR.account.signOut(); }); };
@@ -8311,7 +8324,7 @@ Website:      still says 'Director'. Steve. Don't ask.
   }
 
   function confirmStartOver() {
-    const keeps = FR.account && FR.account.user && FR.puzzle.isSolved('frank') ? '<br><br>Your scoreboard score stays: only your first finished game counts.' : '';
+    const keeps = FR.account && FR.account.user && FR.puzzle.isSolved('frank') ? '<br><br>Your place in the Live Standings stays: only your first finished game counts.' : '';
     return FR.dialog({ icon: 'warn', title: 'Start over', message: "Start over from the beginning?<br><br>Everything you've done at Frank's desk will be erased: the checklist, hints and time." + keeps, buttons: ['Start over', 'Cancel'] })
       .then(r => { if (r.button === 'Start over') Promise.resolve(FR.resetSave()).then(() => location.reload()); });
   }
@@ -8417,13 +8430,14 @@ Website:      still says 'Director'. Steve. Don't ask.
       { n: 'Outlook Express', i: 'mail', a: () => FR.apps.mail(null) },
       { n: 'Microsoft Excel', i: 'excel', a: () => FR.apps.excel(null) },
       { n: 'Board Pack — TO DO', i: 'checklist', a: () => openChecklist() },
+      ...(FR.score.available() ? [{ n: 'Vegas Live Standings', i: 'ie', a: () => FR.score.open(), shortcut: true }] : []),
       ...FR.fs.children('desktop', { showHidden: false }).map(n => ({ n: n.name, i: n.icon, a: () => FR.openFile(n), node: n })),
     ];
     const box = el.querySelector('.fr-icons');
     const touch = matchMedia('(pointer: coarse)').matches;
     icons.forEach(ic => {
       // long file names: allow breaks after _ and . ; two lines max (full name on hover / when selected)
-      const d = $(`<div class="fr-dicon" tabindex="0">${FR.icon(ic.i, 32)}<span class="fr-dl">${esc(ic.n).replace(/([_.])/g, '$1<wbr>')}</span></div>`);
+      const d = $(`<div class="fr-dicon${ic.shortcut ? ' fr-dicon-lnk' : ''}" tabindex="0">${FR.icon(ic.i, 32)}<span class="fr-dl">${esc(ic.n).replace(/([_.])/g, '$1<wbr>')}</span></div>`);
       d.title = ic.n;
       const select = () => { box.querySelectorAll('.sel').forEach(s => s.classList.remove('sel')); d.classList.add('sel'); };
       d.onclick = e => { e.stopPropagation(); select(); if (touch) ic.a(); };
@@ -8563,7 +8577,7 @@ Website:      still says 'Director'. Steve. Don't ask.
     const L = m.querySelector('.fr-start-l'), R = m.querySelector('.fr-start-r'), F = m.querySelector('.fr-start-foot');
     L.append(it('ie', 'Internet', 'Internet Explorer', () => FR.apps.ie(null)), it('mail', 'E-mail', 'Outlook Express', () => FR.apps.mail(null)), $('<div class="fr-sm-sep"></div>'),
       it('excel', 'Microsoft Excel', '', () => FR.apps.excel(null)), it('checklist', 'Board Pack — TO DO', '', openChecklist), it('notepad', 'Notepad', '', () => FR.apps.notepad(null)), it('calc', 'Calculator', '', () => FR.apps.calc()),
-      ...(FR.score.available() ? [it('star', 'Scoreboard', 'Board Pack Challenge', () => FR.score.open())] : []),
+      ...(FR.score.available() ? [it('ie', 'Live Standings', 'Excel World Championship', () => FR.score.open())] : []),
       ...(FR.puzzle.isSolved('frank') ? [it('star', 'Show the ending again', '', () => ending())] : []),
       $('<div class="fr-sm-sep"></div>'), it('star', 'All Programs', '', () => FR.dialog({ icon: 'info', title: 'All Programs', message: 'Frank uninstalled everything except Excel, Outlook and Solitaire.<br>Then he uninstalled Solitaire.' }), 'fr-sm-all'));
     R.append(it('mydocs', 'My Documents', '', () => FR.apps.explorer('mydocs')), it('image', 'My Pictures', '', () => FR.apps.explorer('pics')), it('computer', 'My Computer', '', () => FR.apps.explorer('mycomputer')),
@@ -8601,7 +8615,7 @@ Website:      still says 'Director'. Steve. Don't ask.
       <h3>How to play</h3><p>Open <b>Board Pack — TO DO</b> (desktop or the clipboard in the tray) to see where you stand. Items unlock one by one. The orange dots show how hard each one is. Each one has <b>Look in</b> shortcuts that open the right folder, email or web page. Some items tick themselves when you crack something in Excel or Outlook; others ask you to pick or type an answer.</p>
       <p>Double-click to open files and folders. Right-click files (on the desktop too) for Properties. Excel works like Excel: type formulas, and select cells to see their Sum in the status bar.</p>
       <h3>Where are the clues?</h3><p>In Frank's email, his Excel files, his folders (some are hidden), his Recycle Bin, and on <a href="${CONFIG.siteUrl}" target="_blank" rel="noopener">www.packacorp.com</a> — the company website. Keep it open in another tab.</p>
-      <h3>Stuck?</h3><p>Emily from finance installed a Datarails FinanceOS trial on Frank's machine (day 13 of 14). Every checklist item has an <b>Ask FinanceOS</b> button with three hints, from a gentle nudge to the full answer.</p><h3>Score</h3><p>${esc(FR.score.rulesLine())}.${FR.score.available() ? ' Signed-in players go on the <b>Scoreboard</b> (Start menu); your first finished game is the one that counts.' : ''}</p>
+      <h3>Stuck?</h3><p>Emily from finance installed a Datarails FinanceOS trial on Frank's machine (day 13 of 14). Every checklist item has an <b>Ask FinanceOS</b> button with three hints, from a gentle nudge to the full answer.</p><h3>Score</h3><p>${esc(FR.score.rulesLine())}.${FR.score.available() ? ' Signed-in players are ranked on the <b>Live Standings</b> of the Excel World Championship site (the shortcut on the desktop); your first finished game is the one that counts.' : ''}</p>
       <h3>Progress</h3><p>Your progress saves in this browser. Log off and come back any time.</p></div>` });
   }
 
@@ -8850,7 +8864,7 @@ Website:      still says 'Director'. Steve. Don't ask.
       <p class="fr-end-fos">Hints courtesy of Emily's FinanceOS trial. Day 13 of 14.</p>
       <div class="fr-end-cta"><a class="pri" href="${CONFIG.ctaUrl}" target="_blank" rel="noopener">${esc(CONFIG.ctaLabel)}</a>
         ${CONFIG.seriesUrl ? `<a class="sec" href="${CONFIG.seriesUrl}" target="_blank" rel="noopener">Watch "Frank Is Missing"</a>` : ''}
-        ${FR.score.available() ? '<button class="sec" data-a="board">Scoreboard</button>' : ''}
+        ${FR.score.available() ? '<button class="sec" data-a="board">Live Standings</button>' : ''}
         <button class="sec" data-a="back">Back to Frank's desk</button><button class="sec" data-a="again">Play again</button></div>
     </div></div>`);
     e.querySelector('[data-a=back]').onclick = () => e.remove();
@@ -8858,9 +8872,9 @@ Website:      still says 'Director'. Steve. Don't ask.
     if (sbBtn) sbBtn.onclick = () => FR.score.open();
     // where this game landed on the board (or how to get on it)
     const rankEl = e.querySelector('.fr-end-rank');
-    if (FR.score.available() && !(FR.account && FR.account.user)) rankEl.textContent = 'Playing without an account, so this score is not on the scoreboard.';
+    if (FR.score.available() && !(FR.account && FR.account.user)) rankEl.textContent = "Playing without an account, so this score isn't in the Live Standings.";
     else if (FR.score.available()) FR.score.fetch().then(d => {
-      if (d.me) rankEl.innerHTML = `You're <b>#${d.me.rank}</b> of ${FR.score.fmt(d.players)} on the scoreboard${d.me.score !== sc.score ? ` with your first finished game (${FR.score.fmt(d.me.score)} points)` : ''}.`;
+      if (d.me) rankEl.innerHTML = `You're <b>#${d.me.rank}</b> of ${FR.score.fmt(d.players)} in the Desk Division's Live Standings${d.me.score !== sc.score ? ` with your first finished game (${FR.score.fmt(d.me.score)} points)` : ''}.`;
     }, () => {});
     e.querySelector('[data-a=again]').onclick = () => confirmStartOver();
     root.appendChild(e);

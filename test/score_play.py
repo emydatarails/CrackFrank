@@ -1,5 +1,5 @@
-"""Score and scoreboard through the real UI: checklist score, free-hint countdown, the cost prompt after 10 hints,
-the Start-menu scoreboard, and the ending screen's score and rank. Runs on test/local_server.js (in-memory Redis).
+"""Score and Live Standings through the real UI: checklist score, free-hint countdown, the cost prompt after 10 hints,
+the desktop shortcut to the championship site's standings, and the ending screen's score and rank. Runs on test/local_server.js (in-memory Redis).
 Usage: python3 test/score_play.py   (needs node and Playwright's Chromium, like test/play.py)"""
 import os, subprocess, sys
 from playwright.sync_api import sync_playwright
@@ -68,15 +68,31 @@ try:
         pg.locator('.fr-dialog .fr-dlg-btns button', has_text='Use a hint').click(); pg.wait_for_timeout(300)
         ok('Score: 900' in pg.inner_text('.ck-wrap .ck-foot'), 'paid hint: 1,000 − 100 = 900')
 
-        # scoreboard from the Start menu
+        # the Live Standings: a desktop shortcut to the Excel World Championship site in Internet Explorer
+        icon = pg.locator('.fr-dicon.fr-dicon-lnk', has_text='Live Standings')
+        ok(icon.count() == 1, 'desktop has the "Vegas Live Standings" shortcut')
+        icon.dblclick(); pg.wait_for_selector('.ie-page .st-t', timeout=6000)
+        ie_title = pg.evaluate("() => FR.wm.wins.get('ie').el.querySelector('.fr-title').textContent")
+        ok(ie_title == 'Board Pack Rescue — Live Standings - Internet Explorer', 'opens Internet Explorer: ' + ie_title)
+        ok(pg.input_value('.ie-addr input') == 'http://championship.example/standings', 'address bar: championship.example/standings')
+        ok(pg.inner_text('.ie-page h1') == 'Board Pack Rescue — Live Standings', 'page title: ' + pg.inner_text('.ie-page h1'))
+        rows = pg.eval_on_selector_all('.st-t tbody tr', 'rs => rs.map(r => r.innerText.replace(/\\s+/g, " ").trim())')
+        ok(len(rows) == 2 and rows[0].startswith('1 Rival 950') and rows[1].startswith('2 Scorer (you) 900'), 'standings: ' + ' | '.join(rows))
+        ok(pg.locator('.st-t tr.st-me').count() == 1 and pg.locator('.st-t .st-m1').count() == 1, 'your row highlighted, #1 gets the gold medal')
+        pg.screenshot(path=f'{OUT}/standings.png')
+
+        # site navigation: Schedule tab and back via the schedule's link
+        pg.locator('.st-nav a', has_text='Schedule').click(); pg.wait_for_timeout(300)
+        ok(pg.input_value('.ie-addr input').endswith('/schedule'), 'Schedule tab opens the schedule')
+        pg.locator('.ie-page .cc-lnk', has_text='Live Standings').click(); pg.wait_for_selector('.ie-page .st-t', timeout=6000)
+        ok(True, 'the schedule links back to the standings')
+
+        # Start menu entry opens the same page
+        pg.evaluate("() => { document.querySelectorAll('.fr-win').forEach(w => { const c = w.querySelector('[aria-label=Close]'); if (c && /Internet Explorer/.test(w.innerText)) c.click(); }); }")
+        pg.wait_for_timeout(300)
         pg.click('.fr-startbtn'); pg.wait_for_timeout(300)
-        pg.locator('.fr-sm-item', has_text='Scoreboard').click(); pg.wait_for_selector('.sb-table', timeout=6000)
-        rows = pg.eval_on_selector_all('.sb-table tbody tr', 'rs => rs.map(r => r.innerText.replace(/\\s+/g, " ").trim())')
-        ok(len(rows) == 2 and rows[0].startswith('1 Rival 950') and rows[1].startswith('2 Scorer (you) 900'), 'board: ' + ' | '.join(rows))
-        ok(pg.locator('.sb-table tr.sb-me').count() == 1, 'your row is highlighted')
-        pg.screenshot(path=f'{OUT}/score_board.png')
-        pg.keyboard.press('Escape'); pg.wait_for_timeout(200)
-        ok(pg.locator('.sb-shade').count() == 0, 'Esc closes the scoreboard')
+        pg.locator('.fr-sm-item', has_text='Live Standings').click(); pg.wait_for_selector('.ie-page .st-t', timeout=6000)
+        ok(True, 'Start menu → Live Standings')
 
         # finish (skip to the end) and check the ending screen
         pg.evaluate("() => { FR.puzzle.ORDER.forEach(id => FR.state.solved[id] = FR.state.solved[id] || Date.now()); FR.state.finishedAt = Date.now(); FR.state.finishPlayMs = FR.clock.playMs(); FR.save(); FR.ending(); }")
@@ -84,8 +100,10 @@ try:
         ok(pg.inner_text('.fr-end-score b') == '9,900', 'ending shows the score (10,000 − 100)')
         ok('#1 of 2' in pg.inner_text('.fr-end-rank'), 'ending shows the rank: ' + pg.inner_text('.fr-end-rank'))
         pg.screenshot(path=f'{OUT}/score_ending.png')
-        pg.click('.fr-end-cta [data-a=board]'); pg.wait_for_selector('.sb-table', timeout=6000)
-        ok(pg.locator('.sb-table tr.sb-me td.sb-rank').inner_text() == '1', 'scoreboard opens over the ending, you are #1')
+        pg.click('.fr-end-cta [data-a=board]'); pg.wait_for_timeout(400)
+        ok(pg.locator('.fr-end').count() == 0, 'ending → Live Standings closes the ending screen')
+        pg.wait_for_selector('.ie-page .st-me', timeout=6000)
+        ok(pg.locator('.st-t tr.st-me td.st-rank').inner_text() == '1' and 'Board Pack sent' in pg.inner_text('.st-t tr.st-me'), 'you are #1, marked Board Pack sent')
         b.close()
 finally:
     server.terminate()

@@ -101,7 +101,7 @@
     }, () => {});
   };
 
-  // send any unsaved progress now (the scoreboard calls this before loading)
+  // send any unsaved progress now (the Live Standings page calls this before loading)
   A.sync = () => flush(false);
 
   A.signOut = () => Promise.resolve(flush(false))

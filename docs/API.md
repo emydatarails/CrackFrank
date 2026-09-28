@@ -29,7 +29,7 @@ Test page: `dist/index.html?dev=1` skips intro/login (logged in, all items unloc
   When signed in, `FR.save()` also syncs `FR.state` to `/api/save`, and `FR.resetSave()` returns a Promise that resolves once the
   account's save is wiped. Anything that must survive a reload or a change of computer has to be in `FR.state`.
 - `FR.score` (src/score.js): `now()` → `{ score, solved, total, hints, paidHints, freeLeft, wrong, finished, timeMs }` for `FR.state`;
-  `open()` shows the Scoreboard; `available()`; `rules` (= `FR.scoreRules`, src/score_rules.js). `FR.account.sync()` sends unsaved progress.
+  `open()` opens the Live Standings (championship.example/standings) in IE; `render(pageEl, isCurrent)` fills an IE page; `available()`; `rules` (= `FR.scoreRules`, src/score_rules.js). `FR.account.sync()` sends unsaved progress.
 - `FR.bus.on(evt, fn)`, `FR.bus.emit(evt, data)`. Events: 'solved' (id), 'flag' ({k,v}), 'login', 'fs-change'.
 - `FR.puzzle.solve(id)` — marks a checklist item solved (only if it's the current/unlocked one or earlier; else ignored and returns false),
   plays sound, emits 'solved'. `FR.puzzle.isSolved(id)`, `FR.puzzle.isUnlocked(id)`, `FR.puzzle.norm(str)`.

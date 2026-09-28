@@ -17,8 +17,8 @@
   `api/*.js` (Vercel Node functions, Upstash Redis over REST with `fetch`, no npm dependencies). Everything a player
   does must live in `FR.state` to be saved. Without the API (file://, static host, no database) the game runs browser-only.
   Tests: `node test/account_api_test.js` (ALL PASS) and `python3 test/account_play.py`; `node test/local_server.js` runs it locally.
-- Score: rules live only in `src/score_rules.js` (loaded by the game and by `api/_lib.js`). Leaderboard ("Board Pack Rescue — Live Standings"):
-  `src/score.js` renders it as championship.example/standings in Frank's IE (`src/apps/shell.js`), data from `api/scores.js`; the board is updated server-side on every save. Tests: `node test/score_test.js`, `python3 test/score_play.py`.
+- Score: rules live only in `src/score_rules.js` (loaded by the game and by `api/_lib.js`). Leaderboard ("Board Pack Rescue - Who Covered for Frank?"):
+  `src/score.js` renders it as a Packa intranet page (intranet.packacorp.local) in Frank's IE (`src/apps/shell.js`), data from `api/scores.js`; the board is updated server-side on every save. Tests: `node test/score_test.js`, `python3 test/score_play.py`.
 - Hints are presented as "Datarails FinanceOS" cards. Packa Corp itself does not use Datarails; keep that joke intact.
 - Tests: `node test/excel_engine_test.js` must print ALL PASS. `python3 test/play.py` (Playwright, Chromium) plays the
   whole game through the UI and must end with "no console errors".

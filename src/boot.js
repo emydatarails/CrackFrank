@@ -13,8 +13,10 @@
   // dev shortcuts (?dev=1, ?solve=) only work locally, never on the public site
   const LOCAL = location.protocol === 'file:' || /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname);
   const DEV = LOCAL && q.has('dev');
-  // the real Packa mark (src/packa-logo-white.svg, embedded by build.py); every place it appears is a dark background
-  const LOGO = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(FR.data.logo.markWhite)));
+  // the real Packa mark (src/packa-logo*.svg, embedded by build.py): white on the boot screen and Start button,
+  // Packa red on the log-on screen (the text next to it stays white)
+  const svgUri = svg => 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+  const LOGO = svgUri(FR.data.logo.markWhite), LOGO_RED = svgUri(FR.data.logo.mark);
 
   // Render every icon once, off-screen, so gradient ids always resolve (even when the first copy is hidden)
   const sprite = $('<div class="fr-sprite" aria-hidden="true"></div>');
@@ -137,7 +139,7 @@
     const el = $(`<div class="fr-screen fr-login">
       <div class="fr-login-top"></div>
       <div class="fr-login-mid">
-        <div class="fr-login-left"><div class="fr-brand"><img src="${LOGO}" alt="Packa Corporation logo"><div>PACKA CORPORATION<small>Packaging &amp; Corrugated Products</small></div></div><p>Frank's account is the only one. Obviously.</p></div>
+        <div class="fr-login-left"><div class="fr-brand"><img src="${LOGO_RED}" alt="Packa Corporation logo"><div>PACKA CORPORATION<small>Packaging &amp; Corrugated Products</small></div></div><p>Frank's account is the only one. Obviously.</p></div>
         <div class="fr-login-div"></div>
         <div class="fr-login-right">
           <div class="fr-user"><div class="fr-avatar"><img src="${FR.data.images.frankAvatar}" alt="Frank's account picture"></div>

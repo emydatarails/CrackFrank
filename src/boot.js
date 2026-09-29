@@ -546,6 +546,8 @@
           c.ondblclick = () => FR.openFile(fid);
           c.querySelector('.ck-pickbtn').onclick = e => {
             e.stopPropagation();
+            // phones: the same Select → Submit bar as the weeks and suspects (one confirm style, not a dialog)
+            if (FR.mobile) return confirmPick(pk, c, n.name.replace(/\.xls$/, ''), () => tryAnswer(n.name, n.name), { verb: 'Send to Diane' });
             FR.dialog({ icon: 'question', title: 'Send to Diane for sign-off', message: `Tell Diane this is the approved FY27 budget?<br><br><b>${esc(n.name)}</b>`, buttons: ['Send to Diane', 'Cancel'] })
               .then(r => { if (r.button === 'Send to Diane') tryAnswer(n.name, n.name); });
           };
@@ -584,15 +586,15 @@
   }
   // phones: a one-tap answer (week, suspect) is only picked by the first tap; a Submit button under the picker sends it,
   // so a stray tap can't answer for the player
-  function confirmPick(pk, btn, label, go) {
+  function confirmPick(pk, btn, label, go, opts = {}) {
     pk.querySelectorAll('.ck-sel').forEach(x => x.classList.remove('ck-sel'));
     let bar = pk.parentElement.querySelector('.ck-confirm');
     if (bar && bar._for === btn) { bar.remove(); return; }
     btn.classList.add('ck-sel');
     if (bar) bar.remove();
-    bar = $(`<div class="ck-confirm"><button class="ck-conf-ok"></button><button class="ck-conf-no">Cancel</button></div>`);
-    bar._for = btn;
-    bar.querySelector('.ck-conf-ok').textContent = 'Submit: ' + label;
+    bar = $(`<div class="ck-confirm fr-guard"><button class="ck-conf-ok"></button><button class="ck-conf-no">Cancel</button></div>`);
+    bar._for = btn; bar._frShown = Date.now(); bar._frGuard = 500;   // the tap guard ignores it for its first half second
+    bar.querySelector('.ck-conf-ok').textContent = (opts.verb || 'Submit') + ': ' + label;
     bar.querySelector('.ck-conf-ok').onclick = () => { bar.remove(); btn.classList.remove('ck-sel'); go(); };
     bar.querySelector('.ck-conf-no').onclick = () => { bar.remove(); btn.classList.remove('ck-sel'); };
     pk.after(bar);

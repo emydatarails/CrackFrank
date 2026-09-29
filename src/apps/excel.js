@@ -1629,7 +1629,7 @@
           { label: 'Clear Contents', key: 'Del', action: clearSel }, dis('Delete...'), dis('Delete Sheet'), dis('Move or Copy Sheet...'), { sep: 1 }, dis('Find...'), dis('Replace...'), { label: 'Go To...', key: 'Ctrl+G', action: () => { nbin.focus(); nbin.select(); } }] },
         { label: 'View', items: () => [{ label: 'Normal', checked: true }, dis('Page Break Preview'), { sep: 1 }, dis('Task Pane'), dis('Toolbars'), { label: 'Formula Bar', checked: st.fbar, action: () => { st.fbar = !st.fbar; q('.xl-fbar').style.display = st.fbar ? '' : 'none'; } },
           { label: 'Status Bar', checked: q('.xl-status').style.display !== 'none', action: () => { const s = q('.xl-status'); s.style.display = s.style.display === 'none' ? '' : 'none'; } }, { sep: 1 },
-          { label: 'Comments', checked: st.showCm, action: () => { st.showCm = !st.showCm; renderObjs(); } }, { sep: 1 }, dis('Full Screen'), dis('Zoom...')] },
+          { label: 'Comments', checked: st.showCm, action: () => { st.showCm = !st.showCm; renderObjs(); } }, { sep: 1 }, dis('Full Screen'), FR.mobile ? { label: 'Zoom: Fit to Width', checked: !!st.fit, action: () => setFit(!st.fit) } : dis('Zoom...')] },
         { label: 'Insert', items: () => [dis('Cells...'), dis('Rows'), dis('Columns'), dis('Worksheet'), dis('Chart...'), { sep: 1 }, { label: 'Function...', action: fnHelp }, dis('Name'), dis('Comment'), { sep: 1 }, dis('Picture'), dis('Hyperlink...')] },
         { label: 'Format', items: () => [dis('Cells...'), dis('Row'), dis('Column'), dis('Sheet'), { sep: 1 }, dis('AutoFormat...'), dis('Conditional Formatting...'), dis('Style...')] },
         { label: 'Tools', items: () => [{ label: 'Spelling...', key: 'F7', action: soon('The spelling check is complete for the entire sheet.') }, dis('Error Checking...'), { sep: 1 }, dis('Protection'), dis('Goal Seek...'), dis('Scenarios...'), dis('Formula Auditing'), { sep: 1 }, dis('Macro'), dis('Add-Ins...'), { label: 'Options...', action: soon('Options are locked by the Packa Corp IT policy.<br><br>(Packa Corp IT = Drew.)') }] },
@@ -1732,7 +1732,9 @@
             const tw = measure(text, sty) + 4 + (sty.ind ? sty.ind * 9 : 0);
             if (tw > w) {
               let acc = w, j = c;
-              while (acc < tw && j + 1 < NC && !(s.cells[r + ',' + (j + 1)] && s.cells[r + ',' + (j + 1)].raw !== '')) { j++; acc += colWd[j]; }
+              // (phones: text also stops at a filled cell, e.g. a yellow input cell, so you never type "into" a label)
+              const stop = n => { const x = s.cells[r + ',' + n]; return !!x && (x.raw !== '' || (FR.mobile && x.s && x.s.bg && x.s.bg !== '#fff' && x.s.bg !== '#ffffff')); };
+              while (acc < tw && j + 1 < NC && !stop(j + 1)) { j++; acc += colWd[j]; }
               if (j > c) { cls += ' xl-spill'; html = `<span class="xl-sp" style="width:${acc - 4}px">${esc(text)}</span>`; }
             }
           }
@@ -1786,6 +1788,22 @@
         tabsEl.appendChild(t);
       });
     }
+    /* phones: "Fit" shrinks the grid so the whole used width of the sheet fits the screen (a statement at a glance);
+       "100%" goes back. The grid is zoomed with CSS zoom, and Excel measures its cells from the DOM, so taps still land. */
+    function setFit(on) {
+      st.fit = on;
+      if (!on) scroll.style.zoom = '';
+      else {
+        // the width of the statement: up to the last column with a number or a formula (notes further right may spill)
+        let mc = 0; for (const k in sh().cells) { const cl = sh().cells[k]; if (!cl.raw) continue; const c = +k.split(',')[1]; if (c > mc && (cl.raw[0] === '=' || !isNaN(parseNumText(cl.raw)))) mc = c; }
+        if (!mc) for (const k in sh().cells) { const c = +k.split(',')[1]; if (sh().cells[k].raw && c > mc) mc = c; }
+        const used = colX[mc] + colWd[mc] + 4, avail = q('.xl-main').getBoundingClientRect().width;
+        scroll.style.zoom = Math.max(0.55, Math.min(1.2, avail / used)).toFixed(3);
+      }
+      scroll.scrollLeft = 0;
+      const zb = q('.xl-zoomb'); if (zb) { zb.textContent = on ? '100%' : 'Fit'; zb.classList.toggle('on', on); }
+      tapNote(null);
+    }
     function switchSheet(i) {
       if (i === st.si) return;
       if (st.edit && !canPoint()) { if (!commit(0, 0)) return; }
@@ -1797,6 +1815,7 @@
       renderSheet();
       syncEditorVisibility();
       if (!keepEdit) focusGrid(); else fin.focus();
+      if (st.fit) setFit(true);
     }
     q('.xl-tabnav').onmousedown = e => {
       const n = e.target.closest('[data-n]'); if (!n) return; e.preventDefault();
@@ -2186,6 +2205,9 @@
        again edits it in the formula bar, with the old content selected so typing replaces it. */
     const editInBar = () => { if (st.edit) return; fin.focus(); try { fin.setSelectionRange(0, fin.value.length); } catch (x) {} };
     if (FR.mobile) {
+      const zb = $('<button class="xl-zoomb" aria-label="Fit the sheet to the screen width">Fit</button>');
+      zb.onclick = e => { e.stopPropagation(); setFit(!st.fit); };
+      q('.xl-tabbar').appendChild(zb);
       scroll.addEventListener('scroll', () => scroll.classList.toggle('xl-sx', scroll.scrollLeft > 2), { passive: true });
       wrap.addEventListener('mousedown', e => {
         const p = cellAt(e);

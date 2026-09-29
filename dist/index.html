@@ -1193,8 +1193,12 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   .fr-login-hint.fr-login-hint-m { position: relative; left: auto !important; top: auto !important; margin-top: 10px; text-align: left; }
   html.fr-kb .fr-login-hint-m .fr-login-fos { display: none; }
   .fr-offbtn { padding: 8px 0; }
-  /* the password row stays where it is when the error and the hint appear under it */
-  .fr-login-mid { justify-content: flex-start; padding-top: 22px; }
+  /* the password row stays where it is when the error and the hint appear under it; one column on every phone/tablet
+     (the two-column desktop layout doesn't fit an iPad in portrait) */
+  .fr-login-mid { flex-direction: column; justify-content: flex-start; align-items: center; gap: 20px; padding: 22px 16px 16px; }
+  .fr-login-left, .fr-login-right { width: 100%; max-width: 480px; padding: 0; align-items: center; text-align: center; }
+  .fr-login-div, .fr-login-note { display: none; }
+  .fr-user { min-width: 0; width: 100%; }
   #fr-root .fr-login-web { display: flex; align-items: center; gap: 7px; min-height: 40px; padding: 4px 12px; background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.55); border-radius: 5px; font: 13px Tahoma, Verdana, "DejaVu Sans", Arial, sans-serif; box-shadow: none; min-width: 0; }
   .fr-login-web .fr-ico { width: 22px; height: 22px; }
   .fr-postit { cursor: pointer; }
@@ -1348,6 +1352,18 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   .xl-st-sum { min-width: 0; flex: 1 1 auto; height: 20px; line-height: 20px; }
   .xl-st-box { display: none; }
   .xl-cm { font-size: 13px; }
+  .xl-selbox { border-width: 3px; }   /* the cell you're on stays clearly outlined */
+  #fr-root .xl-zoomb { flex: none; align-self: center; margin: 0 4px 0 auto; min-width: 52px; min-height: 0; height: 26px; padding: 0 8px; font: 700 12px Tahoma, sans-serif; }
+  #fr-root .xl-zoomb.on { background: #dfe9fb; border-color: #316ac5; }
+  #fr-root .ck-file.ck-sel { outline: 3px solid #316ac5; outline-offset: 1px; background: #dfe9fb; }
+  .fr-swl-t b { display: block; font-weight: 400; }
+  .fr-swl-r.on .fr-swl-t b { font-weight: 700; }
+  .fr-swl-t small { display: block; font-size: 11px; color: #666; }
+  .fr-swl-t small:empty { display: none; }
+  .fr-swl-cur { flex: none; font-size: 11px; font-weight: 700; color: #fff; background: #316ac5; border-radius: 9px; padding: 1px 7px; }
+  .fr-swl-r.on { box-shadow: inset 4px 0 0 #316ac5; }
+  .fr-swl-r.pin { background: #fffbe0; border-bottom: 2px solid #e6d98a; }
+  .fr-swl-r.pin.on { background: #fff3b0; }
   .xl-cm.xl-cm-text { background: #fff; border-color: #7f9db9; box-shadow: 2px 2px 6px rgba(0,0,0,.3); white-space: pre-wrap; overflow-wrap: anywhere; }
   /* column A frozen: the labels stay while the numbers scroll */
   table.xl-grid td[data-c="0"] { position: sticky; left: 30px; z-index: 1; background-color: #fff; box-shadow: 1px 0 0 #9aa3b3; }
@@ -1370,11 +1386,10 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   .oe-tbb { flex: none; font-size: 12px; }
   .oe-fbar { height: 26px; }
   .oe-list { flex-basis: 52%; }
-  /* portrait: no Received column (the preview shows the date), so From and Subject get the room */
-  .oe-tbl th:nth-child(5), .oe-tbl td:nth-child(5) { display: none; }
+
   .oe-tbl { font-size: 12.5px; }
   .oe-tbl col.oe-col-from { width: 34%; }
-  .oe-tbl col:last-child { width: 0 !important; }
+  .oe-tbl col:last-child { width: 130px !important; }
   .oe-tbl thead th { height: 26px; }
   .oe-tbl tbody td, .oe-tbl .oe-from { height: 36px; }
   .oe-ph, .oe-mh { font-size: 12.5px; line-height: 19px; }
@@ -1424,6 +1439,15 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   .ie-win .ie { flex-direction: column-reverse; }
   .ie-win .ie-bars { border-top: 1px solid #a0a09a; }
   .ie-win .ie-page { border-top: 0; }
+  /* the address (which page am I on?) above the buttons; Back and Refresh first, nearest the thumb */
+  .ie-win .ie-bars { display: flex; flex-direction: column; }
+  .ie-win .ie-addr { order: -1; border-bottom: 1px solid #d0cdbe; }
+  .ie-win .ie-addr .ex-addr-l { display: none; }
+  .ie-win .ie-tb { justify-content: space-between; padding: 2px 6px; }
+  .ie-win .ie-b[data-a=back] { order: 1; } .ie-win .ie-b[data-a=refresh] { order: 2; } .ie-win .ie-b[data-a=fwd] { order: 3; } .ie-win .ie-b[data-a=home] { order: 4; }
+  .ie-win .ie-tb > * { order: 5; }
+  .ie-win .ie-b[data-a=stop], .ie-win .ie-b[data-a=print], .ie-win .ie-b[data-a=mail], .ie-win .ie-tb .ex-tsep, .ie-win .ie-b .ex-b-dd { display: none; }
+  .ie-win .ie-b { min-width: 44px; justify-content: center; }
   .ie-links::-webkit-scrollbar { display: none; }
   .ie-link { padding: 5px 7px; }
   .ie-tb .ex-bt { display: none; }
@@ -1452,13 +1476,22 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
 @media (max-height: 500px) {
   html.fr-m .xl-dock, html.fr-m .xl-status { display: none; }
   html.fr-m .fr-login-top, html.fr-m .fr-login-bot { min-height: 0; height: 44px; }
-  html.fr-m .fr-login-mid { flex-direction: row; gap: 16px; padding: 8px 16px; }
-  html.fr-m .fr-login-left, html.fr-m .fr-login-right { width: 50%; }
+  html.fr-m .fr-login-mid { flex-direction: row; align-items: flex-start; gap: 14px; padding: 10px 14px; }
+  html.fr-m .fr-login-left { width: 36%; }
+  html.fr-m .fr-login-right { width: 64%; max-width: none; }
+  html.fr-m .fr-login-left p { font-size: 12px; }
   html.fr-m .fr-login-left .fr-brand { font-size: 18px; }
   html.fr-m .fr-login-left .fr-brand img { height: 44px; }
   html.fr-m .fr-login-left p { margin-top: 10px; }
-  html.fr-m .fr-postit { top: 4px; width: 104px; font-size: 12px; padding: 8px; }
+  html.fr-m .fr-postit { top: auto; bottom: 50px; left: 12px; right: auto; width: 110px; font-size: 12px; padding: 8px; }
   html.fr-m .ie-links { display: none; }
+  /* IE sideways: address and buttons in one row, no menu bar (Favorites / History / Search buttons stay) */
+  html.fr-m .ie-win > .fr-menubar { display: none; }
+  html.fr-m .ie-win .ie-bars { flex-direction: row; align-items: center; }
+  html.fr-m .ie-win .ie-addr { flex: 1 1 auto; min-width: 0; border-bottom: 0; order: 0; }
+  html.fr-m .ie-win .ie-tb { flex: none; border-bottom: 0; min-height: 0; }
+  html.fr-m .ie-win .ie-b { height: 32px; min-width: 38px; }
+  html.fr-m .ie-win .ie-b[data-a=history] { display: none; }
   html.fr-m .ex-tb, html.fr-m .ie-tb { min-height: 32px; }
   html.fr-m .ex-b, html.fr-m .ie-b { height: 32px; }
   html.fr-m .oe-fbar { display: none; }
@@ -1495,6 +1528,22 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
 @media (max-width: 760px), (max-height: 500px) {
   html.fr-m .xl-scroll { zoom: 1.2; }
 }
+/* narrow phones (iPhone SE…): a slimmer Start button and tray, so the window switcher keeps its title */
+@media (max-width: 400px) {
+  html.fr-m .fr-startbtn { width: 70px; font-size: 15px; gap: 3px; padding-left: 6px; }
+  html.fr-m .fr-startbtn img { width: 20px; height: 20px; }
+  html.fr-m .fr-tray { gap: 6px; padding: 0 6px; }
+  html.fr-m .fr-tray .fr-pack { padding: 5px 5px; }
+  html.fr-m .fr-tray { font-size: 11px; }
+  html.fr-m .fr-sw-n::after { content: none; }
+  html.fr-m #fr-root .fr-switch { margin: 4px 3px; gap: 4px; padding: 0 4px 0 5px; }
+}
+/* narrow portrait phones: no Received column in Outlook (the preview shows the date), so From and Subject get the room */
+@media (max-width: 560px) {
+  html.fr-m .oe-tbl th:nth-child(5), html.fr-m .oe-tbl td:nth-child(5) { display: none; }
+  html.fr-m .oe-tbl col:last-child { width: 0 !important; }
+}
+@media (max-width: 380px) { html.fr-m .fr-tray .fr-ktray { display: none; } }   /* (Kristians' tips still come by themselves) */
 /* a very narrow phone has no free desktop space for the sticky notes */
 @media (max-width: 359px) { html.fr-m #fr-root .fr-stickies { display: none; } }
 
@@ -1666,7 +1715,7 @@ FR.apps = FR.apps || {};
      open); tapping it lists every open window by its full name, to switch to or close. */
   let swT = 0, swEl = null;
   function swSoon() { if (FR.mobile && !swT) swT = setTimeout(() => { swT = 0; swUpdate(); }, 0); }
-  const appWins = () => [...wins.values()].filter(v => v.tb && v.tb.isConnected).sort((a, b) => (+b.el.style.zIndex || 0) - (+a.el.style.zIndex || 0));
+  const appWins = () => [...wins.values()].filter(v => v.tb && v.tb.isConnected).sort((a, b) => (b._used || 0) - (a._used || 0) || (+b.el.style.zIndex || 0) - (+a.el.style.zIndex || 0));
   const winTitle = v => v.el.querySelector('.fr-title').textContent;
   function swUpdate() {
     if (!FR.mobile || !taskbarList || !taskbarList.isConnected) return;
@@ -1678,29 +1727,46 @@ FR.apps = FR.apps || {};
     }
     const ws = appWins(), a = FR.wm.active && ws.includes(FR.wm.active) ? FR.wm.active : null;
     b.querySelector('.fr-sw-i').innerHTML = a ? a.tb.querySelector('.fr-ico').outerHTML : FR.icon('views', 18);
-    b.querySelector('.fr-sw-t').textContent = a ? winTitle(a) : ws.length ? 'Open windows' : 'No open windows';
+    b.querySelector('.fr-sw-t').textContent = a ? splitTitle(winTitle(a))[0] : 'Windows';
     b.querySelector('.fr-sw-n').textContent = ws.length;
     b.classList.toggle('on', !!swEl);
     if (swEl) swList(true);
   }
+  // "Microsoft Excel - Budget.xls" → ['Budget.xls', 'Microsoft Excel']; "Inbox - Outlook Express" → ['Inbox', 'Outlook Express']
+  const splitTitle = t => {
+    let m = /^(Microsoft Excel) - (.+)$/.exec(t); if (m) return [m[2], m[1]];
+    m = /^(.+) - (Internet Explorer|Outlook Express|Notepad|Windows Picture and Fax Viewer|Document Viewer)$/.exec(t); if (m) return [m[1], m[2]];
+    return [t, ''];
+  };
   function swList(show) {
     if (swEl) { swEl.remove(); swEl = null; }
     const host = taskbarList && taskbarList.closest('.fr-desktop');
     if (!show || !host) { const b = document.querySelector('.fr-switch'); if (b) b.classList.remove('on'); return; }
-    const ws = appWins();
-    const L = $(`<div class="fr-swlist"><div class="fr-swl-h">Open windows (${ws.length})</div><div class="fr-swl-b"></div></div>`);
+    // most recently used first; the Board Pack checklist is always pinned at the top (open or not)
+    const all = appWins(), ck = all.find(v => v.id === 'checklist'), ws = all.filter(v => v !== ck);
+    const L = $(`<div class="fr-swlist"><div class="fr-swl-h">Open windows (${all.length})</div><div class="fr-swl-b"></div></div>`);
     const body = L.querySelector('.fr-swl-b');
-    if (!ws.length) body.appendChild($('<div class="fr-swl-empty">Nothing is open. Open something from the desktop or the Start menu.</div>'));
-    ws.forEach(v => {
-      const r = $(`<div class="fr-swl-r${v === FR.wm.active ? ' on' : ''}${v.min ? ' min' : ''}">${v.tb.querySelector('.fr-ico').outerHTML}<span class="fr-swl-t"></span><button class="fr-swl-x" aria-label="Close">&#x2715;</button></div>`);
-      r.querySelector('.fr-swl-t').textContent = winTitle(v) + (v.min ? ' (minimized)' : '');
+    const row = (v, pin) => {
+      const cur = v === FR.wm.active && !v.min;
+      const [t, app] = splitTitle(winTitle(v));
+      const r = $(`<div class="fr-swl-r${cur ? ' on' : ''}${v.min ? ' min' : ''}${pin ? ' pin' : ''}" data-wid="${FR.esc(v.id)}">${v.tb.querySelector('.fr-ico').outerHTML}<span class="fr-swl-t"><b></b><small></small></span>${cur ? '<span class="fr-swl-cur">current</span>' : ''}<button class="fr-swl-x" aria-label="Close">&#x2715;</button></div>`);
+      r.querySelector('b').textContent = t;
+      r.querySelector('small').textContent = [app, v.min ? 'minimized' : ''].filter(Boolean).join(' · ');
       r.onclick = e => { e.stopPropagation(); swList(false); if (v.min) v.restore(); v.focus(); };
       r.querySelector('.fr-swl-x').onclick = e => { e.stopPropagation(); FR.sound.play('click'); v.close(); setTimeout(() => { if (swEl) swList(true); }, 160); };
+      return r;
+    };
+    if (ck) body.appendChild(row(ck, true));
+    else if (FR.apps.checklist) {
+      const r = $(`<div class="fr-swl-r pin min">${FR.icon('checklist', 18)}<span class="fr-swl-t"><b>Board Pack — TO DO</b><small>not open · tap to open</small></span></div>`);
+      r.onclick = e => { e.stopPropagation(); swList(false); FR.apps.checklist(); };
       body.appendChild(r);
-    });
-    if (ws.some(v => !v.min)) {
-      const d = $(`<div class="fr-swl-r fr-swl-desk">${FR.icon('computer', 18)}<span class="fr-swl-t">Show the desktop</span></div>`);
-      d.onclick = e => { e.stopPropagation(); swList(false); ws.forEach(v => v.minimize()); };
+    }
+    ws.forEach(v => body.appendChild(row(v)));
+    if (!ws.length) body.appendChild($('<div class="fr-swl-empty">Nothing else is open. Open something from the desktop or the Start menu.</div>'));
+    if (all.some(v => !v.min)) {
+      const d = $(`<div class="fr-swl-r fr-swl-desk">${FR.icon('computer', 18)}<span class="fr-swl-t"><b>Show the desktop</b></span></div>`);
+      d.onclick = e => { e.stopPropagation(); swList(false); all.forEach(v => v.minimize()); };
       body.appendChild(d);
     }
     L._frShown = Date.now(); L._frGuard = 300;
@@ -1756,6 +1822,7 @@ FR.apps = FR.apps || {};
         focus(fromUser) {
           // phones: a window that jumps to the front by itself (not by a tap in it) ignores taps for a moment (no ghost taps)
           if (FR.mobile && !fromUser && FR.wm.active !== w) el._frShown = Date.now();
+          w._used = Date.now();
           swSoon();
           wins.forEach(v => { v.el.classList.add('fr-inactive'); v.tb.classList.remove('active'); });
           el.classList.remove('fr-inactive'); tb.classList.add('active'); el.style.zIndex = w.dz || ++z; FR.wm.active = w;
@@ -1925,7 +1992,8 @@ FR.apps = FR.apps || {};
   FR.balloon = (title, text, onClick, opts = {}) => {
     if (document.querySelector('.fr-end')) return;
     // phones: never while typing (keyboard up) or while a message box waits for an answer; it waits its turn
-    if (FR.mobile && (document.documentElement.classList.contains('fr-kb') || FR.wm.topDialog())) {
+    const typing = () => { const a = document.activeElement; return !!a && (/^(INPUT|TEXTAREA)$/.test(a.tagName) && !a.readOnly) && !!a.closest('#fr-root'); };
+    if (FR.mobile && (document.documentElement.classList.contains('fr-kb') || FR.wm.topDialog() || typing())) {
       const n = (opts.tries || 0) + 1; if (n < 20) setTimeout(() => FR.balloon(title, text, onClick, Object.assign({}, opts, { tries: n })), 1500); return;
     }
     if (!opts.silent && Date.now() - (FR._lastSound || 0) > 400) FR.sound.play('notify');
@@ -1940,7 +2008,7 @@ FR.apps = FR.apps || {};
     b.onclick = e => { bye(); if (!e.target.classList.contains('fr-balloon-x') && onClick) onClick(); };
     // phones: it doesn't vanish from under a finger (waits while the screen is being touched)
     const auto = () => { if (FR.mobile && Date.now() - lastTouch < 1500) return setTimeout(auto, 1500); bye(); };
-    setTimeout(auto, 9000);
+    setTimeout(auto, FR.mobile ? 5000 : 9000);
     if (FR.mobile) {
       b._frShown = Date.now(); b._frGuard = 500;
       // a tap anywhere else puts it away (like a toast)
@@ -1956,6 +2024,11 @@ FR.apps = FR.apps || {};
      front by itself, a balloon, the window list) must not press what appeared, and a tap aimed at a balloon that just
      went away must not press what was underneath. Only touch taps are filtered (a mouse on a tablet is not). */
   let lastTouch = 0, balloonGhost = null;
+  // phones: starting to type (a cell, the formula bar, an answer box) puts a balloon away at once
+  document.addEventListener('focusin', e => {
+    if (!FR.mobile || !e.target || !/^(INPUT|TEXTAREA)$/.test(e.target.tagName) || e.target.readOnly) return;
+    document.querySelectorAll('.fr-balloon').forEach(b => b.remove());
+  });
   const noteTouch = () => { lastTouch = Date.now(); };
   window.addEventListener('touchstart', noteTouch, { capture: true, passive: true });
   window.addEventListener('pointerdown', e => { if (e.pointerType === 'touch') noteTouch(); }, { capture: true, passive: true });
@@ -1963,8 +2036,10 @@ FR.apps = FR.apps || {};
     if (!FR.mobile || !e.isTrusted) return false;
     const touch = e.pointerType ? e.pointerType === 'touch' : Date.now() - lastTouch < 1000;
     if (!touch) return false;
-    const t = e.target && e.target.closest ? e.target.closest('.fr-win, .fr-swlist, .fr-balloon') : null;
-    if (t && t._frShown && lastTouch < t._frShown + (t._frGuard || 350)) return true;
+    // the nearest guarded thing under the finger: a confirm bar (.fr-guard), the window list, a balloon or a window
+    for (let t = e.target && e.target.closest ? e.target.closest('.fr-guard, .fr-win, .fr-swlist, .fr-balloon') : null; t; t = t.parentElement && t.parentElement.closest('.fr-guard, .fr-win, .fr-swlist, .fr-balloon')) {
+      if (t._frShown && lastTouch < t._frShown + (t._frGuard || 350)) return true;
+    }
     const g = balloonGhost;
     if (g && lastTouch > g.at - 1500 && lastTouch < g.at + 600 && e.clientX >= g.r.left && e.clientX <= g.r.right && e.clientY >= g.r.top && e.clientY <= g.r.bottom) return true;
     return false;
@@ -4498,7 +4573,7 @@ FR.data.logo = {"mark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"380
           { label: 'Clear Contents', key: 'Del', action: clearSel }, dis('Delete...'), dis('Delete Sheet'), dis('Move or Copy Sheet...'), { sep: 1 }, dis('Find...'), dis('Replace...'), { label: 'Go To...', key: 'Ctrl+G', action: () => { nbin.focus(); nbin.select(); } }] },
         { label: 'View', items: () => [{ label: 'Normal', checked: true }, dis('Page Break Preview'), { sep: 1 }, dis('Task Pane'), dis('Toolbars'), { label: 'Formula Bar', checked: st.fbar, action: () => { st.fbar = !st.fbar; q('.xl-fbar').style.display = st.fbar ? '' : 'none'; } },
           { label: 'Status Bar', checked: q('.xl-status').style.display !== 'none', action: () => { const s = q('.xl-status'); s.style.display = s.style.display === 'none' ? '' : 'none'; } }, { sep: 1 },
-          { label: 'Comments', checked: st.showCm, action: () => { st.showCm = !st.showCm; renderObjs(); } }, { sep: 1 }, dis('Full Screen'), dis('Zoom...')] },
+          { label: 'Comments', checked: st.showCm, action: () => { st.showCm = !st.showCm; renderObjs(); } }, { sep: 1 }, dis('Full Screen'), FR.mobile ? { label: 'Zoom: Fit to Width', checked: !!st.fit, action: () => setFit(!st.fit) } : dis('Zoom...')] },
         { label: 'Insert', items: () => [dis('Cells...'), dis('Rows'), dis('Columns'), dis('Worksheet'), dis('Chart...'), { sep: 1 }, { label: 'Function...', action: fnHelp }, dis('Name'), dis('Comment'), { sep: 1 }, dis('Picture'), dis('Hyperlink...')] },
         { label: 'Format', items: () => [dis('Cells...'), dis('Row'), dis('Column'), dis('Sheet'), { sep: 1 }, dis('AutoFormat...'), dis('Conditional Formatting...'), dis('Style...')] },
         { label: 'Tools', items: () => [{ label: 'Spelling...', key: 'F7', action: soon('The spelling check is complete for the entire sheet.') }, dis('Error Checking...'), { sep: 1 }, dis('Protection'), dis('Goal Seek...'), dis('Scenarios...'), dis('Formula Auditing'), { sep: 1 }, dis('Macro'), dis('Add-Ins...'), { label: 'Options...', action: soon('Options are locked by the Packa Corp IT policy.<br><br>(Packa Corp IT = Drew.)') }] },
@@ -4601,7 +4676,9 @@ FR.data.logo = {"mark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"380
             const tw = measure(text, sty) + 4 + (sty.ind ? sty.ind * 9 : 0);
             if (tw > w) {
               let acc = w, j = c;
-              while (acc < tw && j + 1 < NC && !(s.cells[r + ',' + (j + 1)] && s.cells[r + ',' + (j + 1)].raw !== '')) { j++; acc += colWd[j]; }
+              // (phones: text also stops at a filled cell, e.g. a yellow input cell, so you never type "into" a label)
+              const stop = n => { const x = s.cells[r + ',' + n]; return !!x && (x.raw !== '' || (FR.mobile && x.s && x.s.bg && x.s.bg !== '#fff' && x.s.bg !== '#ffffff')); };
+              while (acc < tw && j + 1 < NC && !stop(j + 1)) { j++; acc += colWd[j]; }
               if (j > c) { cls += ' xl-spill'; html = `<span class="xl-sp" style="width:${acc - 4}px">${esc(text)}</span>`; }
             }
           }
@@ -4655,6 +4732,22 @@ FR.data.logo = {"mark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"380
         tabsEl.appendChild(t);
       });
     }
+    /* phones: "Fit" shrinks the grid so the whole used width of the sheet fits the screen (a statement at a glance);
+       "100%" goes back. The grid is zoomed with CSS zoom, and Excel measures its cells from the DOM, so taps still land. */
+    function setFit(on) {
+      st.fit = on;
+      if (!on) scroll.style.zoom = '';
+      else {
+        // the width of the statement: up to the last column with a number or a formula (notes further right may spill)
+        let mc = 0; for (const k in sh().cells) { const cl = sh().cells[k]; if (!cl.raw) continue; const c = +k.split(',')[1]; if (c > mc && (cl.raw[0] === '=' || !isNaN(parseNumText(cl.raw)))) mc = c; }
+        if (!mc) for (const k in sh().cells) { const c = +k.split(',')[1]; if (sh().cells[k].raw && c > mc) mc = c; }
+        const used = colX[mc] + colWd[mc] + 4, avail = q('.xl-main').getBoundingClientRect().width;
+        scroll.style.zoom = Math.max(0.55, Math.min(1.2, avail / used)).toFixed(3);
+      }
+      scroll.scrollLeft = 0;
+      const zb = q('.xl-zoomb'); if (zb) { zb.textContent = on ? '100%' : 'Fit'; zb.classList.toggle('on', on); }
+      tapNote(null);
+    }
     function switchSheet(i) {
       if (i === st.si) return;
       if (st.edit && !canPoint()) { if (!commit(0, 0)) return; }
@@ -4666,6 +4759,7 @@ FR.data.logo = {"mark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"380
       renderSheet();
       syncEditorVisibility();
       if (!keepEdit) focusGrid(); else fin.focus();
+      if (st.fit) setFit(true);
     }
     q('.xl-tabnav').onmousedown = e => {
       const n = e.target.closest('[data-n]'); if (!n) return; e.preventDefault();
@@ -5055,6 +5149,9 @@ FR.data.logo = {"mark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"380
        again edits it in the formula bar, with the old content selected so typing replaces it. */
     const editInBar = () => { if (st.edit) return; fin.focus(); try { fin.setSelectionRange(0, fin.value.length); } catch (x) {} };
     if (FR.mobile) {
+      const zb = $('<button class="xl-zoomb" aria-label="Fit the sheet to the screen width">Fit</button>');
+      zb.onclick = e => { e.stopPropagation(); setFit(!st.fit); };
+      q('.xl-tabbar').appendChild(zb);
       scroll.addEventListener('scroll', () => scroll.classList.toggle('xl-sx', scroll.scrollLeft > 2), { passive: true });
       wrap.addEventListener('mousedown', e => {
         const p = cellAt(e);
@@ -8500,6 +8597,7 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
     const tipSource = () => {
       const r = cur(); const u = r && r.kind === 'site' ? r.url : SITE + '/';
       window.open(u, '_blank', 'noopener');
+      if (FR.mobile) return FR.dialog({ title: 'View Source', icon: 'info', message: "Frank's IE can't show source. Opening the page in your phone's browser.<br><br>On Android (Chrome), put <b>view-source:</b> in front of the address. On an iPhone there's no View Source: a laptop is easiest (Ctrl+U)." });
       FR.dialog({ title: 'View Source', icon: 'info', width: 420, message: "Frank's IE can't show source. Opening the page in your real browser.<br><br>When it opens, press <b>Ctrl+U</b> (or <b>&#8984;+Option+U</b> on a Mac) to view the page source." });
     };
     const openReal = () => { const r = cur(); window.open(r && r.kind === 'site' ? r.url : (r ? r.url : SITE + '/'), '_blank', 'noopener'); };
@@ -9616,6 +9714,8 @@ Website:      still says 'Director'. Steve. Don't ask.
           c.ondblclick = () => FR.openFile(fid);
           c.querySelector('.ck-pickbtn').onclick = e => {
             e.stopPropagation();
+            // phones: the same Select → Submit bar as the weeks and suspects (one confirm style, not a dialog)
+            if (FR.mobile) return confirmPick(pk, c, n.name.replace(/\.xls$/, ''), () => tryAnswer(n.name, n.name), { verb: 'Send to Diane' });
             FR.dialog({ icon: 'question', title: 'Send to Diane for sign-off', message: `Tell Diane this is the approved FY27 budget?<br><br><b>${esc(n.name)}</b>`, buttons: ['Send to Diane', 'Cancel'] })
               .then(r => { if (r.button === 'Send to Diane') tryAnswer(n.name, n.name); });
           };
@@ -9654,15 +9754,15 @@ Website:      still says 'Director'. Steve. Don't ask.
   }
   // phones: a one-tap answer (week, suspect) is only picked by the first tap; a Submit button under the picker sends it,
   // so a stray tap can't answer for the player
-  function confirmPick(pk, btn, label, go) {
+  function confirmPick(pk, btn, label, go, opts = {}) {
     pk.querySelectorAll('.ck-sel').forEach(x => x.classList.remove('ck-sel'));
     let bar = pk.parentElement.querySelector('.ck-confirm');
     if (bar && bar._for === btn) { bar.remove(); return; }
     btn.classList.add('ck-sel');
     if (bar) bar.remove();
-    bar = $(`<div class="ck-confirm"><button class="ck-conf-ok"></button><button class="ck-conf-no">Cancel</button></div>`);
-    bar._for = btn;
-    bar.querySelector('.ck-conf-ok').textContent = 'Submit: ' + label;
+    bar = $(`<div class="ck-confirm fr-guard"><button class="ck-conf-ok"></button><button class="ck-conf-no">Cancel</button></div>`);
+    bar._for = btn; bar._frShown = Date.now(); bar._frGuard = 500;   // the tap guard ignores it for its first half second
+    bar.querySelector('.ck-conf-ok').textContent = (opts.verb || 'Submit') + ': ' + label;
     bar.querySelector('.ck-conf-ok').onclick = () => { bar.remove(); btn.classList.remove('ck-sel'); go(); };
     bar.querySelector('.ck-conf-no').onclick = () => { bar.remove(); btn.classList.remove('ck-sel'); };
     pk.after(bar);

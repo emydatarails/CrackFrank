@@ -32,8 +32,12 @@
   .fr-login-hint.fr-login-hint-m { position: relative; left: auto !important; top: auto !important; margin-top: 10px; text-align: left; }
   html.fr-kb .fr-login-hint-m .fr-login-fos { display: none; }
   .fr-offbtn { padding: 8px 0; }
-  /* the password row stays where it is when the error and the hint appear under it */
-  .fr-login-mid { justify-content: flex-start; padding-top: 22px; }
+  /* the password row stays where it is when the error and the hint appear under it; one column on every phone/tablet
+     (the two-column desktop layout doesn't fit an iPad in portrait) */
+  .fr-login-mid { flex-direction: column; justify-content: flex-start; align-items: center; gap: 20px; padding: 22px 16px 16px; }
+  .fr-login-left, .fr-login-right { width: 100%; max-width: 480px; padding: 0; align-items: center; text-align: center; }
+  .fr-login-div, .fr-login-note { display: none; }
+  .fr-user { min-width: 0; width: 100%; }
   #fr-root .fr-login-web { display: flex; align-items: center; gap: 7px; min-height: 40px; padding: 4px 12px; background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.55); border-radius: 5px; font: 13px Tahoma, Verdana, "DejaVu Sans", Arial, sans-serif; box-shadow: none; min-width: 0; }
   .fr-login-web .fr-ico { width: 22px; height: 22px; }
   .fr-postit { cursor: pointer; }
@@ -187,6 +191,18 @@
   .xl-st-sum { min-width: 0; flex: 1 1 auto; height: 20px; line-height: 20px; }
   .xl-st-box { display: none; }
   .xl-cm { font-size: 13px; }
+  .xl-selbox { border-width: 3px; }   /* the cell you're on stays clearly outlined */
+  #fr-root .xl-zoomb { flex: none; align-self: center; margin: 0 4px 0 auto; min-width: 52px; min-height: 0; height: 26px; padding: 0 8px; font: 700 12px Tahoma, sans-serif; }
+  #fr-root .xl-zoomb.on { background: #dfe9fb; border-color: #316ac5; }
+  #fr-root .ck-file.ck-sel { outline: 3px solid #316ac5; outline-offset: 1px; background: #dfe9fb; }
+  .fr-swl-t b { display: block; font-weight: 400; }
+  .fr-swl-r.on .fr-swl-t b { font-weight: 700; }
+  .fr-swl-t small { display: block; font-size: 11px; color: #666; }
+  .fr-swl-t small:empty { display: none; }
+  .fr-swl-cur { flex: none; font-size: 11px; font-weight: 700; color: #fff; background: #316ac5; border-radius: 9px; padding: 1px 7px; }
+  .fr-swl-r.on { box-shadow: inset 4px 0 0 #316ac5; }
+  .fr-swl-r.pin { background: #fffbe0; border-bottom: 2px solid #e6d98a; }
+  .fr-swl-r.pin.on { background: #fff3b0; }
   .xl-cm.xl-cm-text { background: #fff; border-color: #7f9db9; box-shadow: 2px 2px 6px rgba(0,0,0,.3); white-space: pre-wrap; overflow-wrap: anywhere; }
   /* column A frozen: the labels stay while the numbers scroll */
   table.xl-grid td[data-c="0"] { position: sticky; left: 30px; z-index: 1; background-color: #fff; box-shadow: 1px 0 0 #9aa3b3; }
@@ -209,11 +225,10 @@
   .oe-tbb { flex: none; font-size: 12px; }
   .oe-fbar { height: 26px; }
   .oe-list { flex-basis: 52%; }
-  /* portrait: no Received column (the preview shows the date), so From and Subject get the room */
-  .oe-tbl th:nth-child(5), .oe-tbl td:nth-child(5) { display: none; }
+
   .oe-tbl { font-size: 12.5px; }
   .oe-tbl col.oe-col-from { width: 34%; }
-  .oe-tbl col:last-child { width: 0 !important; }
+  .oe-tbl col:last-child { width: 130px !important; }
   .oe-tbl thead th { height: 26px; }
   .oe-tbl tbody td, .oe-tbl .oe-from { height: 36px; }
   .oe-ph, .oe-mh { font-size: 12.5px; line-height: 19px; }
@@ -263,6 +278,15 @@
   .ie-win .ie { flex-direction: column-reverse; }
   .ie-win .ie-bars { border-top: 1px solid #a0a09a; }
   .ie-win .ie-page { border-top: 0; }
+  /* the address (which page am I on?) above the buttons; Back and Refresh first, nearest the thumb */
+  .ie-win .ie-bars { display: flex; flex-direction: column; }
+  .ie-win .ie-addr { order: -1; border-bottom: 1px solid #d0cdbe; }
+  .ie-win .ie-addr .ex-addr-l { display: none; }
+  .ie-win .ie-tb { justify-content: space-between; padding: 2px 6px; }
+  .ie-win .ie-b[data-a=back] { order: 1; } .ie-win .ie-b[data-a=refresh] { order: 2; } .ie-win .ie-b[data-a=fwd] { order: 3; } .ie-win .ie-b[data-a=home] { order: 4; }
+  .ie-win .ie-tb > * { order: 5; }
+  .ie-win .ie-b[data-a=stop], .ie-win .ie-b[data-a=print], .ie-win .ie-b[data-a=mail], .ie-win .ie-tb .ex-tsep, .ie-win .ie-b .ex-b-dd { display: none; }
+  .ie-win .ie-b { min-width: 44px; justify-content: center; }
   .ie-links::-webkit-scrollbar { display: none; }
   .ie-link { padding: 5px 7px; }
   .ie-tb .ex-bt { display: none; }
@@ -291,13 +315,22 @@
 @media (max-height: 500px) {
   html.fr-m .xl-dock, html.fr-m .xl-status { display: none; }
   html.fr-m .fr-login-top, html.fr-m .fr-login-bot { min-height: 0; height: 44px; }
-  html.fr-m .fr-login-mid { flex-direction: row; gap: 16px; padding: 8px 16px; }
-  html.fr-m .fr-login-left, html.fr-m .fr-login-right { width: 50%; }
+  html.fr-m .fr-login-mid { flex-direction: row; align-items: flex-start; gap: 14px; padding: 10px 14px; }
+  html.fr-m .fr-login-left { width: 36%; }
+  html.fr-m .fr-login-right { width: 64%; max-width: none; }
+  html.fr-m .fr-login-left p { font-size: 12px; }
   html.fr-m .fr-login-left .fr-brand { font-size: 18px; }
   html.fr-m .fr-login-left .fr-brand img { height: 44px; }
   html.fr-m .fr-login-left p { margin-top: 10px; }
-  html.fr-m .fr-postit { top: 4px; width: 104px; font-size: 12px; padding: 8px; }
+  html.fr-m .fr-postit { top: auto; bottom: 50px; left: 12px; right: auto; width: 110px; font-size: 12px; padding: 8px; }
   html.fr-m .ie-links { display: none; }
+  /* IE sideways: address and buttons in one row, no menu bar (Favorites / History / Search buttons stay) */
+  html.fr-m .ie-win > .fr-menubar { display: none; }
+  html.fr-m .ie-win .ie-bars { flex-direction: row; align-items: center; }
+  html.fr-m .ie-win .ie-addr { flex: 1 1 auto; min-width: 0; border-bottom: 0; order: 0; }
+  html.fr-m .ie-win .ie-tb { flex: none; border-bottom: 0; min-height: 0; }
+  html.fr-m .ie-win .ie-b { height: 32px; min-width: 38px; }
+  html.fr-m .ie-win .ie-b[data-a=history] { display: none; }
   html.fr-m .ex-tb, html.fr-m .ie-tb { min-height: 32px; }
   html.fr-m .ex-b, html.fr-m .ie-b { height: 32px; }
   html.fr-m .oe-fbar { display: none; }
@@ -334,5 +367,21 @@
 @media (max-width: 760px), (max-height: 500px) {
   html.fr-m .xl-scroll { zoom: 1.2; }
 }
+/* narrow phones (iPhone SE…): a slimmer Start button and tray, so the window switcher keeps its title */
+@media (max-width: 400px) {
+  html.fr-m .fr-startbtn { width: 70px; font-size: 15px; gap: 3px; padding-left: 6px; }
+  html.fr-m .fr-startbtn img { width: 20px; height: 20px; }
+  html.fr-m .fr-tray { gap: 6px; padding: 0 6px; }
+  html.fr-m .fr-tray .fr-pack { padding: 5px 5px; }
+  html.fr-m .fr-tray { font-size: 11px; }
+  html.fr-m .fr-sw-n::after { content: none; }
+  html.fr-m #fr-root .fr-switch { margin: 4px 3px; gap: 4px; padding: 0 4px 0 5px; }
+}
+/* narrow portrait phones: no Received column in Outlook (the preview shows the date), so From and Subject get the room */
+@media (max-width: 560px) {
+  html.fr-m .oe-tbl th:nth-child(5), html.fr-m .oe-tbl td:nth-child(5) { display: none; }
+  html.fr-m .oe-tbl col:last-child { width: 0 !important; }
+}
+@media (max-width: 380px) { html.fr-m .fr-tray .fr-ktray { display: none; } }   /* (Kristians' tips still come by themselves) */
 /* a very narrow phone has no free desktop space for the sticky notes */
 @media (max-width: 359px) { html.fr-m #fr-root .fr-stickies { display: none; } }

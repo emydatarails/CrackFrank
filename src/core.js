@@ -164,7 +164,7 @@ FR.apps = FR.apps || {};
      open); tapping it lists every open window by its full name, to switch to or close. */
   let swT = 0, swEl = null;
   function swSoon() { if (FR.mobile && !swT) swT = setTimeout(() => { swT = 0; swUpdate(); }, 0); }
-  const appWins = () => [...wins.values()].filter(v => v.tb && v.tb.isConnected).sort((a, b) => (+b.el.style.zIndex || 0) - (+a.el.style.zIndex || 0));
+  const appWins = () => [...wins.values()].filter(v => v.tb && v.tb.isConnected).sort((a, b) => (b._used || 0) - (a._used || 0) || (+b.el.style.zIndex || 0) - (+a.el.style.zIndex || 0));
   const winTitle = v => v.el.querySelector('.fr-title').textContent;
   function swUpdate() {
     if (!FR.mobile || !taskbarList || !taskbarList.isConnected) return;
@@ -176,29 +176,46 @@ FR.apps = FR.apps || {};
     }
     const ws = appWins(), a = FR.wm.active && ws.includes(FR.wm.active) ? FR.wm.active : null;
     b.querySelector('.fr-sw-i').innerHTML = a ? a.tb.querySelector('.fr-ico').outerHTML : FR.icon('views', 18);
-    b.querySelector('.fr-sw-t').textContent = a ? winTitle(a) : ws.length ? 'Open windows' : 'No open windows';
+    b.querySelector('.fr-sw-t').textContent = a ? splitTitle(winTitle(a))[0] : 'Windows';
     b.querySelector('.fr-sw-n').textContent = ws.length;
     b.classList.toggle('on', !!swEl);
     if (swEl) swList(true);
   }
+  // "Microsoft Excel - Budget.xls" → ['Budget.xls', 'Microsoft Excel']; "Inbox - Outlook Express" → ['Inbox', 'Outlook Express']
+  const splitTitle = t => {
+    let m = /^(Microsoft Excel) - (.+)$/.exec(t); if (m) return [m[2], m[1]];
+    m = /^(.+) - (Internet Explorer|Outlook Express|Notepad|Windows Picture and Fax Viewer|Document Viewer)$/.exec(t); if (m) return [m[1], m[2]];
+    return [t, ''];
+  };
   function swList(show) {
     if (swEl) { swEl.remove(); swEl = null; }
     const host = taskbarList && taskbarList.closest('.fr-desktop');
     if (!show || !host) { const b = document.querySelector('.fr-switch'); if (b) b.classList.remove('on'); return; }
-    const ws = appWins();
-    const L = $(`<div class="fr-swlist"><div class="fr-swl-h">Open windows (${ws.length})</div><div class="fr-swl-b"></div></div>`);
+    // most recently used first; the Board Pack checklist is always pinned at the top (open or not)
+    const all = appWins(), ck = all.find(v => v.id === 'checklist'), ws = all.filter(v => v !== ck);
+    const L = $(`<div class="fr-swlist"><div class="fr-swl-h">Open windows (${all.length})</div><div class="fr-swl-b"></div></div>`);
     const body = L.querySelector('.fr-swl-b');
-    if (!ws.length) body.appendChild($('<div class="fr-swl-empty">Nothing is open. Open something from the desktop or the Start menu.</div>'));
-    ws.forEach(v => {
-      const r = $(`<div class="fr-swl-r${v === FR.wm.active ? ' on' : ''}${v.min ? ' min' : ''}">${v.tb.querySelector('.fr-ico').outerHTML}<span class="fr-swl-t"></span><button class="fr-swl-x" aria-label="Close">&#x2715;</button></div>`);
-      r.querySelector('.fr-swl-t').textContent = winTitle(v) + (v.min ? ' (minimized)' : '');
+    const row = (v, pin) => {
+      const cur = v === FR.wm.active && !v.min;
+      const [t, app] = splitTitle(winTitle(v));
+      const r = $(`<div class="fr-swl-r${cur ? ' on' : ''}${v.min ? ' min' : ''}${pin ? ' pin' : ''}" data-wid="${FR.esc(v.id)}">${v.tb.querySelector('.fr-ico').outerHTML}<span class="fr-swl-t"><b></b><small></small></span>${cur ? '<span class="fr-swl-cur">current</span>' : ''}<button class="fr-swl-x" aria-label="Close">&#x2715;</button></div>`);
+      r.querySelector('b').textContent = t;
+      r.querySelector('small').textContent = [app, v.min ? 'minimized' : ''].filter(Boolean).join(' · ');
       r.onclick = e => { e.stopPropagation(); swList(false); if (v.min) v.restore(); v.focus(); };
       r.querySelector('.fr-swl-x').onclick = e => { e.stopPropagation(); FR.sound.play('click'); v.close(); setTimeout(() => { if (swEl) swList(true); }, 160); };
+      return r;
+    };
+    if (ck) body.appendChild(row(ck, true));
+    else if (FR.apps.checklist) {
+      const r = $(`<div class="fr-swl-r pin min">${FR.icon('checklist', 18)}<span class="fr-swl-t"><b>Board Pack — TO DO</b><small>not open · tap to open</small></span></div>`);
+      r.onclick = e => { e.stopPropagation(); swList(false); FR.apps.checklist(); };
       body.appendChild(r);
-    });
-    if (ws.some(v => !v.min)) {
-      const d = $(`<div class="fr-swl-r fr-swl-desk">${FR.icon('computer', 18)}<span class="fr-swl-t">Show the desktop</span></div>`);
-      d.onclick = e => { e.stopPropagation(); swList(false); ws.forEach(v => v.minimize()); };
+    }
+    ws.forEach(v => body.appendChild(row(v)));
+    if (!ws.length) body.appendChild($('<div class="fr-swl-empty">Nothing else is open. Open something from the desktop or the Start menu.</div>'));
+    if (all.some(v => !v.min)) {
+      const d = $(`<div class="fr-swl-r fr-swl-desk">${FR.icon('computer', 18)}<span class="fr-swl-t"><b>Show the desktop</b></span></div>`);
+      d.onclick = e => { e.stopPropagation(); swList(false); all.forEach(v => v.minimize()); };
       body.appendChild(d);
     }
     L._frShown = Date.now(); L._frGuard = 300;
@@ -254,6 +271,7 @@ FR.apps = FR.apps || {};
         focus(fromUser) {
           // phones: a window that jumps to the front by itself (not by a tap in it) ignores taps for a moment (no ghost taps)
           if (FR.mobile && !fromUser && FR.wm.active !== w) el._frShown = Date.now();
+          w._used = Date.now();
           swSoon();
           wins.forEach(v => { v.el.classList.add('fr-inactive'); v.tb.classList.remove('active'); });
           el.classList.remove('fr-inactive'); tb.classList.add('active'); el.style.zIndex = w.dz || ++z; FR.wm.active = w;
@@ -423,7 +441,8 @@ FR.apps = FR.apps || {};
   FR.balloon = (title, text, onClick, opts = {}) => {
     if (document.querySelector('.fr-end')) return;
     // phones: never while typing (keyboard up) or while a message box waits for an answer; it waits its turn
-    if (FR.mobile && (document.documentElement.classList.contains('fr-kb') || FR.wm.topDialog())) {
+    const typing = () => { const a = document.activeElement; return !!a && (/^(INPUT|TEXTAREA)$/.test(a.tagName) && !a.readOnly) && !!a.closest('#fr-root'); };
+    if (FR.mobile && (document.documentElement.classList.contains('fr-kb') || FR.wm.topDialog() || typing())) {
       const n = (opts.tries || 0) + 1; if (n < 20) setTimeout(() => FR.balloon(title, text, onClick, Object.assign({}, opts, { tries: n })), 1500); return;
     }
     if (!opts.silent && Date.now() - (FR._lastSound || 0) > 400) FR.sound.play('notify');
@@ -438,7 +457,7 @@ FR.apps = FR.apps || {};
     b.onclick = e => { bye(); if (!e.target.classList.contains('fr-balloon-x') && onClick) onClick(); };
     // phones: it doesn't vanish from under a finger (waits while the screen is being touched)
     const auto = () => { if (FR.mobile && Date.now() - lastTouch < 1500) return setTimeout(auto, 1500); bye(); };
-    setTimeout(auto, 9000);
+    setTimeout(auto, FR.mobile ? 5000 : 9000);
     if (FR.mobile) {
       b._frShown = Date.now(); b._frGuard = 500;
       // a tap anywhere else puts it away (like a toast)
@@ -454,6 +473,11 @@ FR.apps = FR.apps || {};
      front by itself, a balloon, the window list) must not press what appeared, and a tap aimed at a balloon that just
      went away must not press what was underneath. Only touch taps are filtered (a mouse on a tablet is not). */
   let lastTouch = 0, balloonGhost = null;
+  // phones: starting to type (a cell, the formula bar, an answer box) puts a balloon away at once
+  document.addEventListener('focusin', e => {
+    if (!FR.mobile || !e.target || !/^(INPUT|TEXTAREA)$/.test(e.target.tagName) || e.target.readOnly) return;
+    document.querySelectorAll('.fr-balloon').forEach(b => b.remove());
+  });
   const noteTouch = () => { lastTouch = Date.now(); };
   window.addEventListener('touchstart', noteTouch, { capture: true, passive: true });
   window.addEventListener('pointerdown', e => { if (e.pointerType === 'touch') noteTouch(); }, { capture: true, passive: true });
@@ -461,8 +485,10 @@ FR.apps = FR.apps || {};
     if (!FR.mobile || !e.isTrusted) return false;
     const touch = e.pointerType ? e.pointerType === 'touch' : Date.now() - lastTouch < 1000;
     if (!touch) return false;
-    const t = e.target && e.target.closest ? e.target.closest('.fr-win, .fr-swlist, .fr-balloon') : null;
-    if (t && t._frShown && lastTouch < t._frShown + (t._frGuard || 350)) return true;
+    // the nearest guarded thing under the finger: a confirm bar (.fr-guard), the window list, a balloon or a window
+    for (let t = e.target && e.target.closest ? e.target.closest('.fr-guard, .fr-win, .fr-swlist, .fr-balloon') : null; t; t = t.parentElement && t.parentElement.closest('.fr-guard, .fr-win, .fr-swlist, .fr-balloon')) {
+      if (t._frShown && lastTouch < t._frShown + (t._frGuard || 350)) return true;
+    }
     const g = balloonGhost;
     if (g && lastTouch > g.at - 1500 && lastTouch < g.at + 600 && e.clientX >= g.r.left && e.clientX <= g.r.right && e.clientY >= g.r.top && e.clientY <= g.r.bottom) return true;
     return false;

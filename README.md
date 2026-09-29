@@ -237,8 +237,8 @@ takes a tap); finding all 15 is worth +150. Found eggs are in `FR.state.eggs`. N
 | 6 | Run… `vegas` | Start › Run… › `vegas` |
 | 7 | Run… `xlookup` | Start › Run… › `xlookup` (also flavour answers for `vlookup`, `pivot`, `datarails`, `financeos`, `drew`, `winver`) |
 | 8 | `=KRISTIANS()` | type it in any Excel cell: "There's always a formula." |
-| 9 | The cell at the very end | `speedrun_practice.xls` (Personal), Practice log: Ctrl+End (cell J36, white on white) |
-| 10 | Five cheat sheets in a row | click Kristians' face in the tray 5 times quickly |
+| 9 | The cell at the very end | `speedrun_practice.xls` (Personal), Practice log: Ctrl+End, or select cell J36 (white on white) |
+| 10 | Five cheat sheets in a row | click Kristians' face in the tray 5 times quickly (on a phone too narrow for that icon: the 5th tip that comes by itself) |
 | 11 | The screensaver | wait 5 minutes, or right-click the desktop › Properties › Screen Saver… › Preview |
 | 12 | Deal #212 | deal Solitaire 212 times (F2) |
 | 13 | Member #0003 | make the Calculator show 0.0003 |

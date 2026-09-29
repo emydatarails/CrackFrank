@@ -44,6 +44,9 @@
 .fr-end-stats .fr-end-score { border-color: #ffcf5a; }
 .fr-end-stats .fr-end-score b { color: #ffcf5a; }
 .fr-end-stats .fr-end-bonus b { color: #8fe3a6; }
+/* five boxes (with Bonus) in one row on a monitor */
+.fr-end-stats { gap: 10px; }
+.fr-end-stats div { min-width: 96px; padding: 12px 12px; }
 .ck-foot .ck-bonus { font-weight: 400; color: #1d6b3a; }
 .fr-end-card p.fr-end-rank { font-size: 14px; color: #fff; min-height: 1em; margin: -6px auto 8px; }
 .fr-end-card p.fr-end-rank:empty { display: none; }

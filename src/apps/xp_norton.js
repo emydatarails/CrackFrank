@@ -86,7 +86,7 @@
           : `<div class="nv-res"><b>Scan complete.</b> Files scanned: 1,212. Threats found: <b>0</b>.<br><br>Found instead: 47 versions of the same model (not a virus; worse), 5 budgets, 3 of them called FINAL, and one file called passwords.txt that contains no passwords and a lot of attitude.</div>`;
       }, 180);
     };
-    const w = FR.wm.open({ id: 'norton', title: TITLE, icon: 'nvshield', width: 520, height: 390, className: 'nv-win', content: el, onClose: () => { if (scanning) clearInterval(scanning); scanning = null; } });
+    const w = FR.wm.open({ id: 'norton', title: TITLE, icon: 'nvshield', width: 540, height: 460, className: 'nv-win', content: el, onClose: () => { if (scanning) clearInterval(scanning); scanning = null; } });
     el.querySelectorAll('.nv-nav[data-p]').forEach(a => { a.onclick = () => { if (!scanning) show(a.dataset.p); }; });
     show('status');
     return w;

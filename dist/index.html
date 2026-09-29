@@ -420,6 +420,9 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
 .fr-end-stats .fr-end-score { border-color: #ffcf5a; }
 .fr-end-stats .fr-end-score b { color: #ffcf5a; }
 .fr-end-stats .fr-end-bonus b { color: #8fe3a6; }
+/* five boxes (with Bonus) in one row on a monitor */
+.fr-end-stats { gap: 10px; }
+.fr-end-stats div { min-width: 96px; padding: 12px 12px; }
 .ck-foot .ck-bonus { font-weight: 400; color: #1d6b3a; }
 .fr-end-card p.fr-end-rank { font-size: 14px; color: #fff; min-height: 1em; margin: -6px auto 8px; }
 .fr-end-card p.fr-end-rank:empty { display: none; }
@@ -1477,6 +1480,9 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   .bn-row input { flex: 1 1 140px; min-width: 0; width: auto; height: 38px; }
   .bn-row button { min-height: 40px; min-width: 110px; }
   .bn-note { font-size: 12px; }
+  /* the ending's five stat boxes in two rows (Score + Time, then Hints + Wrong + Bonus): the buttons stay on screen */
+  html.fr-m .fr-end-stats div:nth-child(n+3) { flex: 1 1 26%; }
+  html.fr-m .fr-end-stats span { letter-spacing: .4px; }
 }
 @media (max-width: 360px) { html.fr-m .bs-txt { font-size: 11px; } }
 @media (max-height: 600px) and (max-width: 1100px) { html.fr-m .bs-txt .bs-long { display: none; } }
@@ -12524,6 +12530,13 @@ I'm taking Thursday off.
     if (FR.mobile && e.target.closest('.fr-clock')) { const now = Date.now(); if (now - (clockTap || 0) < 550) { clockTap = 0; clockDlg(); } else clockTap = now; }
   }, true);
   let clockTap = 0;
+  // a phone too narrow for the tray icon (src/mobile.css hides it under 380 px): the fifth tip that comes by itself counts
+  const KT = "Kristians' Cheat Sheet of the Day", origBalloon = FR.balloon;
+  let kSeen = 0;
+  FR.balloon = function (title, text, onClick, opts) {
+    if (title === KT && FR.mobile && !(opts && opts.tries)) { const tray = document.querySelector('.fr-ktray'); if (tray && !tray.offsetParent && ++kSeen >= 5) setTimeout(() => find('tray_k5'), 0); }
+    return origBalloon.apply(this, arguments);
+  };
   document.addEventListener('dblclick', e => { if (!FR.mobile && e.target && e.target.closest && e.target.closest('.fr-clock')) clockDlg(); }, true);
   function clockDlg() {
     if (FR.wm.topDialog()) return;
@@ -12665,7 +12678,7 @@ I'm taking Thursday off.
           : `<div class="nv-res"><b>Scan complete.</b> Files scanned: 1,212. Threats found: <b>0</b>.<br><br>Found instead: 47 versions of the same model (not a virus; worse), 5 budgets, 3 of them called FINAL, and one file called passwords.txt that contains no passwords and a lot of attitude.</div>`;
       }, 180);
     };
-    const w = FR.wm.open({ id: 'norton', title: TITLE, icon: 'nvshield', width: 520, height: 390, className: 'nv-win', content: el, onClose: () => { if (scanning) clearInterval(scanning); scanning = null; } });
+    const w = FR.wm.open({ id: 'norton', title: TITLE, icon: 'nvshield', width: 540, height: 460, className: 'nv-win', content: el, onClose: () => { if (scanning) clearInterval(scanning); scanning = null; } });
     el.querySelectorAll('.nv-nav[data-p]').forEach(a => { a.onclick = () => { if (!scanning) show(a.dataset.p); }; });
     show('status');
     return w;

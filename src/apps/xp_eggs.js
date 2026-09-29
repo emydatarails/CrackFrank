@@ -232,6 +232,13 @@ I'm taking Thursday off.
     if (FR.mobile && e.target.closest('.fr-clock')) { const now = Date.now(); if (now - (clockTap || 0) < 550) { clockTap = 0; clockDlg(); } else clockTap = now; }
   }, true);
   let clockTap = 0;
+  // a phone too narrow for the tray icon (src/mobile.css hides it under 380 px): the fifth tip that comes by itself counts
+  const KT = "Kristians' Cheat Sheet of the Day", origBalloon = FR.balloon;
+  let kSeen = 0;
+  FR.balloon = function (title, text, onClick, opts) {
+    if (title === KT && FR.mobile && !(opts && opts.tries)) { const tray = document.querySelector('.fr-ktray'); if (tray && !tray.offsetParent && ++kSeen >= 5) setTimeout(() => find('tray_k5'), 0); }
+    return origBalloon.apply(this, arguments);
+  };
   document.addEventListener('dblclick', e => { if (!FR.mobile && e.target && e.target.closest && e.target.closest('.fr-clock')) clockDlg(); }, true);
   function clockDlg() {
     if (FR.wm.topDialog()) return;

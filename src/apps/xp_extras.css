@@ -108,6 +108,9 @@
   .bn-row input { flex: 1 1 140px; min-width: 0; width: auto; height: 38px; }
   .bn-row button { min-height: 40px; min-width: 110px; }
   .bn-note { font-size: 12px; }
+  /* the ending's five stat boxes in two rows (Score + Time, then Hints + Wrong + Bonus): the buttons stay on screen */
+  html.fr-m .fr-end-stats div:nth-child(n+3) { flex: 1 1 26%; }
+  html.fr-m .fr-end-stats span { letter-spacing: .4px; }
 }
 @media (max-width: 360px) { html.fr-m .bs-txt { font-size: 11px; } }
 @media (max-height: 600px) and (max-width: 1100px) { html.fr-m .bs-txt .bs-long { display: none; } }

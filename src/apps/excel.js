@@ -2222,7 +2222,8 @@
     let tipCell = null;
     /* phones: no hover and no double-click. Tapping a cell shows its note (red triangle); tapping the selected cell
        again edits it in the formula bar, with the old content selected so typing replaces it. */
-    const editInBar = () => { if (st.edit) return; fin.focus(); try { fin.setSelectionRange(0, fin.value.length); } catch (x) {} };
+    let finSelAll = false;   // (S6, below)
+    const editInBar = () => { if (st.edit) return; fin.focus(); finSelAll = false; try { fin.setSelectionRange(0, fin.value.length); } catch (x) {} };
     if (FR.mobile) {
       const zb = $('<button class="xl-zoomb" aria-label="Fit the sheet to the screen width">Fit</button>');
       zb.onclick = e => { e.stopPropagation(); setFit(!st.fit); };
@@ -2373,7 +2374,14 @@
       editor.value = fin.value; if (st.edit) { st.edit.point = null; pointbox.style.display = 'none'; } sizeEditor();
     });
     fin.addEventListener('mousedown', e => { e.stopPropagation(); });
-    fin.addEventListener('focus', () => { if (!st.edit) { const v = fbarText(st.ar, st.ac); startEdit('edit', v, 'fbar'); } if (FR.mobile) tapNote(null); });
+    // phones (S6): a tap into the formula bar starts with the whole content selected (typing replaces it, like the
+    // tap-again on a cell); the next tap places the caret
+    fin.addEventListener('focus', () => {
+      const fresh = !st.edit;
+      if (!st.edit) { const v = fbarText(st.ar, st.ac); startEdit('edit', v, 'fbar'); }
+      if (FR.mobile) { tapNote(null); if (fresh) { finSelAll = true; setTimeout(() => (finSelAll = false), 1000); } }
+    });
+    if (FR.mobile) fin.addEventListener('click', () => { if (!finSelAll) return; finSelAll = false; try { fin.setSelectionRange(0, fin.value.length); } catch (x) {} });
     editor.addEventListener('mousedown', e => e.stopPropagation());
     q('.xl-fx-x').onmousedown = e => { e.preventDefault(); cancelEdit(); };
     q('.xl-fx-ok').onmousedown = e => { e.preventDefault(); commit(0, 0); };

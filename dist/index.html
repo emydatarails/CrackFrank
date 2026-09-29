@@ -1277,6 +1277,11 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   .fr-balloon .fr-balloon-b .fr-ktip img { display: none; }
   .fr-balloon .fr-balloon-x { position: absolute; right: 0; top: 0; bottom: 0; width: 46px; display: flex; align-items: center; justify-content: center; border: 0; border-left: 1px solid #cfcb95; border-radius: 0 6px 6px 0; background: #f4f2c8; font-size: 16px; padding: 0; margin: 0; }
   .fr-balloon::after { display: none; }
+  /* (S2) text cut off: a "more" tag at its bottom right; the first tap opens the whole text (scrolls if long) */
+  .fr-balloon.fr-balloon-more:not(.fr-balloon-open)::before { content: 'more \25B4'; position: absolute; right: 47px; bottom: 0; padding: 2px 6px 3px 22px; font-weight: 700; color: #0a246a; background: linear-gradient(to right, rgba(255,255,225,0), #ffffe1 18px); }
+  html.fr-m .fr-balloon.fr-balloon-open { max-height: none; }
+  .fr-balloon.fr-balloon-open .fr-balloon-t { white-space: normal; }
+  .fr-balloon.fr-balloon-open .fr-balloon-b { display: block; -webkit-line-clamp: none; max-height: min(50vh, 300px); overflow-y: auto; overscroll-behavior: contain; }
   html.fr-kb .fr-balloon { display: none; }
   .fr-modal-shade { background: rgba(0,0,0,.28); }
   .fr-ctx { min-width: 190px; font-size: 13px; }
@@ -1320,7 +1325,7 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   .ck-ans input { flex: 1 1 150px; width: auto; min-width: 0; height: 38px; }
   #fr-root .ck-ans button { min-height: 38px; min-width: 84px; font-size: 13px; }
   #fr-root .ck-file { padding: 6px 8px; gap: 8px; }
-  #fr-root .ck-file .ck-fn { font-size: 12px; }
+  #fr-root .ck-file .ck-fn { font-size: 12px; word-break: normal; overflow-wrap: anywhere; }
   #fr-root .ck-file small { font-size: 12.5px; padding: 9px 6px; }
   #fr-root .ck-pickbtn { min-height: 36px; padding: 4px 12px; font-size: 12.5px; flex: none; }
   .ck-weeks { max-width: none; gap: 6px; }
@@ -1332,7 +1337,9 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   #fr-root .ck-weeks button.ck-sel, #fr-root .ck-sus.ck-sel { outline: 3px solid #316ac5; outline-offset: 1px; background: #dfe9fb; }
   .ck-confirm { display: flex; gap: 8px; margin-top: 10px; }
   #fr-root .ck-confirm button { min-height: 40px; font-size: 13px; padding: 0 14px; }
-  #fr-root .ck-confirm .ck-conf-ok { flex: 1 1 auto; font-weight: 700; }
+  #fr-root .ck-confirm .ck-conf-ok { flex: 1 1 auto; font-weight: 700; min-width: 0; white-space: normal; overflow-wrap: anywhere; line-height: 1.25; padding: 4px 10px; text-align: center; }
+  #fr-root .ck-confirm .ck-conf-no { flex: none; }
+  .ck-conf-l { display: inline-block; }   /* the file name on its own line when it doesn't fit after the verb */
   #fr-root .ck-hbtn { min-height: 36px; padding: 4px 12px; font-size: 12.5px; }
   .ck-hint, .ck-fos-t { font-size: 12.5px; }
   .ck-fos-p { font-size: 11.5px; }
@@ -1365,6 +1372,9 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   .xl-st-box { display: none; }
   .xl-cm { font-size: 13px; }
   .xl-selbox { border-width: 3px; }   /* the cell you're on stays clearly outlined */
+  /* (S5) a comment's red triangle: bigger, with a white edge, and on top of a title spilling over it and of the
+     selection outline, so it shows even on a selected cell */
+  table.xl-grid td.xl-hascm::after { border-width: 0 10px 10px 0; z-index: 3; filter: drop-shadow(-1px 1px 0 #fff); }
   #fr-root .xl-fillb { flex: none; align-self: center; margin: 0 4px 0 auto; min-width: 52px; min-height: 0; height: 26px; padding: 0 8px; font: 12px Tahoma, sans-serif; }
   #fr-root .xl-zoomb { flex: none; align-self: center; margin: 0 4px 0 0; min-width: 52px; min-height: 0; height: 26px; padding: 0 8px; font: 700 12px Tahoma, sans-serif; }
   #fr-root .xl-zoomb.on { background: #dfe9fb; border-color: #316ac5; }
@@ -1452,11 +1462,23 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   #fr-root input[type=checkbox], #fr-root input[type=radio] { position: absolute; pointer-events: none; }
   .fo-row, .fo-opt, .pr-cb { position: relative; }
   .fo-row label, .fo-opt label { padding: 6px 0; }
+  .fo-row, .fo-row label { white-space: normal; }   /* long settings wrap inside the list (320 px) instead of running off it */
+  .fo-row { padding-right: 8px; }
+  .fo-row label { flex: 1 1 auto; min-width: 0; line-height: 16px; }
+  /* the drawn box and its tick / dot line up with the first text line (the labels have 6 px padding on phones) */
+  #fr-root .fo-row label::before, #fr-root .fo-opt label::before { top: 7px; }
+  #fr-root .fo-row input[type=checkbox] + label::after { top: 8px; }
+  #fr-root .fo-row input[type=radio] + label::after, #fr-root .fo-opt input[type=radio] + label::after { top: 11px; }
   .ex-det { min-width: 540px; }
+
+  /* ---------- ShowMe ERP: finger-sized module list ---------- */
+  #fr-root .erp-n { padding: 8px 6px 8px 12px; font-size: 12.5px; line-height: 1.25; }
+  .erp-g { font-size: 11px; padding-top: 10px; }
 
   /* ---------- Notepad, pictures, IE, calculator ---------- */
   #fr-root .np-ta { font-size: 13px !important; line-height: 18px; }
   #fr-root .np-ta.np-nowrap { font-size: 12px !important; line-height: 16px; }
+  #fr-root .np-ta { padding-bottom: 56px; }   /* (S7) the last lines scroll up clear of the floating Wrap button */
   .np { position: relative; }
   #fr-root .np-wrapb { position: absolute; right: 10px; bottom: 10px; z-index: 2; min-width: 0; min-height: 0; height: 34px; padding: 0 12px; font: 12px Tahoma, sans-serif; border-radius: 17px; background: #fff; border: 1px solid #7f9db9; box-shadow: 0 1px 4px rgba(0,0,0,.25); opacity: .92; }
   #fr-root .np-wrapb.on { background: #dfe9fb; border-color: #316ac5; }
@@ -1556,6 +1578,13 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   html.fr-m .fr-balloon { bottom: 37px; min-height: 40px; max-height: 50px; padding-top: 3px; padding-bottom: 3px; }
   html.fr-m .fr-balloon .fr-balloon-b { -webkit-line-clamp: 2; }
   html.fr-m .fr-start-head { height: 44px; }
+  /* (R3) the calculator sideways: slimmer keys, so its bottom row isn't under the taskbar (iPhone SE: 320 px high) */
+  html.fr-m .ca { padding: 5px 8px 6px; }
+  html.fr-m .ca .ca-k, html.fr-m .ca-wide { height: 30px !important; }
+  html.fr-m #fr-root .ca-disp { height: 30px !important; margin-bottom: 4px; }
+  html.fr-m .ca-r1 { margin-bottom: 4px; }
+  html.fr-m .ca-grid { gap: 4px 5px; }
+  html.fr-m .ca-win > .fr-menubar { display: none; }
   /* Excel sideways: no menu bar, slimmer title bar, formula bar, tabs and taskbar (about 13 rows instead of 8) */
   html.fr-m .xl-win .fr-menubar { display: none; }
   html.fr-m #fr-root .fr-win .title-bar { min-height: 28px; padding: 1px 4px; }
@@ -1590,6 +1619,16 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   html.fr-m .fr-sw-n::after { content: none; }
   html.fr-m #fr-root .fr-switch { margin: 4px 3px; gap: 4px; padding: 0 4px 0 5px; }
 }
+/* (R3) 320-400 px: IE's seven buttons fit (the History clock was cut off at the right); ShowMe ERP's module list
+   narrower so the values fit, labels wrap */
+@media (max-width: 400px) {
+  html.fr-m .ie-win .ie-tb { padding: 2px 0; }
+  html.fr-m .ie-win .ie-b { min-width: 40px; padding-left: 0; padding-right: 0; }
+  html.fr-m .erp-nav { width: 104px; }
+  html.fr-m .erp-kv th { white-space: normal; padding-right: 8px; }
+  html.fr-m .erp-kv td { overflow-wrap: anywhere; }
+  html.fr-m .erp-top { flex-wrap: wrap; gap: 2px 10px; }
+}
 /* narrow portrait phones: no Received column in Outlook (the preview shows the date), so From and Subject get the room */
 @media (max-width: 560px) {
   html.fr-m .oe-tbl th:nth-child(5), html.fr-m .oe-tbl td:nth-child(5) { display: none; }
@@ -1598,6 +1637,12 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
 @media (max-width: 380px) { html.fr-m .fr-tray .fr-ktray { display: none; } }   /* (Kristians' tips still come by themselves) */
 /* a very narrow phone has no free desktop space for the sticky notes */
 @media (max-width: 359px) { html.fr-m #fr-root .fr-stickies { display: none; } }
+/* (S8) the smallest phones (320-360 px): Notepad a notch smaller and tighter, so a long file like the loan agreement
+   wraps fewer lines and takes fewer swipes (still readable) */
+@media (max-width: 360px) {
+  html.fr-m #fr-root .np-ta { font-size: 12px !important; line-height: 16px; }
+  html.fr-m #fr-root .np-ta.np-nowrap { font-size: 11px !important; line-height: 15px; }
+}
 
 </style>
 <script>
@@ -1857,6 +1902,7 @@ FR.apps = FR.apps || {};
     open(o) {
       if (o.id && wins.has(o.id)) { const w = wins.get(o.id); w.restore(); w.focus(); return w; }
       const id = o.id || 'w' + (++wid);
+      if (FR.mobile && swEl) swList(false);   // phones: a window that opens (by itself or from a chip) is never under the window list
       const W = Math.min(o.width || 640, window.innerWidth - 20), H = Math.min(o.height || 460, window.innerHeight - 50);
       const n = wins.size;
       const x = o.x ?? Math.max(10, Math.round((window.innerWidth - W) / 2 - 120 + (n % 6) * 28));
@@ -2070,11 +2116,20 @@ FR.apps = FR.apps || {};
     if (tray) { const r = tray.getBoundingClientRect(); b.style.right = Math.max(6, window.innerWidth - r.right + 4) + 'px'; }
     // phones: when it goes, a tap already on its way to it must not land on what was underneath (see the tap guard below)
     const bye = () => { if (!b.isConnected) return; if (FR.mobile) balloonGhost = { r: b.getBoundingClientRect(), at: Date.now() }; b.remove(); };
-    b.onclick = e => { bye(); if (!e.target.classList.contains('fr-balloon-x') && onClick) onClick(); };
-    // phones: it doesn't vanish from under a finger (waits while the screen is being touched)
-    const auto = () => { if (FR.mobile && Date.now() - lastTouch < 1500) return setTimeout(auto, 1500); bye(); };
-    setTimeout(auto, FR.mobile ? 5000 : 9000);
+    b.onclick = e => {
+      // phones (S2): a toast whose text is cut off opens up on the first tap (the whole text, scrolling if long); it then
+      // stays until ✕, a tap elsewhere, or a second tap (which does what the toast is for)
+      const x = e.target.classList.contains('fr-balloon-x') || (FR.mobile && !!e.target.closest('.fr-balloon-x'));
+      if (FR.mobile && !x && b.classList.contains('fr-balloon-more') && !b.classList.contains('fr-balloon-open')) { b.classList.add('fr-balloon-open'); return; }
+      bye(); if (!x && onClick) onClick();
+    };
+    // phones: it doesn't vanish from under a finger (waits while the screen is being touched, or was just touched, or
+    // while it is opened up), and a long text stays up long enough to read
+    const auto = () => { if (FR.mobile && b.isConnected && (touching || Date.now() - lastTouch < 1500 || b.classList.contains('fr-balloon-open'))) return setTimeout(auto, 1500); bye(); };
+    setTimeout(auto, FR.mobile ? Math.min(12000, Math.max(5000, 2500 + 45 * (b.textContent || '').length)) : 9000);
     if (FR.mobile) {
+      const bb = b.querySelector('.fr-balloon-b'), bt = b.querySelector('.fr-balloon-t b');
+      if (bb.scrollHeight > bb.clientHeight + 1 || b.scrollHeight > b.clientHeight + 1 || (bt && bt.scrollWidth > bt.clientWidth + 1)) b.classList.add('fr-balloon-more');
       b._frShown = Date.now(); b._frGuard = 500;
       // a tap anywhere else puts it away (like a toast)
       setTimeout(() => {
@@ -2094,8 +2149,10 @@ FR.apps = FR.apps || {};
     if (!FR.mobile || !e.target || !/^(INPUT|TEXTAREA)$/.test(e.target.tagName) || e.target.readOnly) return;
     document.querySelectorAll('.fr-balloon').forEach(b => b.remove());
   });
+  let touching = false;   // a finger is on the screen right now
   const noteTouch = () => { lastTouch = Date.now(); };
-  window.addEventListener('touchstart', noteTouch, { capture: true, passive: true });
+  window.addEventListener('touchstart', e => { noteTouch(); touching = true; }, { capture: true, passive: true });
+  ['touchend', 'touchcancel'].forEach(ev => window.addEventListener(ev, e => { touching = e.touches.length > 0; }, { capture: true, passive: true }));
   window.addEventListener('pointerdown', e => { if (e.pointerType === 'touch') noteTouch(); }, { capture: true, passive: true });
   const tapBlocked = e => {
     if (!FR.mobile || !e.isTrusted) return false;
@@ -5231,7 +5288,8 @@ FR.data.logo = {"mark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"380
     let tipCell = null;
     /* phones: no hover and no double-click. Tapping a cell shows its note (red triangle); tapping the selected cell
        again edits it in the formula bar, with the old content selected so typing replaces it. */
-    const editInBar = () => { if (st.edit) return; fin.focus(); try { fin.setSelectionRange(0, fin.value.length); } catch (x) {} };
+    let finSelAll = false;   // (S6, below)
+    const editInBar = () => { if (st.edit) return; fin.focus(); finSelAll = false; try { fin.setSelectionRange(0, fin.value.length); } catch (x) {} };
     if (FR.mobile) {
       const zb = $('<button class="xl-zoomb" aria-label="Fit the sheet to the screen width">Fit</button>');
       zb.onclick = e => { e.stopPropagation(); setFit(!st.fit); };
@@ -5382,7 +5440,14 @@ FR.data.logo = {"mark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"380
       editor.value = fin.value; if (st.edit) { st.edit.point = null; pointbox.style.display = 'none'; } sizeEditor();
     });
     fin.addEventListener('mousedown', e => { e.stopPropagation(); });
-    fin.addEventListener('focus', () => { if (!st.edit) { const v = fbarText(st.ar, st.ac); startEdit('edit', v, 'fbar'); } if (FR.mobile) tapNote(null); });
+    // phones (S6): a tap into the formula bar starts with the whole content selected (typing replaces it, like the
+    // tap-again on a cell); the next tap places the caret
+    fin.addEventListener('focus', () => {
+      const fresh = !st.edit;
+      if (!st.edit) { const v = fbarText(st.ar, st.ac); startEdit('edit', v, 'fbar'); }
+      if (FR.mobile) { tapNote(null); if (fresh) { finSelAll = true; setTimeout(() => (finSelAll = false), 1000); } }
+    });
+    if (FR.mobile) fin.addEventListener('click', () => { if (!finSelAll) return; finSelAll = false; try { fin.setSelectionRange(0, fin.value.length); } catch (x) {} });
     editor.addEventListener('mousedown', e => e.stopPropagation());
     q('.xl-fx-x').onmousedown = e => { e.preventDefault(); cancelEdit(); };
     q('.xl-fx-ok').onmousedown = e => { e.preventDefault(); commit(0, 0); };
@@ -9803,6 +9868,7 @@ Website:      still says 'Director'. Steve. Don't ask.
           const n = FR.fs.get(fid);
           const c = $(`<div class="ck-file">${FR.icon('xls', 20)}<span class="ck-fn"></span><small>open</small><button class="ck-pickbtn">This one</button></div>`);
           c.querySelector('.ck-fn').textContent = n.name.replace(/\.xls$/, '');
+          if (FR.mobile) c.querySelector('.ck-fn').innerHTML = esc(n.name.replace(/\.xls$/, '')).replace(/_/g, '_<wbr>');   // wraps at its underscores
           c.querySelector('small').onclick = e => { e.stopPropagation(); FR.openFile(fid); };
           c.ondblclick = () => FR.openFile(fid);
           c.querySelector('.ck-pickbtn').onclick = e => {
@@ -9855,7 +9921,8 @@ Website:      still says 'Director'. Steve. Don't ask.
     if (bar) bar.remove();
     bar = $(`<div class="ck-confirm fr-guard"><button class="ck-conf-ok"></button><button class="ck-conf-no">Cancel</button></div>`);
     bar._for = btn; bar._frShown = Date.now(); bar._frGuard = 500;   // the tap guard ignores it for its first half second
-    bar.querySelector('.ck-conf-ok').textContent = (opts.verb || 'Submit') + ': ' + label;
+    // (S4) the whole choice stays readable on a narrow phone: the label wraps (a file name at its underscores)
+    bar.querySelector('.ck-conf-ok').innerHTML = `${esc((opts.verb || 'Submit') + ':')} <span class="ck-conf-l">${esc(label).replace(/_/g, '_<wbr>')}</span>`;
     bar.querySelector('.ck-conf-ok').onclick = () => { bar.remove(); btn.classList.remove('ck-sel'); go(); };
     bar.querySelector('.ck-conf-no').onclick = () => { bar.remove(); btn.classList.remove('ck-sel'); };
     pk.after(bar);

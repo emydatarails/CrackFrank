@@ -254,6 +254,7 @@ FR.apps = FR.apps || {};
     open(o) {
       if (o.id && wins.has(o.id)) { const w = wins.get(o.id); w.restore(); w.focus(); return w; }
       const id = o.id || 'w' + (++wid);
+      if (FR.mobile && swEl) swList(false);   // phones: a window that opens (by itself or from a chip) is never under the window list
       const W = Math.min(o.width || 640, window.innerWidth - 20), H = Math.min(o.height || 460, window.innerHeight - 50);
       const n = wins.size;
       const x = o.x ?? Math.max(10, Math.round((window.innerWidth - W) / 2 - 120 + (n % 6) * 28));
@@ -467,11 +468,20 @@ FR.apps = FR.apps || {};
     if (tray) { const r = tray.getBoundingClientRect(); b.style.right = Math.max(6, window.innerWidth - r.right + 4) + 'px'; }
     // phones: when it goes, a tap already on its way to it must not land on what was underneath (see the tap guard below)
     const bye = () => { if (!b.isConnected) return; if (FR.mobile) balloonGhost = { r: b.getBoundingClientRect(), at: Date.now() }; b.remove(); };
-    b.onclick = e => { bye(); if (!e.target.classList.contains('fr-balloon-x') && onClick) onClick(); };
-    // phones: it doesn't vanish from under a finger (waits while the screen is being touched)
-    const auto = () => { if (FR.mobile && Date.now() - lastTouch < 1500) return setTimeout(auto, 1500); bye(); };
-    setTimeout(auto, FR.mobile ? 5000 : 9000);
+    b.onclick = e => {
+      // phones (S2): a toast whose text is cut off opens up on the first tap (the whole text, scrolling if long); it then
+      // stays until ✕, a tap elsewhere, or a second tap (which does what the toast is for)
+      const x = e.target.classList.contains('fr-balloon-x') || (FR.mobile && !!e.target.closest('.fr-balloon-x'));
+      if (FR.mobile && !x && b.classList.contains('fr-balloon-more') && !b.classList.contains('fr-balloon-open')) { b.classList.add('fr-balloon-open'); return; }
+      bye(); if (!x && onClick) onClick();
+    };
+    // phones: it doesn't vanish from under a finger (waits while the screen is being touched, or was just touched, or
+    // while it is opened up), and a long text stays up long enough to read
+    const auto = () => { if (FR.mobile && b.isConnected && (touching || Date.now() - lastTouch < 1500 || b.classList.contains('fr-balloon-open'))) return setTimeout(auto, 1500); bye(); };
+    setTimeout(auto, FR.mobile ? Math.min(12000, Math.max(5000, 2500 + 45 * (b.textContent || '').length)) : 9000);
     if (FR.mobile) {
+      const bb = b.querySelector('.fr-balloon-b'), bt = b.querySelector('.fr-balloon-t b');
+      if (bb.scrollHeight > bb.clientHeight + 1 || b.scrollHeight > b.clientHeight + 1 || (bt && bt.scrollWidth > bt.clientWidth + 1)) b.classList.add('fr-balloon-more');
       b._frShown = Date.now(); b._frGuard = 500;
       // a tap anywhere else puts it away (like a toast)
       setTimeout(() => {
@@ -491,8 +501,10 @@ FR.apps = FR.apps || {};
     if (!FR.mobile || !e.target || !/^(INPUT|TEXTAREA)$/.test(e.target.tagName) || e.target.readOnly) return;
     document.querySelectorAll('.fr-balloon').forEach(b => b.remove());
   });
+  let touching = false;   // a finger is on the screen right now
   const noteTouch = () => { lastTouch = Date.now(); };
-  window.addEventListener('touchstart', noteTouch, { capture: true, passive: true });
+  window.addEventListener('touchstart', e => { noteTouch(); touching = true; }, { capture: true, passive: true });
+  ['touchend', 'touchcancel'].forEach(ev => window.addEventListener(ev, e => { touching = e.touches.length > 0; }, { capture: true, passive: true }));
   window.addEventListener('pointerdown', e => { if (e.pointerType === 'touch') noteTouch(); }, { capture: true, passive: true });
   const tapBlocked = e => {
     if (!FR.mobile || !e.isTrusted) return false;

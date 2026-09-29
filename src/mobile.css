@@ -116,6 +116,11 @@
   .fr-balloon .fr-balloon-b .fr-ktip img { display: none; }
   .fr-balloon .fr-balloon-x { position: absolute; right: 0; top: 0; bottom: 0; width: 46px; display: flex; align-items: center; justify-content: center; border: 0; border-left: 1px solid #cfcb95; border-radius: 0 6px 6px 0; background: #f4f2c8; font-size: 16px; padding: 0; margin: 0; }
   .fr-balloon::after { display: none; }
+  /* (S2) text cut off: a "more" tag at its bottom right; the first tap opens the whole text (scrolls if long) */
+  .fr-balloon.fr-balloon-more:not(.fr-balloon-open)::before { content: 'more \25B4'; position: absolute; right: 47px; bottom: 0; padding: 2px 6px 3px 22px; font-weight: 700; color: #0a246a; background: linear-gradient(to right, rgba(255,255,225,0), #ffffe1 18px); }
+  html.fr-m .fr-balloon.fr-balloon-open { max-height: none; }
+  .fr-balloon.fr-balloon-open .fr-balloon-t { white-space: normal; }
+  .fr-balloon.fr-balloon-open .fr-balloon-b { display: block; -webkit-line-clamp: none; max-height: min(50vh, 300px); overflow-y: auto; overscroll-behavior: contain; }
   html.fr-kb .fr-balloon { display: none; }
   .fr-modal-shade { background: rgba(0,0,0,.28); }
   .fr-ctx { min-width: 190px; font-size: 13px; }
@@ -159,7 +164,7 @@
   .ck-ans input { flex: 1 1 150px; width: auto; min-width: 0; height: 38px; }
   #fr-root .ck-ans button { min-height: 38px; min-width: 84px; font-size: 13px; }
   #fr-root .ck-file { padding: 6px 8px; gap: 8px; }
-  #fr-root .ck-file .ck-fn { font-size: 12px; }
+  #fr-root .ck-file .ck-fn { font-size: 12px; word-break: normal; overflow-wrap: anywhere; }
   #fr-root .ck-file small { font-size: 12.5px; padding: 9px 6px; }
   #fr-root .ck-pickbtn { min-height: 36px; padding: 4px 12px; font-size: 12.5px; flex: none; }
   .ck-weeks { max-width: none; gap: 6px; }
@@ -171,7 +176,9 @@
   #fr-root .ck-weeks button.ck-sel, #fr-root .ck-sus.ck-sel { outline: 3px solid #316ac5; outline-offset: 1px; background: #dfe9fb; }
   .ck-confirm { display: flex; gap: 8px; margin-top: 10px; }
   #fr-root .ck-confirm button { min-height: 40px; font-size: 13px; padding: 0 14px; }
-  #fr-root .ck-confirm .ck-conf-ok { flex: 1 1 auto; font-weight: 700; }
+  #fr-root .ck-confirm .ck-conf-ok { flex: 1 1 auto; font-weight: 700; min-width: 0; white-space: normal; overflow-wrap: anywhere; line-height: 1.25; padding: 4px 10px; text-align: center; }
+  #fr-root .ck-confirm .ck-conf-no { flex: none; }
+  .ck-conf-l { display: inline-block; }   /* the file name on its own line when it doesn't fit after the verb */
   #fr-root .ck-hbtn { min-height: 36px; padding: 4px 12px; font-size: 12.5px; }
   .ck-hint, .ck-fos-t { font-size: 12.5px; }
   .ck-fos-p { font-size: 11.5px; }
@@ -204,6 +211,9 @@
   .xl-st-box { display: none; }
   .xl-cm { font-size: 13px; }
   .xl-selbox { border-width: 3px; }   /* the cell you're on stays clearly outlined */
+  /* (S5) a comment's red triangle: bigger, with a white edge, and on top of a title spilling over it and of the
+     selection outline, so it shows even on a selected cell */
+  table.xl-grid td.xl-hascm::after { border-width: 0 10px 10px 0; z-index: 3; filter: drop-shadow(-1px 1px 0 #fff); }
   #fr-root .xl-fillb { flex: none; align-self: center; margin: 0 4px 0 auto; min-width: 52px; min-height: 0; height: 26px; padding: 0 8px; font: 12px Tahoma, sans-serif; }
   #fr-root .xl-zoomb { flex: none; align-self: center; margin: 0 4px 0 0; min-width: 52px; min-height: 0; height: 26px; padding: 0 8px; font: 700 12px Tahoma, sans-serif; }
   #fr-root .xl-zoomb.on { background: #dfe9fb; border-color: #316ac5; }
@@ -291,11 +301,23 @@
   #fr-root input[type=checkbox], #fr-root input[type=radio] { position: absolute; pointer-events: none; }
   .fo-row, .fo-opt, .pr-cb { position: relative; }
   .fo-row label, .fo-opt label { padding: 6px 0; }
+  .fo-row, .fo-row label { white-space: normal; }   /* long settings wrap inside the list (320 px) instead of running off it */
+  .fo-row { padding-right: 8px; }
+  .fo-row label { flex: 1 1 auto; min-width: 0; line-height: 16px; }
+  /* the drawn box and its tick / dot line up with the first text line (the labels have 6 px padding on phones) */
+  #fr-root .fo-row label::before, #fr-root .fo-opt label::before { top: 7px; }
+  #fr-root .fo-row input[type=checkbox] + label::after { top: 8px; }
+  #fr-root .fo-row input[type=radio] + label::after, #fr-root .fo-opt input[type=radio] + label::after { top: 11px; }
   .ex-det { min-width: 540px; }
+
+  /* ---------- ShowMe ERP: finger-sized module list ---------- */
+  #fr-root .erp-n { padding: 8px 6px 8px 12px; font-size: 12.5px; line-height: 1.25; }
+  .erp-g { font-size: 11px; padding-top: 10px; }
 
   /* ---------- Notepad, pictures, IE, calculator ---------- */
   #fr-root .np-ta { font-size: 13px !important; line-height: 18px; }
   #fr-root .np-ta.np-nowrap { font-size: 12px !important; line-height: 16px; }
+  #fr-root .np-ta { padding-bottom: 56px; }   /* (S7) the last lines scroll up clear of the floating Wrap button */
   .np { position: relative; }
   #fr-root .np-wrapb { position: absolute; right: 10px; bottom: 10px; z-index: 2; min-width: 0; min-height: 0; height: 34px; padding: 0 12px; font: 12px Tahoma, sans-serif; border-radius: 17px; background: #fff; border: 1px solid #7f9db9; box-shadow: 0 1px 4px rgba(0,0,0,.25); opacity: .92; }
   #fr-root .np-wrapb.on { background: #dfe9fb; border-color: #316ac5; }
@@ -395,6 +417,13 @@
   html.fr-m .fr-balloon { bottom: 37px; min-height: 40px; max-height: 50px; padding-top: 3px; padding-bottom: 3px; }
   html.fr-m .fr-balloon .fr-balloon-b { -webkit-line-clamp: 2; }
   html.fr-m .fr-start-head { height: 44px; }
+  /* (R3) the calculator sideways: slimmer keys, so its bottom row isn't under the taskbar (iPhone SE: 320 px high) */
+  html.fr-m .ca { padding: 5px 8px 6px; }
+  html.fr-m .ca .ca-k, html.fr-m .ca-wide { height: 30px !important; }
+  html.fr-m #fr-root .ca-disp { height: 30px !important; margin-bottom: 4px; }
+  html.fr-m .ca-r1 { margin-bottom: 4px; }
+  html.fr-m .ca-grid { gap: 4px 5px; }
+  html.fr-m .ca-win > .fr-menubar { display: none; }
   /* Excel sideways: no menu bar, slimmer title bar, formula bar, tabs and taskbar (about 13 rows instead of 8) */
   html.fr-m .xl-win .fr-menubar { display: none; }
   html.fr-m #fr-root .fr-win .title-bar { min-height: 28px; padding: 1px 4px; }
@@ -429,6 +458,16 @@
   html.fr-m .fr-sw-n::after { content: none; }
   html.fr-m #fr-root .fr-switch { margin: 4px 3px; gap: 4px; padding: 0 4px 0 5px; }
 }
+/* (R3) 320-400 px: IE's seven buttons fit (the History clock was cut off at the right); ShowMe ERP's module list
+   narrower so the values fit, labels wrap */
+@media (max-width: 400px) {
+  html.fr-m .ie-win .ie-tb { padding: 2px 0; }
+  html.fr-m .ie-win .ie-b { min-width: 40px; padding-left: 0; padding-right: 0; }
+  html.fr-m .erp-nav { width: 104px; }
+  html.fr-m .erp-kv th { white-space: normal; padding-right: 8px; }
+  html.fr-m .erp-kv td { overflow-wrap: anywhere; }
+  html.fr-m .erp-top { flex-wrap: wrap; gap: 2px 10px; }
+}
 /* narrow portrait phones: no Received column in Outlook (the preview shows the date), so From and Subject get the room */
 @media (max-width: 560px) {
   html.fr-m .oe-tbl th:nth-child(5), html.fr-m .oe-tbl td:nth-child(5) { display: none; }
@@ -437,3 +476,9 @@
 @media (max-width: 380px) { html.fr-m .fr-tray .fr-ktray { display: none; } }   /* (Kristians' tips still come by themselves) */
 /* a very narrow phone has no free desktop space for the sticky notes */
 @media (max-width: 359px) { html.fr-m #fr-root .fr-stickies { display: none; } }
+/* (S8) the smallest phones (320-360 px): Notepad a notch smaller and tighter, so a long file like the loan agreement
+   wraps fewer lines and takes fewer swipes (still readable) */
+@media (max-width: 360px) {
+  html.fr-m #fr-root .np-ta { font-size: 12px !important; line-height: 16px; }
+  html.fr-m #fr-root .np-ta.np-nowrap { font-size: 11px !important; line-height: 15px; }
+}

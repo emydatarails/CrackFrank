@@ -542,6 +542,7 @@
           const n = FR.fs.get(fid);
           const c = $(`<div class="ck-file">${FR.icon('xls', 20)}<span class="ck-fn"></span><small>open</small><button class="ck-pickbtn">This one</button></div>`);
           c.querySelector('.ck-fn').textContent = n.name.replace(/\.xls$/, '');
+          if (FR.mobile) c.querySelector('.ck-fn').innerHTML = esc(n.name.replace(/\.xls$/, '')).replace(/_/g, '_<wbr>');   // wraps at its underscores
           c.querySelector('small').onclick = e => { e.stopPropagation(); FR.openFile(fid); };
           c.ondblclick = () => FR.openFile(fid);
           c.querySelector('.ck-pickbtn').onclick = e => {
@@ -594,7 +595,8 @@
     if (bar) bar.remove();
     bar = $(`<div class="ck-confirm fr-guard"><button class="ck-conf-ok"></button><button class="ck-conf-no">Cancel</button></div>`);
     bar._for = btn; bar._frShown = Date.now(); bar._frGuard = 500;   // the tap guard ignores it for its first half second
-    bar.querySelector('.ck-conf-ok').textContent = (opts.verb || 'Submit') + ': ' + label;
+    // (S4) the whole choice stays readable on a narrow phone: the label wraps (a file name at its underscores)
+    bar.querySelector('.ck-conf-ok').innerHTML = `${esc((opts.verb || 'Submit') + ':')} <span class="ck-conf-l">${esc(label).replace(/_/g, '_<wbr>')}</span>`;
     bar.querySelector('.ck-conf-ok').onclick = () => { bar.remove(); btn.classList.remove('ck-sel'); go(); };
     bar.querySelector('.ck-conf-no').onclick = () => { bar.remove(); btn.classList.remove('ck-sel'); };
     pk.after(bar);

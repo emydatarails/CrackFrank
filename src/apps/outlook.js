@@ -648,7 +648,7 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
     box().extra.push(m); FR.save();
     if (notify) {
       FR.sound.play('mail');
-      FR.balloon('You have new e-mail', 'From: ' + E(m.from.name || m.from.email), () => FR.apps.mail());
+      FR.balloon('You have new e-mail', 'From: ' + E(m.from.name || m.from.email), () => FR.apps.mail(), { act: 'Open Inbox' });
     }
     refresh();
     FR.bus.emit('mail-new', m.id);

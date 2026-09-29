@@ -53,7 +53,7 @@ HIT = """el => {
   let sc = el.parentElement;
   while (sc && sc !== document.body) { const cs = getComputedStyle(sc); if ((sc.scrollHeight > sc.clientHeight + 2 && /auto|scroll/.test(cs.overflowY)) || (sc.scrollWidth > sc.clientWidth + 2 && /auto|scroll/.test(cs.overflowX))) break; sc = sc.parentElement; }
   const hit = h ? (h.className || h.tagName) + '' : 'off-screen';
-  if (!sc || sc === document.body) return { ok: false, hit };
+  if (!sc || sc === document.body) return { ok: false, hit, bal: !!(h && h.closest && h.closest('.fr-balloon')) };
   const s = sc.getBoundingClientRect(), cx = s.left + s.width / 2, cy = s.top + s.height / 2;
   // move only along an axis the box can scroll and where the target is not fully inside the box (a finger swipe
   // that is mostly sideways would lock to sideways scrolling)
@@ -166,6 +166,47 @@ def xl_type(pg, r, c, text):
     if nb != want: ok(False, f'Enter should stay on {want} on a phone (now on {nb})')
 
 
+def narrow(pg):
+    return pg.viewport_size['width'] < 360   # iPhone SE (320 wide)
+
+
+def reachable(pg, loc):
+    """like tap(), swipes the nearest scroller by finger until loc is on top on screen, but doesn't tap it"""
+    for _ in range(14):
+        h = loc.first.evaluate(HIT)
+        if h['ok']: return True
+        if 'sx' not in h: return False
+        mx, my = min(220, 2 * h['hw']), min(220, 2 * h['hh'])
+        dx, dy = max(-mx, min(mx, h['dx'])), max(-my, min(my, h['dy']))
+        swipe(pg, h['sx'] - dx / 2, h['sy'] - dy / 2, h['sx'] + dx / 2, h['sy'] + dy / 2)
+    return False
+
+
+FOOTER_PROBE = """() => {
+  const out = [], sheet = [...document.querySelectorAll('.sh-sheetwin')].pop();
+  for (const b of sheet.querySelectorAll('.sh-ok, .sh-cancel, .sh-apply')) {
+    const r = b.getBoundingClientRect();
+    for (const fy of [0.1, 0.3, 0.5, 0.7, 0.9]) for (const fx of [0.1, 0.5, 0.9]) {
+      const h = document.elementFromPoint(r.left + r.width * fx, r.top + r.height * fy);
+      if (!(h === b || b.contains(h))) out.push(b.className + ' @' + fx + ',' + fy + ' -> ' + (h ? h.tagName + '#' + h.id + '.' + h.className : 'null'));
+    }
+  }
+  const tb = document.querySelector('.fr-taskbar').getBoundingClientRect();
+  for (let x = 4; x < innerWidth; x += 12) { const h = document.elementFromPoint(x, tb.top + tb.height / 2); if (h && h.tagName === 'INPUT') out.push('taskbar x=' + x + ' -> INPUT#' + h.id); }
+  return out;
+}"""
+
+
+def footer_clear(pg, what):
+    """S1: every point of a property sheet's OK / Cancel / Apply is the button itself (no invisible checkbox on top),
+    with the settings list at its top, middle and bottom"""
+    bad = []
+    for pos in ('top', 'mid', 'bot'):
+        pg.evaluate("(p) => { const s = [...document.querySelectorAll('.sh-sheetwin .sh-panes')].pop(); s.scrollTop = p === 'top' ? 0 : p === 'mid' ? (s.scrollHeight - s.clientHeight) / 2 : s.scrollHeight; }", pos)
+        pg.wait_for_timeout(80); bad += pg.evaluate(FOOTER_PROBE)
+    ok(not bad, f'S1: {what}: OK / Cancel / Apply are hit wherever they are touched (list scrolled top/middle/bottom) {bad[:3]}')
+
+
 def topmost_is_visible(pg, sel):
     return pg.evaluate("""s => { const e = document.querySelector(s); if (!e) return false; const r = e.getBoundingClientRect();
       const x = Math.min(innerWidth - 2, Math.max(1, r.left + r.width / 2)), y = Math.min(innerHeight - 2, Math.max(1, r.top + Math.min(r.height / 2, 12)));
@@ -232,6 +273,8 @@ def playthrough(p, b, devname):
     # phones: "This one" uses the same Select → Submit bar as weeks and suspects (R2), and it ignores a too-quick tap
     tap(pg, ck(pg).locator('.ck-file', has_text='v5_FINAL_FINAL').first.locator('.ck-pickbtn'), 60)
     ok(pg.locator('.fr-dialog').count() == 0 and pg.locator('.ck-confirm .ck-conf-ok', has_text='Send to Diane').count() == 1, 'R2: "This one" shows the Submit bar (no dialog)')
+    lab = pg.evaluate("() => { const b = document.querySelector('.ck-confirm .ck-conf-ok'), r = b.getBoundingClientRect(); return [b.innerText.replace(/\\s+/g, ''), b.scrollWidth <= b.clientWidth + 1 && b.scrollHeight <= b.clientHeight + 1, r.left >= 0 && r.right <= innerWidth + 1]; }")
+    ok('Budget_FY27_v5_FINAL_FINAL' in lab[0] and lab[1] and lab[2], f'S4: the Submit bar shows the whole file name, nothing cut ({lab})')
     bb = pg.locator('.ck-confirm .ck-conf-ok').bounding_box(); pg.touchscreen.tap(bb['x'] + bb['width'] / 2, bb['y'] + bb['height'] / 2); pg.wait_for_timeout(150)
     ok('version' not in solved(pg) and pg.locator('.ck-confirm').count() == 1, 'P1: a tap in the first half second of the Submit bar is ignored (no accidental answer)')
     pg.wait_for_timeout(450); tap(pg, pg.locator('.ck-confirm .ck-conf-ok'), 400)
@@ -246,6 +289,8 @@ def playthrough(p, b, devname):
     tap(pg, a1, 400)
     tip = pg.evaluate("() => { const t = document.querySelector('.fr-win:not(.fr-inactive) .xl-cmtip .xl-cm'); if (!t) return null; const r = t.getBoundingClientRect(); return [t.innerText, r.left >= 0 && r.right <= innerWidth + 1] }")
     ok(bool(tip) and 'PW = SUM' in tip[0] and tip[1], "unlock: tapping A1 shows Frank's note, fully on screen")
+    z5 = pg.evaluate("() => { const c = getComputedStyle(document.querySelector('.fr-win:not(.fr-inactive) .xl-grid td.xl-hascm'), '::after'); return [c.zIndex, parseFloat(c.borderRightWidth)]; }")
+    ok(z5[0] not in ('auto', '0') and int(z5[0]) >= 3 and z5[1] >= 10, f'S5: the red comment triangle is big and drawn on top of spilling text and the selection {z5}')
     shot(pg, 'excel_note')
     ok(pg.evaluate("() => getComputedStyle(document.querySelector('.fr-win:not(.fr-inactive) .xl-grid td[data-c=\"0\"]')).position === 'sticky'"), 'Excel: column A is frozen on a phone')
     tap(pg, pg.locator(TOP + ' .xl-tab', has_text='Notes'), 400)
@@ -261,6 +306,8 @@ def playthrough(p, b, devname):
     ok(abs(pg.evaluate("() => +getComputedStyle(document.querySelector('.fr-win:not(.fr-inactive) .xl-scroll')).zoom") - 1.2) < 0.01, 'R2: 100% goes back')
     pg.evaluate("() => FR.balloon('Test', 'a balloon')"); pg.wait_for_timeout(100)
     tap(pg, pg.locator(TOP + ' .xl-fin'), 300)
+    sel6 = pg.evaluate("() => { const f = document.activeElement; return [f.className, f.selectionStart, f.selectionEnd, f.value.length]; }")
+    ok(sel6[0] == 'xl-fin' and sel6[1] == 0 and sel6[2] == sel6[3] > 0, f'S6: the first tap into the formula bar selects the whole content {sel6}')
     ok(pg.locator('.fr-balloon').count() == 0, 'R2: a balloon goes away as soon as you type (formula bar)')
     pg.evaluate("() => FR.balloon('Test 2', 'while typing')"); pg.wait_for_timeout(100)
     ok(pg.locator('.fr-balloon').count() == 0, 'R2: no balloon appears while you are typing')
@@ -278,6 +325,32 @@ def playthrough(p, b, devname):
     tap(pg, pg.locator('.fr-balloon:has-text("7 of 10") .fr-balloon-x'), 300)
     st5 = pg.evaluate("() => [[...document.querySelectorAll('.fr-balloon')].filter(b => /7 of 10/.test(b.textContent)).length, FR.wm.active && FR.wm.active.id]")
     ok(st5[0] == 0 and st5[1].startswith('xl-'), f'Q5: ✕ puts the toast away (the window under it stays) {st5}')
+    # S2: a toast cut off at "…" opens up on a tap (the whole text, and what it does as a real button)
+    pg.evaluate("() => { window.__s2 = 0; FR.balloon('Board Pack: 7 of 10 done', '<b>Close the Q3 EBITDA bridge</b> — done.<br><i>' + 'A long reaction line that goes on and on until it is cut off. '.repeat(3) + '</i><br>Next up: Open FOR THE BOARD', () => { window.__s2++; }, { act: 'Open the checklist' }); }")
+    pg.wait_for_selector('.fr-balloon.fr-balloon-more', timeout=6000); pg.wait_for_timeout(700)
+    tap(pg, pg.locator('.fr-balloon .fr-balloon-b'), 450)
+    s2 = pg.evaluate("() => { const b = document.querySelector('.fr-balloon'), bb = b && b.querySelector('.fr-balloon-b'), g = b && b.querySelector('.fr-balloon-go'); if (!b) return null; const gr = g.getBoundingClientRect(); return [b.classList.contains('fr-balloon-open'), bb.scrollHeight <= bb.clientHeight + 1 || getComputedStyle(bb).overflowY === 'auto', gr.height >= 36 && gr.top >= 0 && gr.bottom <= innerHeight, g.innerText, window.__s2]; }")
+    ok(bool(s2) and s2[0] and s2[1] and s2[2] and s2[3] == 'Open the checklist' and s2[4] == 0, f'S2: a tap on a cut-off toast opens it up: whole text, its action as a button, nothing done yet {s2}')
+    tap(pg, pg.locator('.fr-balloon .fr-balloon-go'), 350)
+    ok(pg.evaluate("() => window.__s2 === 1 && !document.querySelector('.fr-balloon')"), "S2: the opened toast's button does what the toast is for")
+    # S2: it never goes away from under a finger resting on it (well past its 5 s)
+    pg.evaluate("() => FR.balloon('Test 3', 'a short one')"); pg.wait_for_selector('.fr-balloon:has-text("Test 3")', timeout=6000); pg.wait_for_timeout(700)
+    r3 = pg.locator('.fr-balloon').bounding_box(); cx, cy = r3['x'] + 60, r3['y'] + r3['height'] / 2
+    cdp = pg.context.new_cdp_session(pg)
+    cdp.send('Input.dispatchTouchEvent', {'type': 'touchStart', 'touchPoints': [{'x': cx, 'y': cy}]})
+    cdp.send('Input.dispatchTouchEvent', {'type': 'touchMove', 'touchPoints': [{'x': cx + 14, 'y': cy}]})   # (no long-press)
+    pg.wait_for_timeout(6500)
+    ok(pg.locator('.fr-balloon:has-text("Test 3")').count() == 1, 'S2: a toast never auto-hides while a finger is on the screen')
+    cdp.send('Input.dispatchTouchEvent', {'type': 'touchEnd', 'touchPoints': []}); cdp.detach()
+    # S2: a tap that lands where a toast was a moment ago (it just auto-hid) hits nothing
+    pg.evaluate("() => { window.__thru = null; window.__thruOn = true; if (!window.__thruL) { window.__thruL = 1; ['pointerdown', 'mousedown', 'click'].forEach(t => document.addEventListener(t, e => { if (window.__thruOn) window.__thru = t + ' ' + String(e.target.className || e.target.tagName); }, true)); } }")
+    pg.wait_for_function("() => !document.querySelector('.fr-balloon')", timeout=20000, polling=40)
+    pg.touchscreen.tap(cx, cy); pg.wait_for_timeout(250)
+    thru = pg.evaluate("() => window.__thru")
+    pg.wait_for_timeout(900); pg.touchscreen.tap(cx, cy); pg.wait_for_timeout(300)   # (control: a second later a tap there counts)
+    thru2 = pg.evaluate("() => { window.__thruOn = false; return window.__thru; }")
+    print('DBG', cx, cy, pg.evaluate("(p) => { const e = document.elementFromPoint(p[0], p[1]); return e && (e.tagName + '.' + e.className); }", [cx, cy]))
+    ok(thru is None and thru2 is not None, f'S2: a tap landing where a toast just vanished does not go through (then: {thru}, a second later: {thru2})')
     closeall(pg)
     chip(pg, 'About Us', 1200); closeall(pg)
     chip(pg, 'Budget_FY27_BOARD.xls', 700)
@@ -315,6 +388,9 @@ def playthrough(p, b, devname):
     ex_tap(pg, 'loan')
     if pg.locator('.fr-dialog .fr-dlg-input input').count(): dlg_type(pg, '3130')
     ok(pg.evaluate("() => /Loan_Agreement/.test(FR.wm.active.el.querySelector('.fr-title').textContent)"), 'the loan agreement opens in Notepad from the zip')
+    s7 = pg.evaluate("() => { const w = document.querySelector('.fr-win:not(.fr-inactive)'), t = w.querySelector('.np-ta'), b = w.querySelector('.np-wrapb'); t.scrollTop = 1e6; const tr = t.getBoundingClientRect(), br = b.getBoundingClientRect(); return [parseFloat(getComputedStyle(t).paddingBottom), br.top > tr.top ? tr.bottom - br.top : 0, parseFloat(getComputedStyle(t).fontSize)]; }")
+    ok(s7[0] >= s7[1] + 4, f'S7: the last lines of a Notepad file scroll clear of the Wrap button (padding {s7[0]} px, button covers {s7[1]:.0f} px)')
+    if narrow(pg): ok(s7[2] <= 12, f'S8: 320 px: Notepad text a notch smaller ({s7[2]} px)')
     shot(pg, 'loan'); close_top(pg)
     ex_tap(pg, 'covenant', 1000)
     chip(pg, "Karen's email"); close_top(pg)
@@ -342,7 +418,14 @@ def playthrough(p, b, devname):
     ok(pg.evaluate("() => document.querySelector('.sh-sheetwin .sh-panes').scrollTop") > y0, 'Q1: the settings list scrolls by a finger swipe')
     ok(topmost_is_visible(pg, '.sh-sheet .sh-ok'), 'Q1: OK still on screen after scrolling')
     shot(pg, 'folder_options')
-    tap(pg, pg.locator('.sh-sheet .sh-ok'), 500)
+    footer_clear(pg, 'Folder Options (View)')
+    for t in ('General', 'File Types'):
+        tap(pg, pg.locator('.sh-sheet [role=tab]', has_text=t), 200); footer_clear(pg, 'Folder Options (' + t + ')')
+    tap(pg, pg.locator('.sh-sheet [role=tab]', has_text='View'), 200)
+    ok(pg.evaluate("() => document.querySelector('[data-k=showhidden]').checked"), 'S1: switching tabs and probing changed no setting')
+    b1 = pg.locator('.sh-sheet .sh-ok').bounding_box()
+    pg.touchscreen.tap(b1['x'] + b1['width'] / 2, b1['y'] + b1['height'] * 0.2); pg.wait_for_timeout(500)   # the upper part of OK (the player's tap)
+    ok(pg.evaluate("() => FR.flags.get('showHidden') === true && !FR.wm.wins.get('sh-folderopts')"), 'S1: a tap on the UPPER part of OK presses OK')
     ok(pg.evaluate("() => FR.flags.get('showHidden') === true && !FR.wm.wins.get('sh-folderopts')"), 'Q1: OK by touch applies "show hidden files"')
     ok(pg.locator(f'{TOP} .ex-view [data-id="cashdir"]').count() == 1, 'hidden REAL VERSION folder shows up')
     # long-press = right-click: Properties of the hidden folder
@@ -382,8 +465,12 @@ def playthrough(p, b, devname):
     pg.wait_for_timeout(3000)
     chip(pg, 'FOR THE BOARD folder'); ex_tap(pg, 'forboardx', 600); dlg_type(pg, '18243'); pg.wait_for_timeout(900)
     ok('forboard' in solved(pg), '8 forboard by touch')
-    ok(pg.evaluate("() => /FOR_THE_BOARD/.test(FR.wm.active.el.querySelector('.fr-title').textContent) && document.querySelector('.fr-win:not(.fr-inactive) .xl-ch[data-c=\"2\"]').getBoundingClientRect().right <= innerWidth + 1"),
-       'Q7: FOR_THE_BOARD at 100%: the values column (C) is on screen (wide text columns capped)')
+    c_on = "() => /FOR_THE_BOARD/.test(FR.wm.active.el.querySelector('.fr-title').textContent) && document.querySelector('.fr-win:not(.fr-inactive) .xl-ch[data-c=\"2\"]').getBoundingClientRect().right <= innerWidth + 1"
+    if not narrow(pg):
+        ok(pg.evaluate(c_on), 'Q7: FOR_THE_BOARD at 100%: the values column (C) is on screen (wide text columns capped)')
+    else:   # 320 px: labels (A) + text (B) + values (C) can't all fit at 100%; one tap on Fit brings C on screen
+        tap(pg, pg.locator(TOP + ' .xl-zoomb'), 400)
+        ok(pg.evaluate(c_on), 'Q7 (320 px): FOR_THE_BOARD after Fit: the values column (C) is on screen')
     closeall(pg)
 
     # ---- 9 send: tap the message, Reply, Send
@@ -437,7 +524,7 @@ def playthrough(p, b, devname):
     ok(pg.locator('.fr-dialog').count() == 0, 'Q2: a tap in the first moment of the end screen does nothing (no "Start over?")')
     pg.wait_for_timeout(1500)
     ok(pg.locator('.fr-end').count() == 1, 'ending screen')
-    ok(topmost_is_visible(pg, '.fr-end-cta .pri'), 'ending: the main button is reachable')
+    ok(topmost_is_visible(pg, '.fr-end-cta .pri') or (narrow(pg) and reachable(pg, pg.locator('.fr-end-cta .pri'))), 'ending: the main button is reachable' + (' (by a swipe on 320 px)' if narrow(pg) else ''))
     low = pg.evaluate("() => { const e = document.querySelector('.fr-end'), r = e.querySelector('[data-a=again]').getBoundingClientRect(); return innerHeight - (r.bottom - (e.scrollHeight - e.clientHeight - e.scrollTop)); }")
     ok(low >= 90, f'Q2: "Play again" never sits in the bottom strip where the taskbar was ({low:.0f} px above the bottom, fully scrolled)')
     shot(pg, 'ending')
@@ -468,7 +555,7 @@ with sync_playwright() as p:
         ok(p2.evaluate('() => FR.mobile'), 'landscape phone is mobile too')
         tap(p2, p2.locator('.fr-win .ck-item.open .ck-chip', has_text='Budget_FY27_BOARD.xls').first, 1200)
         rows = p2.evaluate("() => { const s = document.querySelector('.fr-win:not(.fr-inactive) .xl-scroll'); return Math.floor((s.getBoundingClientRect().height - 22) / 20.4); }")
-        ok(rows >= 11, f'P5: landscape Excel shows {rows} rows (slim chrome, no menu bar)')
+        ok(rows >= (7 if min(vw, vh) < 360 else 11), f'P5: landscape Excel shows {rows} rows (slim chrome, no menu bar)')   # SE: 320 px high (R2-D16)
         p2.screenshot(path=f'{OUT}/mobile_{PFX[0]}excel.png')
         closeall(p2)
         # Q1: Folder Options sideways, by touch: OK pinned, the list scrolls by a swipe
@@ -481,6 +568,7 @@ with sync_playwright() as p:
         tap(p2, p2.locator('.sh-sheet label', has_text='Show hidden files and folders').last, 200, 'Show hidden files')
         ok(p2.evaluate("() => document.querySelector('.sh-sheetwin .sh-panes').scrollTop") > 0 and topmost_is_visible(p2, '.sh-sheet .sh-ok'), 'Q1: landscape: the list scrolled by finger to the option, OK still on screen')
         p2.screenshot(path=f'{OUT}/mobile_{PFX[0]}folder_options.png')
+        footer_clear(p2, 'landscape Folder Options (View)')
         tap(p2, p2.locator('.sh-sheet .sh-cancel'), 500)
         closeall(p2)
         # Q6: Outlook sideways: a message gets most of the height
@@ -490,7 +578,7 @@ with sync_playwright() as p:
         if not row.count(): row = p2.locator(TOP + ' tr[data-id]').first
         tap(p2, row, 500); tap(p2, row, 900)
         frac = p2.evaluate("() => { const b = document.querySelector('.fr-win:not(.fr-inactive) .oe-mbody'); return b ? b.getBoundingClientRect().height / innerHeight : 0; }")
-        ok(frac >= 0.55, f'Q6: landscape Outlook message: the text gets {frac:.0%} of the height')
+        ok(frac >= (0.5 if min(vw, vh) < 360 else 0.55), f'Q6: landscape Outlook message: the text gets {frac:.0%} of the height')
         p2.screenshot(path=f'{OUT}/mobile_{PFX[0]}outlook_msg.png')
         tap(p2, p2.locator('.fr-startbtn'), 500)
         ok(p2.evaluate("() => { const m = document.querySelector('.fr-start'); const r = m.getBoundingClientRect(); return r.top >= 0 && m.scrollHeight >= m.clientHeight; }"), 'landscape Start menu fits (scrolls)')

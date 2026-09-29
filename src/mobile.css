@@ -121,6 +121,9 @@
   html.fr-m .fr-balloon.fr-balloon-open { max-height: none; }
   .fr-balloon.fr-balloon-open .fr-balloon-t { white-space: normal; }
   .fr-balloon.fr-balloon-open .fr-balloon-b { display: block; -webkit-line-clamp: none; max-height: min(50vh, 300px); overflow-y: auto; overscroll-behavior: contain; }
+  .fr-balloon-acts { display: none; }
+  .fr-balloon.fr-balloon-open .fr-balloon-acts { display: flex; justify-content: flex-end; margin-top: 6px; }
+  .fr-balloon .fr-balloon-go { min-height: 36px; min-width: 96px; padding: 0 14px; font: 700 12.5px Tahoma, sans-serif; }
   html.fr-kb .fr-balloon { display: none; }
   .fr-modal-shade { background: rgba(0,0,0,.28); }
   .fr-ctx { min-width: 190px; font-size: 13px; }
@@ -258,6 +261,12 @@
   .oe-pbody, .oe-mbody { font-size: 13px; }
   .oe-chip { padding: 4px 3px; }
   .oe-cr input { height: 34px; }
+  /* (R3) the To: / Cc: address-book buttons as tall as the fields next to them; in Select Recipients the checkboxes show
+     (XP.css only draws a box for "input + label", and here the input is inside its label) and each name is a 40 px row */
+  #fr-root .oe-cl { height: 34px; }
+  .oe-pick { display: flex; align-items: center; flex-wrap: wrap; gap: 0 6px; min-height: 40px; padding: 4px 0; border-top: 1px solid #e2dfd2; line-height: 16px; }
+  .oe-pick span { flex-basis: 100%; padding-left: 28px; font-size: 11.5px; overflow-wrap: anywhere; }
+  #fr-root .oe-pick input[type=checkbox] { position: static; opacity: 1; -webkit-appearance: checkbox; appearance: auto; width: 20px; height: 20px; margin: 0 2px 0 0; flex: none; }
 
   /* ---------- Explorer, Folder Options, Properties ---------- */
   .ex { font-size: 12.5px; }
@@ -407,6 +416,10 @@
   html.fr-m .oe-ph, html.fr-m .oe-mh { font-size: 11.5px; line-height: 15px; padding: 2px 8px 3px; }
   html.fr-m .oe-tn { height: 30px; }
   html.fr-m .oe-tbb { height: 34px; }
+  /* (R3) a new message sideways: slimmer address fields and no font bar, so the text box isn't a sliver (SE: 320 px high) */
+  html.fr-m .oe-cr input, html.fr-m #fr-root .oe-cl { height: 28px; }
+  html.fr-m .oe-cf { gap: 2px; padding-top: 2px; }
+  html.fr-m .oe-fmt { display: none; }
   html.fr-m .oe-ph .oe-hr, html.fr-m .oe-mh .oe-hr { display: inline; margin-right: 14px; }   /* From · Date · To on one line */
   html.fr-m .oe-ph .oe-hr b, html.fr-m .oe-mh .oe-hr b { min-width: 0; }
   html.fr-m .oe-ph .oe-hr-att, html.fr-m .oe-mh .oe-hr-att { display: flex; }

@@ -288,7 +288,7 @@
 
     if (firstTime || DEV || resumed) {
       setTimeout(() => openChecklist(), DEV ? 0 : 700);
-      if (!DEV && !resumed) setTimeout(() => FR.balloon('You have new e-mail', 'Diane Kessler: "Board Pack — 9:00 AM. No excuses."', () => FR.apps.mail(null)), 2600);
+      if (!DEV && !resumed) setTimeout(() => FR.balloon('You have new e-mail', 'Diane Kessler: "Board Pack — 9:00 AM. No excuses."', () => FR.apps.mail(null), { act: 'Open Inbox' }), 2600);
     }
     if (FR.puzzle.isSolved('frank') && !DEV) setTimeout(ending, 800);
     if (!DEV) {
@@ -617,7 +617,7 @@
     if (Date.now() - FR.state.unlockedAt[cur] < 240000) return;
     FR.state.nudged[cur] = 1; FR.save();
     const it = ITEMS.find(i => i.id === cur);
-    FR.balloon('FinanceOS Assist', `Stuck on <b>${esc(it.t)}</b>? Ask FinanceOS on the checklist. Emily's trial has 1 day left.`, () => openChecklist());
+    FR.balloon('FinanceOS Assist', `Stuck on <b>${esc(it.t)}</b>? Ask FinanceOS on the checklist. Emily's trial has 1 day left.`, () => openChecklist(), { act: 'Open the checklist' });
   }, 30000);
 
   // targeted feedback for common traps
@@ -656,7 +656,7 @@
     const it = ITEMS.find(i => i.id === id);
     const n = ITEMS.filter(i => FR.puzzle.isSolved(i.id)).length;
     const nxt = ITEMS.find(i => !FR.puzzle.isSolved(i.id));
-    if (it && id !== 'login') setTimeout(() => FR.balloon(`Board Pack: ${n} of ${ITEMS.length} done`, `<b>${esc(it.t)}</b> — done.${REACT[id] ? `<br><i>${esc(REACT[id])}</i>` : ''}${nxt ? `<br>Next up: ${esc(nxt.t)}` : ''}`, () => openChecklist(), { silent: true }), 900);
+    if (it && id !== 'login') setTimeout(() => FR.balloon(`Board Pack: ${n} of ${ITEMS.length} done`, `<b>${esc(it.t)}</b> — done.${REACT[id] ? `<br><i>${esc(REACT[id])}</i>` : ''}${nxt ? `<br>Next up: ${esc(nxt.t)}` : ''}`, () => openChecklist(), { silent: true, act: 'Open the checklist' }), 900);
     if (id === 'frank') {
       FR.state.finishedAt = FR.state.finishedAt || Date.now();
       if (FR.state.finishPlayMs == null) FR.state.finishPlayMs = FR.clock.playMs();

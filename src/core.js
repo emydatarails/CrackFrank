@@ -472,7 +472,7 @@ FR.apps = FR.apps || {};
       // phones (S2): a toast whose text is cut off opens up on the first tap (the whole text, scrolling if long); it then
       // stays until ✕, a tap elsewhere, or a second tap (which does what the toast is for)
       const x = e.target.classList.contains('fr-balloon-x') || (FR.mobile && !!e.target.closest('.fr-balloon-x'));
-      if (FR.mobile && !x && b.classList.contains('fr-balloon-more') && !b.classList.contains('fr-balloon-open')) { b.classList.add('fr-balloon-open'); return; }
+      if (FR.mobile && !x && b.classList.contains('fr-balloon-more') && !b.classList.contains('fr-balloon-open')) { b.classList.add('fr-balloon-open'); b._frShown = Date.now(); b._frGuard = 350; return; }
       bye(); if (!x && onClick) onClick();
     };
     // phones: it doesn't vanish from under a finger (waits while the screen is being touched, or was just touched, or
@@ -480,6 +480,8 @@ FR.apps = FR.apps || {};
     const auto = () => { if (FR.mobile && b.isConnected && (touching || Date.now() - lastTouch < 1500 || b.classList.contains('fr-balloon-open'))) return setTimeout(auto, 1500); bye(); };
     setTimeout(auto, FR.mobile ? Math.min(12000, Math.max(5000, 2500 + 45 * (b.textContent || '').length)) : 9000);
     if (FR.mobile) {
+      // opened up, the toast shows what a tap on it does as a real button (e.g. "Open the checklist")
+      if (onClick) { const go = $(`<div class="fr-balloon-acts"><button class="fr-balloon-go"></button></div>`); go.firstChild.textContent = opts.act || 'Open'; b.appendChild(go); }
       const bb = b.querySelector('.fr-balloon-b'), bt = b.querySelector('.fr-balloon-t b');
       if (bb.scrollHeight > bb.clientHeight + 1 || b.scrollHeight > b.clientHeight + 1 || (bt && bt.scrollWidth > bt.clientWidth + 1)) b.classList.add('fr-balloon-more');
       b._frShown = Date.now(); b._frGuard = 500;

@@ -1282,6 +1282,9 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   html.fr-m .fr-balloon.fr-balloon-open { max-height: none; }
   .fr-balloon.fr-balloon-open .fr-balloon-t { white-space: normal; }
   .fr-balloon.fr-balloon-open .fr-balloon-b { display: block; -webkit-line-clamp: none; max-height: min(50vh, 300px); overflow-y: auto; overscroll-behavior: contain; }
+  .fr-balloon-acts { display: none; }
+  .fr-balloon.fr-balloon-open .fr-balloon-acts { display: flex; justify-content: flex-end; margin-top: 6px; }
+  .fr-balloon .fr-balloon-go { min-height: 36px; min-width: 96px; padding: 0 14px; font: 700 12.5px Tahoma, sans-serif; }
   html.fr-kb .fr-balloon { display: none; }
   .fr-modal-shade { background: rgba(0,0,0,.28); }
   .fr-ctx { min-width: 190px; font-size: 13px; }
@@ -1419,6 +1422,12 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   .oe-pbody, .oe-mbody { font-size: 13px; }
   .oe-chip { padding: 4px 3px; }
   .oe-cr input { height: 34px; }
+  /* (R3) the To: / Cc: address-book buttons as tall as the fields next to them; in Select Recipients the checkboxes show
+     (XP.css only draws a box for "input + label", and here the input is inside its label) and each name is a 40 px row */
+  #fr-root .oe-cl { height: 34px; }
+  .oe-pick { display: flex; align-items: center; flex-wrap: wrap; gap: 0 6px; min-height: 40px; padding: 4px 0; border-top: 1px solid #e2dfd2; line-height: 16px; }
+  .oe-pick span { flex-basis: 100%; padding-left: 28px; font-size: 11.5px; overflow-wrap: anywhere; }
+  #fr-root .oe-pick input[type=checkbox] { position: static; opacity: 1; -webkit-appearance: checkbox; appearance: auto; width: 20px; height: 20px; margin: 0 2px 0 0; flex: none; }
 
   /* ---------- Explorer, Folder Options, Properties ---------- */
   .ex { font-size: 12.5px; }
@@ -1568,6 +1577,10 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   html.fr-m .oe-ph, html.fr-m .oe-mh { font-size: 11.5px; line-height: 15px; padding: 2px 8px 3px; }
   html.fr-m .oe-tn { height: 30px; }
   html.fr-m .oe-tbb { height: 34px; }
+  /* (R3) a new message sideways: slimmer address fields and no font bar, so the text box isn't a sliver (SE: 320 px high) */
+  html.fr-m .oe-cr input, html.fr-m #fr-root .oe-cl { height: 28px; }
+  html.fr-m .oe-cf { gap: 2px; padding-top: 2px; }
+  html.fr-m .oe-fmt { display: none; }
   html.fr-m .oe-ph .oe-hr, html.fr-m .oe-mh .oe-hr { display: inline; margin-right: 14px; }   /* From · Date · To on one line */
   html.fr-m .oe-ph .oe-hr b, html.fr-m .oe-mh .oe-hr b { min-width: 0; }
   html.fr-m .oe-ph .oe-hr-att, html.fr-m .oe-mh .oe-hr-att { display: flex; }
@@ -2120,7 +2133,7 @@ FR.apps = FR.apps || {};
       // phones (S2): a toast whose text is cut off opens up on the first tap (the whole text, scrolling if long); it then
       // stays until ✕, a tap elsewhere, or a second tap (which does what the toast is for)
       const x = e.target.classList.contains('fr-balloon-x') || (FR.mobile && !!e.target.closest('.fr-balloon-x'));
-      if (FR.mobile && !x && b.classList.contains('fr-balloon-more') && !b.classList.contains('fr-balloon-open')) { b.classList.add('fr-balloon-open'); return; }
+      if (FR.mobile && !x && b.classList.contains('fr-balloon-more') && !b.classList.contains('fr-balloon-open')) { b.classList.add('fr-balloon-open'); b._frShown = Date.now(); b._frGuard = 350; return; }
       bye(); if (!x && onClick) onClick();
     };
     // phones: it doesn't vanish from under a finger (waits while the screen is being touched, or was just touched, or
@@ -2128,6 +2141,8 @@ FR.apps = FR.apps || {};
     const auto = () => { if (FR.mobile && b.isConnected && (touching || Date.now() - lastTouch < 1500 || b.classList.contains('fr-balloon-open'))) return setTimeout(auto, 1500); bye(); };
     setTimeout(auto, FR.mobile ? Math.min(12000, Math.max(5000, 2500 + 45 * (b.textContent || '').length)) : 9000);
     if (FR.mobile) {
+      // opened up, the toast shows what a tap on it does as a real button (e.g. "Open the checklist")
+      if (onClick) { const go = $(`<div class="fr-balloon-acts"><button class="fr-balloon-go"></button></div>`); go.firstChild.textContent = opts.act || 'Open'; b.appendChild(go); }
       const bb = b.querySelector('.fr-balloon-b'), bt = b.querySelector('.fr-balloon-t b');
       if (bb.scrollHeight > bb.clientHeight + 1 || b.scrollHeight > b.clientHeight + 1 || (bt && bt.scrollWidth > bt.clientWidth + 1)) b.classList.add('fr-balloon-more');
       b._frShown = Date.now(); b._frGuard = 500;
@@ -6313,7 +6328,7 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
     box().extra.push(m); FR.save();
     if (notify) {
       FR.sound.play('mail');
-      FR.balloon('You have new e-mail', 'From: ' + E(m.from.name || m.from.email), () => FR.apps.mail());
+      FR.balloon('You have new e-mail', 'From: ' + E(m.from.name || m.from.email), () => FR.apps.mail(), { act: 'Open Inbox' });
     }
     refresh();
     FR.bus.emit('mail-new', m.id);
@@ -9614,7 +9629,7 @@ Website:      still says 'Director'. Steve. Don't ask.
 
     if (firstTime || DEV || resumed) {
       setTimeout(() => openChecklist(), DEV ? 0 : 700);
-      if (!DEV && !resumed) setTimeout(() => FR.balloon('You have new e-mail', 'Diane Kessler: "Board Pack — 9:00 AM. No excuses."', () => FR.apps.mail(null)), 2600);
+      if (!DEV && !resumed) setTimeout(() => FR.balloon('You have new e-mail', 'Diane Kessler: "Board Pack — 9:00 AM. No excuses."', () => FR.apps.mail(null), { act: 'Open Inbox' }), 2600);
     }
     if (FR.puzzle.isSolved('frank') && !DEV) setTimeout(ending, 800);
     if (!DEV) {
@@ -9943,7 +9958,7 @@ Website:      still says 'Director'. Steve. Don't ask.
     if (Date.now() - FR.state.unlockedAt[cur] < 240000) return;
     FR.state.nudged[cur] = 1; FR.save();
     const it = ITEMS.find(i => i.id === cur);
-    FR.balloon('FinanceOS Assist', `Stuck on <b>${esc(it.t)}</b>? Ask FinanceOS on the checklist. Emily's trial has 1 day left.`, () => openChecklist());
+    FR.balloon('FinanceOS Assist', `Stuck on <b>${esc(it.t)}</b>? Ask FinanceOS on the checklist. Emily's trial has 1 day left.`, () => openChecklist(), { act: 'Open the checklist' });
   }, 30000);
 
   // targeted feedback for common traps
@@ -9982,7 +9997,7 @@ Website:      still says 'Director'. Steve. Don't ask.
     const it = ITEMS.find(i => i.id === id);
     const n = ITEMS.filter(i => FR.puzzle.isSolved(i.id)).length;
     const nxt = ITEMS.find(i => !FR.puzzle.isSolved(i.id));
-    if (it && id !== 'login') setTimeout(() => FR.balloon(`Board Pack: ${n} of ${ITEMS.length} done`, `<b>${esc(it.t)}</b> — done.${REACT[id] ? `<br><i>${esc(REACT[id])}</i>` : ''}${nxt ? `<br>Next up: ${esc(nxt.t)}` : ''}`, () => openChecklist(), { silent: true }), 900);
+    if (it && id !== 'login') setTimeout(() => FR.balloon(`Board Pack: ${n} of ${ITEMS.length} done`, `<b>${esc(it.t)}</b> — done.${REACT[id] ? `<br><i>${esc(REACT[id])}</i>` : ''}${nxt ? `<br>Next up: ${esc(nxt.t)}` : ''}`, () => openChecklist(), { silent: true, act: 'Open the checklist' }), 900);
     if (id === 'frank') {
       FR.state.finishedAt = FR.state.finishedAt || Date.now();
       if (FR.state.finishPlayMs == null) FR.state.finishPlayMs = FR.clock.playMs();

@@ -46,6 +46,8 @@
       hints: ['The website is the referee. The homepage gives the headcount; the About Us timeline gives the size of the 2024 warehouse.', 'Open each file: check the Headcount tab against the website, the Gross margin % row, and the Rent & leases line in Opex Detail.', 'The 2024 warehouse is 40,000 sq ft (About page timeline) × $6.00 = $240K, so Rent & leases must be $420K. Only v5_FINAL_USE_THIS has 118 heads, 22.0% and $420K.'] },
     { id: 'unlock', level: 2, t: 'Unlock the Board copy of the budget', d: 'Budget_FY27_BOARD.xls is password-protected. Frank left the hint inside the approved version.', auto: true,
       where: [W.file('bud_v5ut', 'The approved version'), W.file('bud_board', 'Budget_FY27_BOARD.xls'), W.site('about.html', 'About Us'), W.site('quality.html', 'Quality & Safety')],
+      // phones have no hover: the first hint says "tap" there (mhints replaces hints[i] when FR.mobile)
+      mhints: ["In the approved file, tap cell A1 (the one with the red triangle) to read Frank's note, or read its Notes tab."],
       hints: ['In the approved file, hover the red triangle in cell A1 (or read its Notes tab).', "Walter's seed money is in \"How We Got Started\" on About Us. The ISO year is on Quality & Safety.", '=SUM(2400, 2006) → 4406.'] },
     { id: 'ebitda', level: 1, t: 'Repair FY27 EBITDA in the Board copy', d: 'Frank broke the EBITDA row at 3 AM (#REF!). Fix row 12 in Excel — FY and all four quarters (E12:H12) — or type the FY number here.', input: 'FY27 EBITDA ($K)', ph: 'e.g. 1,234',
       where: [W.file('bud_board', 'Budget_FY27_BOARD.xls')],
@@ -97,7 +99,7 @@
         ${hasSave ? '<button class="fr-bigbtn" data-a="new">Start over</button>' : ''}
         <a class="fr-small" href="${CONFIG.siteUrl}" target="_blank" rel="noopener">Open packacorp.com ↗</a>
       </div>
-      <p class="fr-small fr-save-line" style="margin-top:14px">Made for finance people. Best on a laptop or desktop. ${saveLine()}</p>
+      <p class="fr-small fr-save-line" style="margin-top:14px">Made for finance people. ${FR.mobile ? 'Best on a laptop or desktop, but it works on a phone too (Excel is easier sideways).' : 'Best on a laptop or desktop.'} ${saveLine()}</p>
     </div></div>`);
     el.querySelector('[data-a=go]').onclick = () => { FR.sound.play('click'); if (!FR.state.startedAt) { FR.state.startedAt = Date.now(); FR.save(); } boot(); };
     const n = el.querySelector('[data-a=new]');
@@ -166,7 +168,8 @@
       const top = Math.max(r.bottom, slot.childElementCount ? er.bottom : 0);
       hintEl = $(`<div class="fr-login-hint"><b>${FR.icon('info', 14)} Password hint</b>=LOWER(the town where Packa started) &amp; the year it started. (Yes, an Excel formula. No spaces.)${extra ? `<div style="margin-top:6px"><b style="display:inline">Still stuck?</b> It's right on the <a href="${CONFIG.siteUrl}" target="_blank" rel="noopener">packacorp.com</a> homepage: the town, then the year.</div>` : ''}<div class="fr-login-fos">FinanceOS Assist is available once you're in.</div></div>`);
       hintEl.style.left = r.left + 'px'; hintEl.style.top = top + 10 + 'px';
-      el.appendChild(hintEl);
+      // phones: in the flow under the password box, so it moves with it when the keyboard comes up
+      if (FR.mobile) { hintEl.classList.add('fr-login-hint-m'); slot.after(hintEl); } else el.appendChild(hintEl);
     };
     el.querySelector('.fr-q').onclick = () => { FR.sound.play('ding'); hintEl ? (hintEl.remove(), hintEl = null) : showHint(fails >= 2); };
     const attempt = () => {
@@ -234,14 +237,15 @@
       const d = $(`<div class="fr-dicon${ic.shortcut ? ' fr-dicon-lnk' : ''}" tabindex="0">${FR.icon(ic.i, 32)}<span class="fr-dl">${esc(ic.n).replace(/([_.])/g, '$1<wbr>')}</span></div>`);
       d.title = ic.n;
       const select = () => { box.querySelectorAll('.sel').forEach(s => s.classList.remove('sel')); d.classList.add('sel'); };
-      d.onclick = e => { e.stopPropagation(); select(); if (touch) ic.a(); };
+      // touch / phones: one tap opens; a double-tap (desktop habit) must not open it two or three times
+      d.onclick = e => { e.stopPropagation(); select(); if ((touch || FR.mobile) && Date.now() > (d.tapGuard || 0)) { d.tapGuard = Date.now() + 600; ic.a(); } };
       d.oncontextmenu = e => {
         e.preventDefault(); e.stopPropagation(); select();
         const items = [{ label: 'Open', action: () => ic.a() }];
         if (ic.node) items.push({ sep: true }, { label: 'Properties', action: () => props(ic.node) });
         ctxMenu(e.clientX, e.clientY, items);
       };
-      d.ondblclick = () => { FR.sound.play('click'); ic.a(); };
+      d.ondblclick = () => { if (touch || FR.mobile) return; FR.sound.play('click'); ic.a(); };
       d.onkeydown = e => { if (e.key === 'Enter') ic.a(); };
       box.appendChild(d);
     });
@@ -294,9 +298,11 @@
     'F4 toggles $ in a reference. Absolute ranges, absolute peace.',
     'Alt+= AutoSums the block above. Kristians does it blindfolded.',
   ];
+  // phones: same tips where they need a mouse, said for a finger
+  const KTIPS_M = { 2: 'A red triangle in a cell corner means a comment. Tap the cell to read it.', 3: 'Long-press a file and choose Properties. Authors and dates tell stories.' };
   let kIdx = 0;
   function kTip(i) {
-    const t = KTIPS[(i ?? kIdx) % KTIPS.length]; kIdx = (i ?? kIdx) + 1;
+    const n = (i ?? kIdx) % KTIPS.length, t = (FR.mobile && KTIPS_M[n]) || KTIPS[n]; kIdx = (i ?? kIdx) + 1;
     FR.balloon("Kristians' Cheat Sheet of the Day", `<div class="fr-ktip"><img src="${FR.data.images.kristians}" alt=""><span>${esc(t)}</span></div>`, null);
   }
   setInterval(() => { if (document.querySelector('.fr-desktop') && !document.querySelector('.fr-balloon')) kTip(); }, 240000);
@@ -407,7 +413,7 @@
     FR.wm.open({ id: 'help', title: 'Help and Support Center', icon: 'help', width: 520, height: 470, content: `<div class="fr-help">
       <h3>What is going on?</h3><p>Frank Warmington, Packa's FP&amp;A Manager, disappeared on Friday night. The Board meets at 9:00 AM and the bank's $4.0M survival package depends on a complete, honest Board Pack. Everything is on this computer.</p>
       <h3>How to play</h3><p>Open <b>Board Pack — TO DO</b> (desktop or the clipboard in the tray) to see where you stand. Items unlock one by one. The orange dots show how hard each one is. Each one has <b>Look in</b> shortcuts that open the right folder, email or web page. Some items tick themselves when you crack something in Excel or Outlook; others ask you to pick or type an answer.</p>
-      <p>Double-click to open files and folders. Right-click files (on the desktop too) for Properties. Excel works like Excel: type formulas, and select cells to see their Sum in the status bar.</p>
+      ${FR.mobile ? `<p>Tap to open files and folders. Long-press a file (on the desktop too) for Properties. In Excel, tap a cell, then tap it again (or tap the formula bar) to type; Enter or ✓ puts it in. A cell with a red triangle has a note: tap it to read it. Switch windows with the buttons on the taskbar.</p>` : `<p>Double-click to open files and folders. Right-click files (on the desktop too) for Properties. Excel works like Excel: type formulas, and select cells to see their Sum in the status bar.</p>`}
       <h3>Where are the clues?</h3><p>In Frank's email, his Excel files, his folders (some are hidden), his Recycle Bin, and on <a href="${CONFIG.siteUrl}" target="_blank" rel="noopener">www.packacorp.com</a> — the company website. Keep it open in another tab.</p>
       <h3>Stuck?</h3><p>Emily from finance installed a Datarails FinanceOS trial on Frank's machine (day 13 of 14). Every checklist item has an <b>Ask FinanceOS</b> button with three hints, from a gentle nudge to the full answer.</p><h3>Score</h3><p>${esc(FR.score.rulesLine())}.${FR.score.available() ? ' Signed-in players are ranked on <b>Board Pack Rescue - Who Covered for Frank?</b> on Packa\'s intranet (the shortcut on the desktop); your first finished game is the one that counts.' : ''}</p>
       <h3>Progress</h3><p>Your progress saves in this browser. Log off and come back any time.</p></div>` });
@@ -461,7 +467,7 @@
         <div class="ck-t"><span class="ck-n">${idx + 1}.</span> ${solved ? `<s>${esc(it.t)}</s>` : unlocked ? esc(it.t) : 'Locked — finish the item above first'} ${active && it.id !== 'login' ? pips : ''}</div>
         ${active ? `<div class="ck-d">${esc(it.d)}</div>` : ''}
         ${active && it.where ? `<div class="ck-where"><span>Look in:</span></div>` : ''}
-        ${active && it.input ? `<div class="ck-ans"><input type="text" placeholder="${esc(it.ph || '')}" aria-label="${esc(it.input)}" spellcheck="false"><button>Submit</button></div>` : ''}
+        ${active && it.input ? `<div class="ck-ans"><input type="text" placeholder="${esc(it.ph || '')}" aria-label="${esc(it.input)}" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off"><button>Submit</button></div>` : ''}
         ${active && it.pick ? `<div class="ck-pick ck-pick-${it.pick}"></div>` : ''}
         ${active ? `<div class="ck-fb"></div>` : ''}
         ${active && it.auto && it.id !== 'login' ? `<div class="ck-auto">Ticks itself when you do it.</div>` : ''}
@@ -474,7 +480,7 @@
       const wh = row.querySelector('.ck-where');
       if (wh) it.where.forEach(([label, act]) => { const c = $(`<button class="ck-chip"></button>`); c.textContent = label; c.onclick = () => { FR.sound.play('click'); act(); }; wh.appendChild(c); });
       const hbox = row.querySelector('.ck-hints');
-      if (active) for (let i = 0; i < used; i++) hbox.appendChild($(`<div class="ck-hint ck-fos"><div class="ck-fos-h">${FOS_MARK}<b>Datarails FinanceOS</b><span>· Emily's trial · hint ${i + 1}/3</span></div><div class="ck-fos-p">${esc(FOS_PREFACE[(idx + i) % FOS_PREFACE.length])}</div><div class="ck-fos-t">${esc(it.hints[i])}</div></div>`));
+      if (active) for (let i = 0; i < used; i++) hbox.appendChild($(`<div class="ck-hint ck-fos"><div class="ck-fos-h">${FOS_MARK}<b>Datarails FinanceOS</b><span>· Emily's trial · hint ${i + 1}/3</span></div><div class="ck-fos-p">${esc(FOS_PREFACE[(idx + i) % FOS_PREFACE.length])}</div><div class="ck-fos-t">${esc((FR.mobile && it.mhints && it.mhints[i]) || it.hints[i])}</div></div>`));
       const hb = row.querySelector('.ck-hbtn');
       if (hb) hb.onclick = () => {
         const n = FR.state.hintsUsed[it.id] || 0;

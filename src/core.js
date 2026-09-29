@@ -9,6 +9,24 @@ FR.apps = FR.apps || {};
   FR.$ = $;
   FR.esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+  /* ---------- mobile (phones, small tablets) ----------
+     One media query decides it, the same one src/mobile.css uses. Desktop (fine pointer, >= 1100px wide) never
+     matches, so nothing below changes it. FR.mobile follows rotation / resizing; <html> gets .fr-m while it is on. */
+  FR.MOBILE_MQ = '(max-width: 760px), (pointer: coarse) and (max-width: 1100px)';
+  const mobileMq = window.matchMedia ? window.matchMedia(FR.MOBILE_MQ) : null;
+  const setMobile = () => { FR.mobile = !!(mobileMq && mobileMq.matches); document.documentElement.classList.toggle('fr-m', FR.mobile); };
+  setMobile();
+  // phones: no automatic zoom-in when a small text field gets focus (iOS still lets people pinch-zoom)
+  if (FR.mobile) { const vp = document.querySelector('meta[name=viewport]'); if (vp && !/maximum-scale/.test(vp.content)) vp.content += ', maximum-scale=1'; }
+  if (mobileMq) {
+    const onMq = () => {
+      const was = FR.mobile; setMobile();
+      // turned into a phone layout (e.g. a narrow window): every app window fills the screen
+      if (FR.mobile && !was && FR.wm) FR.wm.wins.forEach(w => { if (!w.max && !w.el.classList.contains('fr-dialog')) w.maximize(true); });
+    };
+    if (mobileMq.addEventListener) mobileMq.addEventListener('change', onMq); else if (mobileMq.addListener) mobileMq.addListener(onMq);
+  }
+
   /* ---------- bus ---------- */
   const handlers = {};
   FR.bus = {
@@ -203,10 +221,10 @@ FR.apps = FR.apps || {};
           void el.offsetWidth; el.style.transition = 'transform .2s ease-out, opacity .2s ease-out'; el.style.transform = ''; el.style.opacity = '';
           setTimeout(() => { el.style.transition = ''; }, 220);
         },
-        maximize() {
+        maximize(quiet) {
           if (!w.max) { w.prev = el.getAttribute('style'); el.style.left = '0px'; el.style.top = '0px'; el.style.width = '100%'; el.style.height = '100%'; el.classList.add('fr-max'); }
           else { el.setAttribute('style', w.prev); el.classList.remove('fr-max'); }
-          w.max = !w.max; el.style.zIndex = ++z; FR.sound.play(w.max ? 'maximize' : 'restore'); FR.bus.emit('win-resize', w);
+          w.max = !w.max; el.style.zIndex = ++z; if (!quiet) FR.sound.play(w.max ? 'maximize' : 'restore'); FR.bus.emit('win-resize', w);
         },
         close() {
           if (wins.get(id) !== w) return;                   // already closed (double-close)
@@ -221,7 +239,7 @@ FR.apps = FR.apps || {};
       wins.set(id, w);
       const [bMin, bMax, bClose] = el.querySelectorAll('.title-bar-controls button');
       bMin.onclick = e => { e.stopPropagation(); w.minimize(); };
-      bMax.onclick = e => { e.stopPropagation(); if (o.resizable !== false) w.maximize(); };
+      bMax.onclick = e => { e.stopPropagation(); if (o.resizable !== false && !(FR.mobile && w.max)) w.maximize(); };
       bClose.onclick = e => { e.stopPropagation(); FR.sound.play('click'); w.close(); };
       if (o.resizable === false) bMax.disabled = true;
       tb.onclick = () => { if (w.min) { w.restore(); w.focus(); } else if (FR.wm.active === w && !el.classList.contains('fr-inactive')) w.minimize(); else w.focus(); };
@@ -231,7 +249,8 @@ FR.apps = FR.apps || {};
       el.addEventListener('click', raise, true);
       // drag
       const bar = el.querySelector('.title-bar');
-      bar.addEventListener('dblclick', e => { if (!e.target.closest('button') && o.resizable !== false) w.maximize(); });
+      // on a phone, app windows always fill the screen (there is no room, and no mouse, to drag them around)
+      bar.addEventListener('dblclick', e => { if (!e.target.closest('button') && o.resizable !== false && !FR.mobile) w.maximize(); });
       bar.addEventListener('mousedown', e => {
         if (e.target.closest('button') || w.max) return;
         const sx = e.clientX, sy = e.clientY, ox = el.offsetLeft, oy = el.offsetTop;
@@ -254,7 +273,7 @@ FR.apps = FR.apps || {};
         document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up); e.preventDefault(); e.stopPropagation();
       });
       if (o.menu) FR.wm.menubar(el.querySelector('.fr-menubar'), o.menu, w);
-      if (!isDlg && (o.maximized || window.innerWidth < 700 || ((o.className || '').includes('xl-win') && window.innerWidth < 1300))) w.maximize();
+      if (!isDlg && (o.maximized || FR.mobile || window.innerWidth < 700 || ((o.className || '').includes('xl-win') && window.innerWidth < 1300))) w.maximize(FR.mobile);
       el.classList.add('fr-opening'); setTimeout(() => el.classList.remove('fr-opening'), 200);
       w.focus();
       return w;
@@ -275,15 +294,27 @@ FR.apps = FR.apps || {};
             d.appendChild(r);
           });
           d.style.left = b.offsetLeft + 'px'; bar.appendChild(d);
+          // phones: the menu bar scrolls sideways, so the drop-down floats (fixed) under its item and stays on screen
+          if (FR.mobile) { const r = b.getBoundingClientRect(); d.classList.add('fr-menu-fixed'); d.style.top = r.bottom + 'px'; d.style.left = Math.max(2, Math.min(r.left, innerWidth - d.offsetWidth - 2)) + 'px'; }
         };
         b.onmousedown = e => { e.stopPropagation(); openM === b ? closeAll() : show(); };
-        b.onmouseenter = () => { if (openM && openM !== b) show(); };
+        b.onmouseenter = () => { if (openM && openM !== b && !FR.mobile) show(); };   // (a tap fires mouseenter too)
       });
       document.addEventListener('mousedown', e => { if (!bar.contains(e.target)) closeAll(); });
       menuClosers.add(() => { if (!bar.isConnected) return null; const was = !!openM; if (was) closeAll(); return was; });
     },
     // close any open menubar dropdown; true if one was open
     closeMenus() { let any = false; menuClosers.forEach(f => { const r = f(); if (r === null) menuClosers.delete(f); else if (r) any = true; }); return any; },
+    // phones: a dialog sits in the upper part of the screen (clear of the soft keyboard) and never hangs off an edge
+    fitDialog(w, place) {
+      const el = w.el, host = el.parentElement; if (!host) return;
+      const hw = host.clientWidth || innerWidth, hh = host.clientHeight || innerHeight;
+      if (el.offsetWidth > hw - 8) el.style.width = (hw - 8) + 'px';
+      const ww = el.offsetWidth, h = el.offsetHeight;
+      el.style.left = Math.max(4, Math.round((hw - ww) / 2)) + 'px';
+      const top = place ? Math.round((hh - h) / 3) : el.offsetTop;
+      el.style.top = Math.max(4, Math.min(top, hh - h - 4)) + 'px';
+    },
     topDialog() { return [...wins.values()].filter(v => v.el.classList.contains('fr-dialog')).sort((a, b) => (+b.el.style.zIndex || 0) - (+a.el.style.zIndex || 0))[0] || null; },
     dialog(o) {
       return new Promise(res => {
@@ -291,12 +322,13 @@ FR.apps = FR.apps || {};
         const iconName = o.icon || 'info';
         const btns = o.buttons || ['OK'];
         const content = $(`<div class="fr-dlg"><div class="fr-dlg-row">${FR.icon(iconName, 32)}<div class="fr-dlg-msg">${o.message || ''}</div></div>
-          ${o.input ? `<div class="fr-dlg-input"><label>${o.input.label || ''}</label><input type="${o.input.type || 'text'}" autocomplete="off" spellcheck="false"></div>` : ''}
+          ${o.input ? `<div class="fr-dlg-input"><label>${o.input.label || ''}</label><input type="${o.input.type || 'text'}" autocomplete="off" spellcheck="false" autocapitalize="off" autocorrect="off"></div>` : ''}
           <div class="fr-dlg-btns">${btns.map((b, i) => `<button ${i === 0 ? 'class="default"' : ''}>${b}</button>`).join('')}</div></div>`);
         FR.wm.layer().appendChild(shade);
         const prev = FR.wm.active;
         const w = FR.wm.open({ title: o.title || 'Frank Warmington\'s Computer', icon: iconName, width: o.width || 380, height: o.height || (o.input ? 190 : 150), resizable: false, content, className: 'fr-dialog', onClose: () => { finish(btns[btns.length - 1]); } });
         w.el.style.height = 'auto'; w.el.style.zIndex = w.dz; shade.style.zIndex = w.dz - 1;
+        if (FR.mobile) FR.wm.fitDialog(w, true);
         let done = false;
         const inp = content.querySelector('input');
         function finish(button) { if (done) return; done = true; shade.remove(); w.el.remove(); w.tb.remove(); wins.delete(w.id);
@@ -343,5 +375,76 @@ FR.apps = FR.apps || {};
     if (tray) { const r = tray.getBoundingClientRect(); b.style.right = Math.max(6, window.innerWidth - r.right + 4) + 'px'; }
     b.onclick = e => { b.remove(); if (!e.target.classList.contains('fr-balloon-x') && onClick) onClick(); };
     setTimeout(() => b.remove(), 9000);
+    // phones: the balloon sits over the bottom of a full-screen window; a tap anywhere else puts it away (like a toast)
+    if (FR.mobile) setTimeout(() => {
+      const away = e => { if (!b.contains(e.target)) b.remove(); if (!b.isConnected) document.removeEventListener('touchstart', away, true); };
+      if (b.isConnected) document.addEventListener('touchstart', away, { capture: true, passive: true });
+    }, 1200);
   };
+
+  /* ---------- phones: long-press = right-click, and the soft keyboard never covers the field being typed in ----------
+     Everything here only acts while FR.mobile is on. */
+  // long-press (550 ms, finger still) sends a contextmenu event to what's under the finger: desktop icons, Explorer items…
+  // Android also fires its own contextmenu on a long-press; whichever comes first wins, the other is swallowed.
+  let lp = null, lpBlockUntil = 0, lpClickUntil = 0;
+  const lpCancel = () => { if (lp) { clearTimeout(lp.timer); if (!lp.fired) lp = null; } };
+  document.addEventListener('touchstart', e => {
+    lpCancel(); lp = null;
+    // formulas, passwords, cell addresses: the phone keyboard must not capitalise or "correct" them
+    const f = FR.mobile && e.target && e.target.tagName === 'INPUT' ? e.target : null;
+    if (f && !f.hasAttribute('autocapitalize')) { f.setAttribute('autocapitalize', 'off'); f.setAttribute('autocorrect', 'off'); }
+    if (!FR.mobile || e.touches.length !== 1) return;
+    const t = e.touches[0], target = e.target;
+    if (!target.closest || target.closest('input, textarea, select, iframe, [contenteditable]')) return;
+    const x = t.clientX, y = t.clientY;
+    const me = lp = { x, y, fired: false, timer: setTimeout(() => {
+      if (lp !== me) return;
+      me.fired = true; lpBlockUntil = Date.now() + 700;
+      if (navigator.vibrate) { try { navigator.vibrate(12); } catch (err) {} }
+      target.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, view: window, clientX: x, clientY: y, button: 2, buttons: 2 }));
+    }, 550) };
+  }, { capture: true, passive: true });
+  document.addEventListener('touchmove', e => {
+    if (!lp || lp.fired) return;
+    const t = e.touches[0];
+    if (!t || Math.abs(t.clientX - lp.x) > 10 || Math.abs(t.clientY - lp.y) > 10) lpCancel();
+  }, { capture: true, passive: true });
+  document.addEventListener('touchend', e => {
+    // after a long-press, the lift must not also "tap" (open) what was under the finger
+    if (lp && lp.fired) { if (e.cancelable) e.preventDefault(); lp = null; lpClickUntil = Date.now() + 350; return; }
+    lpCancel();
+  }, { capture: true, passive: false });
+  document.addEventListener('touchcancel', () => { lpCancel(); lp = null; }, { capture: true, passive: true });
+  document.addEventListener('contextmenu', e => {
+    if (!FR.mobile || !e.isTrusted) return;
+    if (lp && !lp.fired) { clearTimeout(lp.timer); lp.fired = true; lpBlockUntil = Date.now() + 700; return; }   // the browser's own long-press came first
+    if (Date.now() < lpBlockUntil) { e.preventDefault(); e.stopImmediatePropagation(); }                         // ours already opened the menu
+  }, true);
+  document.addEventListener('click', e => { if (FR.mobile && Date.now() < lpClickUntil && e.isTrusted) { e.preventDefault(); e.stopImmediatePropagation(); } }, true);
+
+  // soft keyboard: when it shrinks the visible area, #fr-root shrinks to that area (windows, dialogs and the taskbar
+  // move up above the keyboard), and the focused field is scrolled into view
+  const vv = window.visualViewport;
+  let kbOpen = false;
+  FR.viewportFit = (vh, vtop) => {
+    const root = document.getElementById('fr-root'); if (!root) return;
+    const h = vh != null ? vh : vv ? vv.height : innerHeight, t = vtop != null ? vtop : vv ? vv.offsetTop : 0;
+    const zoomed = vh == null && vv && Math.abs((vv.scale || 1) - 1) > 0.02;
+    const open = FR.mobile && !zoomed && innerHeight - h > 120;
+    if (open) {
+      if (vh == null && window.scrollY) window.scrollTo(0, 0);
+      root.style.top = Math.round(t) + 'px'; root.style.bottom = 'auto'; root.style.height = Math.round(h) + 'px';
+    } else if (kbOpen) { root.style.top = ''; root.style.bottom = ''; root.style.height = ''; }
+    if (open === kbOpen && !open) return;
+    kbOpen = open; document.documentElement.classList.toggle('fr-kb', open);
+    wins.forEach(w => { if (w.el.classList.contains('fr-dialog')) FR.wm.fitDialog(w, false); });
+    const a = document.activeElement;
+    if (open && a && a !== document.body && (/^(INPUT|TEXTAREA)$/.test(a.tagName) || a.isContentEditable)) setTimeout(() => { try { a.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (err) {} }, 60);
+  };
+  if (vv) { vv.addEventListener('resize', () => FR.viewportFit()); vv.addEventListener('scroll', () => { if (kbOpen) FR.viewportFit(); }); }
+  // a field tapped while the keyboard is already up
+  document.addEventListener('focusin', e => {
+    if (!FR.mobile || !kbOpen) return;
+    const a = e.target; if (a && /^(INPUT|TEXTAREA)$/.test(a.tagName)) setTimeout(() => { try { a.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (err) {} }, 60);
+  });
 })();

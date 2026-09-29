@@ -24,5 +24,8 @@
 - Hints are presented as "Datarails FinanceOS" cards. Packa Corp itself does not use Datarails; keep that joke intact.
 - Tests: `node test/excel_engine_test.js` must print ALL PASS. `python3 test/play.py` (Playwright, Chromium) plays the
   whole game through the UI and must end with "no console errors".
+- Phones/tablets: one media query, `FR.MOBILE_MQ` in `src/core.js` = `(max-width: 760px), (pointer: coarse) and (max-width: 1100px)`,
+  sets `FR.mobile` and `<html class="fr-m">`; mobile CSS lives only in `src/mobile.css` (inside that query), mobile JS only behind
+  `FR.mobile`. A desktop (fine pointer, 1100px+) must look and behave exactly as before. Test: `python3 test/mobile_play.py` (whole game by touch).
 - `?dev=1` / `?solve=<id>` shortcuts work only on file:// and localhost (see `LOCAL` in `src/boot.js`).
 - Deploys: Vercel (`vercel.json`: build → test → serve `dist/`). Pushing to `main` deploys production; `.github/workflows/ci.yml` builds and tests every push.

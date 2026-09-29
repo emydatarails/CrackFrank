@@ -8,7 +8,7 @@ def rd(p):
 xp = rd(os.path.join(src, 'xp.css'))
 # drop the DOS font-face (external woff files we don't ship)
 xp = re.sub(r'@font-face\{[^}]*\}', '', xp)  # all external woff files (we don't ship them)
-css = xp + '\n' + rd(os.path.join(src, 'core.css')) + '\n' + rd(os.path.join(src, 'account.css')) + '\n' + rd(os.path.join(src, 'score.css')) + '\n' + '\n'.join(rd(p) for p in sorted(glob.glob(os.path.join(src, 'apps', '*.css'))))
+css = xp + '\n' + rd(os.path.join(src, 'core.css')) + '\n' + rd(os.path.join(src, 'account.css')) + '\n' + rd(os.path.join(src, 'score.css')) + '\n' + '\n'.join(rd(p) for p in sorted(glob.glob(os.path.join(src, 'apps', '*.css')))) + '\n' + rd(os.path.join(src, 'mobile.css'))  # phones: last, so it wins
 order = ['core.js', 'icons.js', 'fs.js', 'assets.js', 'sounds.js', 'account.js', 'score_rules.js', 'score.js']
 js = '\n;\n'.join(rd(os.path.join(src, f)) for f in order)
 # the real Packa logo (src/packa-logo*.svg): the box mark sits above the PACKA letters, so cropping the viewBox

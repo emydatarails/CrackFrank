@@ -1029,8 +1029,10 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
     if (!tb.dataset.wired) {
       tb.dataset.wired = '1';
       const rowMsg = e => { const tr = e.target.closest('tr[data-id]'); return tr && byId(tr.dataset.id); };
-      tb.addEventListener('mousedown', e => { const m = rowMsg(e); if (!m) return; e.preventDefault(); if (V.sel[V.folder] !== m.id) select(m); else V.el.querySelector('.oe-list').focus({ preventScroll: true }); });
-      tb.addEventListener('dblclick', e => { const m = rowMsg(e); if (m) openRow(m); });
+      let again = null;   // phones: tapping the selected message again opens it in its own window (no double-click)
+      tb.addEventListener('mousedown', e => { const m = rowMsg(e); if (!m) return; e.preventDefault(); again = FR.mobile && V.sel[V.folder] === m.id ? m.id : null; if (V.sel[V.folder] !== m.id) select(m); else V.el.querySelector('.oe-list').focus({ preventScroll: true }); });
+      tb.addEventListener('click', e => { const m = rowMsg(e); if (FR.mobile && m && again === m.id) openRow(m); again = null; });
+      tb.addEventListener('dblclick', e => { if (FR.mobile) return; const m = rowMsg(e); if (m) openRow(m); });
     }
     renderStart();
   }

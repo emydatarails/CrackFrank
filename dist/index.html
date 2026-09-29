@@ -1159,6 +1159,271 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
 .ch-note { margin: 14px 0; padding: 8px 10px; background: #fff6d6; border: 1px solid #e3cf6a; }
 .ch-foot { color: #777; font-size: 10px; }
 
+/* ===== FRANK'S COMPUTER — phones and small tablets =====
+   Everything in this file is inside the mobile media query (the same one core.js uses for FR.mobile, which also puts
+   .fr-m on <html>). A desktop (fine pointer, 1100px+ wide) never matches, so none of this reaches it.
+   Direction: the XP look stays; windows fill the screen above a taller taskbar; tap targets ~32-44px; text a notch
+   bigger where people read; inputs 16px so iOS doesn't zoom in when they get focus. */
+@media (max-width: 760px), (pointer: coarse) and (max-width: 1100px) {
+  #fr-root { -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+  #fr-root input, #fr-root textarea { -webkit-touch-callout: default; }   /* keep the phone's copy / paste menu in fields */
+  /* iOS zooms into any field under 16px when it gets focus */
+  #fr-root input[type=text], #fr-root input[type=password], #fr-root input:not([type]), #fr-root textarea { font-size: 16px !important; }
+  #fr-root input.xl-editor { font-size: 13.33px !important; }
+
+  /* ---------- intro, sign-in, log-on ---------- */
+  .fr-intro { padding: 26px 10px 14px; }
+  .fr-folder { padding: 30px 18px 22px; }
+  .fr-intro .fr-stamp { position: static; display: inline-block; margin: -8px 0 12px; transform: rotate(-3deg); font-size: 16px; }
+  .fr-folder .fr-clip { flex-direction: column; align-items: center; }
+  .fr-folder .fr-clip > div:last-child { width: 100%; }
+  .fr-intro .fr-bigbtn { min-height: 44px; }
+  .fr-intro .fr-small { display: inline-block; padding: 6px 0; }
+  #fr-root .fr-pw-row input { flex: 1 1 auto; min-width: 0; width: auto; height: 36px; }
+  .fr-go, .fr-q { width: 38px; height: 36px; flex: none; }
+  .fr-go svg { width: 18px; height: 18px; }
+  .fr-q { font-size: 18px; }
+  .fr-user { padding: 10px; gap: 10px; }
+  .fr-user > div:last-child { flex: 1 1 auto; min-width: 0; }
+  .fr-login-hint { width: auto; max-width: calc(100vw - 20px); font-size: 12.5px; line-height: 1.4; }
+  .fr-login-err { font-size: 12px; }
+  .fr-login-hint.fr-login-hint-m { position: relative; left: auto !important; top: auto !important; margin-top: 10px; text-align: left; }
+  html.fr-kb .fr-login-hint-m .fr-login-fos { display: none; }
+  .fr-offbtn { padding: 8px 0; }
+  .fr-postit { top: 5px; right: 8px; width: 100px; padding: 8px 9px 7px; font-size: 12px; }
+  .fr-postit span { font-size: 11px; margin-top: 2px; }
+  /* keyboard up: keep the password row on screen */
+  html.fr-kb .fr-login-top, html.fr-kb .fr-login-bot { min-height: 0; height: 8px; overflow: hidden; }
+  html.fr-kb .fr-login-left { display: none; }
+  html.fr-kb .fr-postit { display: none; }
+
+  /* ---------- desktop, taskbar, Start menu ---------- */
+  .fr-wall, .fr-layer, .fr-stickies { bottom: 40px; }
+  .fr-icons { bottom: 40px; padding: 6px 2px; gap: 2px; }
+  .fr-dicon { width: 84px; padding: 5px 2px; }
+  .fr-dicon .fr-dl { font-size: 12px; }
+  .fr-modal-shade { bottom: 40px; }
+  .fr-taskbar { height: 40px; }
+  .fr-startbtn { width: 84px; font-size: 17px; }
+  .fr-startbtn img { width: 24px; height: 24px; }
+  .fr-quick { display: none; }
+  .fr-tasks { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; padding: 0 4px; gap: 4px; }
+  .fr-tasks::-webkit-scrollbar { display: none; }
+  #fr-root .fr-task { flex: 0 1 118px; min-width: 46px; height: 32px; font-size: 12px; padding: 0 7px; }
+  #fr-root .fr-task .fr-ico { width: 18px !important; height: 18px !important; }
+  .fr-tray { gap: 9px; padding: 0 8px 0 9px; font-size: 12px; }
+  .fr-tray .fr-ico, .fr-tray .fr-ktray { width: 20px; height: 20px; }
+  .fr-tray .fr-pack { padding: 5px 7px; gap: 5px; }
+  .fr-tray .fr-clock { margin-left: 0; }
+  /* Frank's sticky notes: the desktop's right side is free on a phone (the icons stay in 2-3 columns on the left) */
+  #fr-root .fr-stickies { display: block; }
+  #fr-root .fr-sticky { left: auto !important; right: 8px; width: 118px; min-height: 0; padding: 8px 9px; font-size: 12px; cursor: default; }
+  #fr-root .fr-sticky small { font-size: 10.5px; }
+  #fr-root .fr-sticky:nth-child(1) { top: 14px !important; }
+  #fr-root .fr-sticky:nth-child(2) { top: 96px !important; }
+  #fr-root .fr-sticky:nth-child(3) { top: 196px !important; }
+  html.fr-kb .fr-taskbar { display: none; }
+  html.fr-kb .fr-wall, html.fr-kb .fr-layer, html.fr-kb .fr-icons, html.fr-kb .fr-modal-shade { bottom: 0; }
+  .fr-start { bottom: 40px; width: min(390px, 100vw); max-height: calc(100% - 44px); overflow-y: auto; display: flex; flex-direction: column; }
+  .fr-start-head { flex: none; height: 54px; }
+  .fr-start-body { flex: none; }
+  .fr-start-foot { flex: none; }
+  .fr-sm-item { padding: 7px 6px; font-size: 12px; }
+  .fr-sm-item small { font-size: 11px; }
+  .fr-balloon { bottom: 46px; width: min(290px, calc(100vw - 16px)); font-size: 12px; padding: 8px 10px 10px; }
+  .fr-balloon-x { font-size: 13px; padding: 3px 8px; }
+  .fr-ctx { min-width: 190px; font-size: 13px; }
+  .fr-ctx .fr-menu-item { padding: 10px 12px 10px 4px; }
+
+  /* ---------- windows ---------- */
+  #fr-root .fr-win .title-bar { min-height: 36px; padding: 3px 4px 3px 4px; }
+  #fr-root .fr-win .title-bar-text { font-size: 13px; }
+  #fr-root .fr-win .title-bar-controls button { min-width: 30px; min-height: 30px; margin-left: 5px; }
+  /* app windows always fill the screen on a phone: no Maximize / Restore */
+  #fr-root .fr-win:not(.fr-dialog) .title-bar-controls button[aria-label=Maximize] { display: none; }
+  .fr-win .status-bar-field { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .fr-menubar { font-size: 12.5px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; flex-wrap: nowrap; }
+  .fr-menubar::-webkit-scrollbar { display: none; }
+  .fr-mi { padding: 7px 9px; white-space: nowrap; flex: none; }
+  .fr-menu-drop { font-size: 13px; min-width: 210px; max-height: 70vh; overflow-y: auto; }
+  .fr-menu-drop.fr-menu-fixed { position: fixed; z-index: 99995; max-width: calc(100vw - 4px); }
+  .fr-menu-item { padding: 9px 10px 9px 2px; }
+  .fr-menu-key { display: none; }
+  /* message boxes */
+  .fr-dlg { padding: 14px 12px 12px; }
+  .fr-dlg-msg { font-size: 13px; line-height: 1.45; }
+  .fr-dlg-input { margin-left: 0; }
+  .fr-dlg-input label { font-size: 12.5px; }
+  .fr-dlg-input input { height: 36px; }
+  .fr-dlg-btns { flex-wrap: wrap; gap: 8px; }
+  .fr-dlg-btns button { min-height: 38px; min-width: 88px; font-size: 13px; }
+  .fr-help { font-size: 13px; }
+  .fr-help h3 { font-size: 14px; }
+
+  /* ---------- checklist ---------- */
+  .ck-head { padding: 8px 10px; }
+  .ck-head h2 { font-size: 14px; }
+  .ck-list { padding: 4px 8px 16px; }
+  .ck-item { grid-template-columns: 20px 1fr; gap: 8px; padding: 10px 4px; }
+  .ck-t { font-size: 13px; line-height: 1.35; }
+  .ck-d { font-size: 12.5px; }
+  .ck-where { gap: 6px; }
+  .ck-where > span { font-size: 12px; }
+  #fr-root .ck-chip { min-height: 34px; padding: 5px 12px; font-size: 12.5px; border-radius: 17px; }
+  .ck-ans input { flex: 1 1 150px; width: auto; min-width: 0; height: 38px; }
+  #fr-root .ck-ans button { min-height: 38px; min-width: 84px; font-size: 13px; }
+  #fr-root .ck-file { padding: 6px 8px; gap: 8px; }
+  #fr-root .ck-file .ck-fn { font-size: 12px; }
+  #fr-root .ck-file small { font-size: 12.5px; padding: 9px 6px; }
+  #fr-root .ck-pickbtn { min-height: 36px; padding: 4px 12px; font-size: 12.5px; flex: none; }
+  .ck-weeks { max-width: none; gap: 6px; }
+  #fr-root .ck-weeks button { height: 42px; font-size: 15px; }
+  .ck-pick-l { font-size: 12.5px; }
+  #fr-root .ck-sus { padding: 10px 4px; }
+  .ck-sus b { font-size: 12.5px; }
+  .ck-sus small { font-size: 11px; }
+  #fr-root .ck-hbtn { min-height: 36px; padding: 4px 12px; font-size: 12.5px; }
+  .ck-hint, .ck-fos-t { font-size: 12.5px; }
+  .ck-fos-p { font-size: 11.5px; }
+  .ck-fb, .ck-auto { font-size: 12px; }
+  .ck-solved-val { font-size: 12px; }
+  .ck-foot { flex-wrap: wrap; font-size: 12px; padding: 6px 10px; }
+  #fr-root .ck-help { min-height: 32px; }
+
+  html.fr-kb .ck-head, html.fr-kb .ck-prog, html.fr-kb .ck-foot { display: none; }
+
+  /* ---------- Excel ---------- */
+  .xl-tb-fmt { display: none !important; }
+  .xl-tb { height: 32px; }
+  .xl-tbtn { height: 30px; min-width: 30px; }
+  .xl-fbar { height: auto; padding: 4px 3px; gap: 3px; }
+  .xl-nb { width: 62px; height: 36px; margin-right: 0; }
+  .xl-nb-arr { display: none; }
+  #fr-root .xl-app input.xl-nb-in { height: 34px !important; font-size: 16px !important; }
+  .xl-fbtn { width: 34px; height: 36px; font-size: 19px; }
+  .xl-fx { font-size: 17px; }
+  #fr-root .xl-app input.xl-fin { height: 36px !important; font-size: 16px !important; }
+  .xl-tabbar { height: 34px; }
+  .xl-tabnav { display: none; }
+  .xl-tabs { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; flex: 1 1 auto; padding-right: 8px; }
+  .xl-tabs::-webkit-scrollbar { display: none; }
+  .xl-tab { height: 32px; font-size: 13px; padding: 0 17px; }
+  .xl-hsplit, .xl-hfill { display: none; }
+  .xl-status { height: 26px; font-size: 12px; }
+  .xl-st-sum { min-width: 0; flex: 1 1 auto; height: 20px; line-height: 20px; }
+  .xl-st-box { display: none; }
+  .xl-cm { font-size: 13px; }
+
+  /* ---------- Outlook Express: folders become a strip over the list, the preview fills the rest ---------- */
+  .oe-main { flex-direction: column; }
+  .oe-left { width: auto !important; flex: none; border-width: 0 0 1px; }
+  .oe-left .oe-phd, .oe-left-split, .oe-contacts, .oe-vsplit { display: none !important; }
+  .oe-tree { display: flex; flex: none !important; height: auto !important; min-height: 0; overflow-x: auto; overflow-y: hidden; padding: 2px; gap: 2px; scrollbar-width: none; }
+  .oe-tree::-webkit-scrollbar { display: none; }
+  .oe-tn.oe-l0, .oe-tn.oe-l1 { display: none; }
+  .oe-tn { flex: none; height: 36px; padding: 0 6px !important; font-size: 12.5px; }
+  .oe-tb { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+  .oe-tb::-webkit-scrollbar { display: none; }
+  .oe-tbb { flex: none; font-size: 12px; }
+  .oe-fbar { height: 26px; }
+  .oe-list { flex-basis: 38%; }
+  .oe-tbl { font-size: 12.5px; }
+  .oe-tbl col.oe-col-from { width: 34%; }
+  .oe-tbl col:last-child { width: 78px !important; }
+  .oe-tbl thead th { height: 26px; }
+  .oe-tbl tbody td, .oe-tbl .oe-from { height: 36px; }
+  .oe-ph, .oe-mh { font-size: 12.5px; line-height: 19px; }
+  .oe-pbody, .oe-mbody { font-size: 13px; }
+  .oe-chip { padding: 4px 3px; }
+  .oe-cr input { height: 34px; }
+
+  /* ---------- Explorer, Folder Options, Properties ---------- */
+  .ex { font-size: 12.5px; }
+  .ex-tile { width: 100%; max-width: 360px; min-height: 58px; }
+  .ex-narrow .ex-tile { width: 100%; }
+  .ex-det td { height: 36px; }
+  .ex-li { height: 36px; }
+  .ex-icon { width: 88px; padding: 6px 0; }
+  .ex-addr-box { height: 34px; }
+  .ex-addr-box input[type=text] { height: 32px !important; }
+  .ex-go { height: 34px; }
+  .ex-tr { height: 34px; }
+  .ex-task { padding: 6px 0; }
+  .sh-pop { min-width: 190px; font-size: 13px; }
+  .sh-pop-i { height: 40px; }
+  .sh-sheetwin > .window-body { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .sh-sheet { font-size: 12.5px; }
+  .sh-sheet [role=tabpanel] { height: auto; min-height: 0; }
+  .sh-sheet menu[role=tablist] button { min-height: 34px; font-size: 12.5px; padding: 0 12px; }
+  .sh-sheet-btns button { min-height: 38px; }
+  .fo-adv { height: 300px; }
+  .fo-row { min-height: 34px; }
+  .fo-opt { margin: 6px 0 9px; }
+  .fo-row input, .fo-opt input { width: 18px; height: 18px; }
+
+  /* ---------- Notepad, pictures, IE, calculator ---------- */
+  #fr-root .np-ta { font-size: 13px !important; line-height: 18px; }
+  .iv-bar { flex-wrap: wrap; }
+  .iv-bar button { width: 38px; height: 38px; }
+  .ie-links { height: 32px; overflow-x: auto; scrollbar-width: none; }
+  .ie-links::-webkit-scrollbar { display: none; }
+  .ie-link { padding: 5px 7px; }
+  .ie-tb .ex-bt { display: none; }
+  .ie-side { flex-basis: 150px; }
+  .ie-fl { padding: 8px 0 8px 12px; }
+  .ca .ca-k { height: 42px; font-size: 15px; }
+  .ca-wide { height: 40px !important; }
+  #fr-root .ca-disp { height: 38px !important; font-size: 20px !important; }
+
+  /* intranet leaderboard in IE */
+  .st-t { font-size: 11.5px; }
+  .st-t td, .st-t th { padding: 5px 5px; }
+  .st-t td:nth-child(2) { overflow-wrap: anywhere; min-width: 70px; }
+
+  /* ---------- ending ---------- */
+  .fr-end { padding: 16px 12px; align-items: flex-start; }
+  .fr-end-card p { font-size: 14px; }
+  .fr-end-stats div { min-width: 0; flex: 1 1 40%; padding: 10px 8px; }
+  .fr-end-cta a, .fr-end-cta button { min-height: 44px; }
+  .fr-saver-m { font-size: 32px; }
+  .fr-shut-box { width: min(320px, calc(100vw - 16px)); }
+  .fr-shut-b div { padding: 6px; }
+}
+
+/* phones held sideways: little height, so the chrome gets slimmer */
+@media (max-height: 500px) {
+  html.fr-m .xl-dock, html.fr-m .xl-status { display: none; }
+  html.fr-m .fr-login-top, html.fr-m .fr-login-bot { min-height: 0; height: 44px; }
+  html.fr-m .fr-login-mid { flex-direction: row; gap: 16px; padding: 8px 16px; }
+  html.fr-m .fr-login-left, html.fr-m .fr-login-right { width: 50%; }
+  html.fr-m .fr-login-left .fr-brand { font-size: 18px; }
+  html.fr-m .fr-login-left .fr-brand img { height: 44px; }
+  html.fr-m .fr-login-left p { margin-top: 10px; }
+  html.fr-m .fr-postit { top: 4px; width: 104px; font-size: 12px; padding: 8px; }
+  html.fr-m .ie-links { display: none; }
+  html.fr-m .ex-tb, html.fr-m .ie-tb { min-height: 32px; }
+  html.fr-m .ex-b, html.fr-m .ie-b { height: 32px; }
+  html.fr-m .oe-fbar { display: none; }
+  html.fr-m .ck-head { display: none; }
+  html.fr-m .ck-prog { padding: 4px 10px; }
+  html.fr-m .ck-foot { flex-wrap: nowrap; padding: 3px 10px; }
+  html.fr-m .oe-right { flex-direction: row; }
+  html.fr-m .oe-list { flex: 0 0 52%; }
+  html.fr-m .oe-prev-split { display: none !important; }
+  html.fr-m .oe-tbb .oe-tbi { width: 20px; height: 20px; margin-bottom: 0; }
+  html.fr-m .fr-balloon { width: min(330px, calc(100vw - 16px)); }
+  html.fr-m .fr-start-head { height: 44px; }
+  html.fr-m .fo-adv { height: 200px; }
+}
+
+/* phones: the grid a little bigger, so a finger hits the right cell (Excel measures its cells from the DOM, so the
+   zoomed grid stays consistent: selection box, notes, scrolling) */
+@media (max-width: 760px), (max-height: 500px) {
+  html.fr-m .xl-scroll { zoom: 1.2; }
+}
+/* a very narrow phone has no free desktop space for the sticky notes */
+@media (max-width: 359px) { html.fr-m #fr-root .fr-stickies { display: none; } }
+
 </style>
 <script>
 /* FRANK'S COMPUTER — core: state, bus, window manager, dialogs, sound, clock, puzzle engine */
@@ -1171,6 +1436,24 @@ FR.apps = FR.apps || {};
   const $ = (h) => { const t = document.createElement('template'); t.innerHTML = h.trim(); return t.content.firstElementChild; };
   FR.$ = $;
   FR.esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  /* ---------- mobile (phones, small tablets) ----------
+     One media query decides it, the same one src/mobile.css uses. Desktop (fine pointer, >= 1100px wide) never
+     matches, so nothing below changes it. FR.mobile follows rotation / resizing; <html> gets .fr-m while it is on. */
+  FR.MOBILE_MQ = '(max-width: 760px), (pointer: coarse) and (max-width: 1100px)';
+  const mobileMq = window.matchMedia ? window.matchMedia(FR.MOBILE_MQ) : null;
+  const setMobile = () => { FR.mobile = !!(mobileMq && mobileMq.matches); document.documentElement.classList.toggle('fr-m', FR.mobile); };
+  setMobile();
+  // phones: no automatic zoom-in when a small text field gets focus (iOS still lets people pinch-zoom)
+  if (FR.mobile) { const vp = document.querySelector('meta[name=viewport]'); if (vp && !/maximum-scale/.test(vp.content)) vp.content += ', maximum-scale=1'; }
+  if (mobileMq) {
+    const onMq = () => {
+      const was = FR.mobile; setMobile();
+      // turned into a phone layout (e.g. a narrow window): every app window fills the screen
+      if (FR.mobile && !was && FR.wm) FR.wm.wins.forEach(w => { if (!w.max && !w.el.classList.contains('fr-dialog')) w.maximize(true); });
+    };
+    if (mobileMq.addEventListener) mobileMq.addEventListener('change', onMq); else if (mobileMq.addListener) mobileMq.addListener(onMq);
+  }
 
   /* ---------- bus ---------- */
   const handlers = {};
@@ -1366,10 +1649,10 @@ FR.apps = FR.apps || {};
           void el.offsetWidth; el.style.transition = 'transform .2s ease-out, opacity .2s ease-out'; el.style.transform = ''; el.style.opacity = '';
           setTimeout(() => { el.style.transition = ''; }, 220);
         },
-        maximize() {
+        maximize(quiet) {
           if (!w.max) { w.prev = el.getAttribute('style'); el.style.left = '0px'; el.style.top = '0px'; el.style.width = '100%'; el.style.height = '100%'; el.classList.add('fr-max'); }
           else { el.setAttribute('style', w.prev); el.classList.remove('fr-max'); }
-          w.max = !w.max; el.style.zIndex = ++z; FR.sound.play(w.max ? 'maximize' : 'restore'); FR.bus.emit('win-resize', w);
+          w.max = !w.max; el.style.zIndex = ++z; if (!quiet) FR.sound.play(w.max ? 'maximize' : 'restore'); FR.bus.emit('win-resize', w);
         },
         close() {
           if (wins.get(id) !== w) return;                   // already closed (double-close)
@@ -1384,7 +1667,7 @@ FR.apps = FR.apps || {};
       wins.set(id, w);
       const [bMin, bMax, bClose] = el.querySelectorAll('.title-bar-controls button');
       bMin.onclick = e => { e.stopPropagation(); w.minimize(); };
-      bMax.onclick = e => { e.stopPropagation(); if (o.resizable !== false) w.maximize(); };
+      bMax.onclick = e => { e.stopPropagation(); if (o.resizable !== false && !(FR.mobile && w.max)) w.maximize(); };
       bClose.onclick = e => { e.stopPropagation(); FR.sound.play('click'); w.close(); };
       if (o.resizable === false) bMax.disabled = true;
       tb.onclick = () => { if (w.min) { w.restore(); w.focus(); } else if (FR.wm.active === w && !el.classList.contains('fr-inactive')) w.minimize(); else w.focus(); };
@@ -1394,7 +1677,8 @@ FR.apps = FR.apps || {};
       el.addEventListener('click', raise, true);
       // drag
       const bar = el.querySelector('.title-bar');
-      bar.addEventListener('dblclick', e => { if (!e.target.closest('button') && o.resizable !== false) w.maximize(); });
+      // on a phone, app windows always fill the screen (there is no room, and no mouse, to drag them around)
+      bar.addEventListener('dblclick', e => { if (!e.target.closest('button') && o.resizable !== false && !FR.mobile) w.maximize(); });
       bar.addEventListener('mousedown', e => {
         if (e.target.closest('button') || w.max) return;
         const sx = e.clientX, sy = e.clientY, ox = el.offsetLeft, oy = el.offsetTop;
@@ -1417,7 +1701,7 @@ FR.apps = FR.apps || {};
         document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up); e.preventDefault(); e.stopPropagation();
       });
       if (o.menu) FR.wm.menubar(el.querySelector('.fr-menubar'), o.menu, w);
-      if (!isDlg && (o.maximized || window.innerWidth < 700 || ((o.className || '').includes('xl-win') && window.innerWidth < 1300))) w.maximize();
+      if (!isDlg && (o.maximized || FR.mobile || window.innerWidth < 700 || ((o.className || '').includes('xl-win') && window.innerWidth < 1300))) w.maximize(FR.mobile);
       el.classList.add('fr-opening'); setTimeout(() => el.classList.remove('fr-opening'), 200);
       w.focus();
       return w;
@@ -1438,15 +1722,27 @@ FR.apps = FR.apps || {};
             d.appendChild(r);
           });
           d.style.left = b.offsetLeft + 'px'; bar.appendChild(d);
+          // phones: the menu bar scrolls sideways, so the drop-down floats (fixed) under its item and stays on screen
+          if (FR.mobile) { const r = b.getBoundingClientRect(); d.classList.add('fr-menu-fixed'); d.style.top = r.bottom + 'px'; d.style.left = Math.max(2, Math.min(r.left, innerWidth - d.offsetWidth - 2)) + 'px'; }
         };
         b.onmousedown = e => { e.stopPropagation(); openM === b ? closeAll() : show(); };
-        b.onmouseenter = () => { if (openM && openM !== b) show(); };
+        b.onmouseenter = () => { if (openM && openM !== b && !FR.mobile) show(); };   // (a tap fires mouseenter too)
       });
       document.addEventListener('mousedown', e => { if (!bar.contains(e.target)) closeAll(); });
       menuClosers.add(() => { if (!bar.isConnected) return null; const was = !!openM; if (was) closeAll(); return was; });
     },
     // close any open menubar dropdown; true if one was open
     closeMenus() { let any = false; menuClosers.forEach(f => { const r = f(); if (r === null) menuClosers.delete(f); else if (r) any = true; }); return any; },
+    // phones: a dialog sits in the upper part of the screen (clear of the soft keyboard) and never hangs off an edge
+    fitDialog(w, place) {
+      const el = w.el, host = el.parentElement; if (!host) return;
+      const hw = host.clientWidth || innerWidth, hh = host.clientHeight || innerHeight;
+      if (el.offsetWidth > hw - 8) el.style.width = (hw - 8) + 'px';
+      const ww = el.offsetWidth, h = el.offsetHeight;
+      el.style.left = Math.max(4, Math.round((hw - ww) / 2)) + 'px';
+      const top = place ? Math.round((hh - h) / 3) : el.offsetTop;
+      el.style.top = Math.max(4, Math.min(top, hh - h - 4)) + 'px';
+    },
     topDialog() { return [...wins.values()].filter(v => v.el.classList.contains('fr-dialog')).sort((a, b) => (+b.el.style.zIndex || 0) - (+a.el.style.zIndex || 0))[0] || null; },
     dialog(o) {
       return new Promise(res => {
@@ -1454,12 +1750,13 @@ FR.apps = FR.apps || {};
         const iconName = o.icon || 'info';
         const btns = o.buttons || ['OK'];
         const content = $(`<div class="fr-dlg"><div class="fr-dlg-row">${FR.icon(iconName, 32)}<div class="fr-dlg-msg">${o.message || ''}</div></div>
-          ${o.input ? `<div class="fr-dlg-input"><label>${o.input.label || ''}</label><input type="${o.input.type || 'text'}" autocomplete="off" spellcheck="false"></div>` : ''}
+          ${o.input ? `<div class="fr-dlg-input"><label>${o.input.label || ''}</label><input type="${o.input.type || 'text'}" autocomplete="off" spellcheck="false" autocapitalize="off" autocorrect="off"></div>` : ''}
           <div class="fr-dlg-btns">${btns.map((b, i) => `<button ${i === 0 ? 'class="default"' : ''}>${b}</button>`).join('')}</div></div>`);
         FR.wm.layer().appendChild(shade);
         const prev = FR.wm.active;
         const w = FR.wm.open({ title: o.title || 'Frank Warmington\'s Computer', icon: iconName, width: o.width || 380, height: o.height || (o.input ? 190 : 150), resizable: false, content, className: 'fr-dialog', onClose: () => { finish(btns[btns.length - 1]); } });
         w.el.style.height = 'auto'; w.el.style.zIndex = w.dz; shade.style.zIndex = w.dz - 1;
+        if (FR.mobile) FR.wm.fitDialog(w, true);
         let done = false;
         const inp = content.querySelector('input');
         function finish(button) { if (done) return; done = true; shade.remove(); w.el.remove(); w.tb.remove(); wins.delete(w.id);
@@ -1506,7 +1803,78 @@ FR.apps = FR.apps || {};
     if (tray) { const r = tray.getBoundingClientRect(); b.style.right = Math.max(6, window.innerWidth - r.right + 4) + 'px'; }
     b.onclick = e => { b.remove(); if (!e.target.classList.contains('fr-balloon-x') && onClick) onClick(); };
     setTimeout(() => b.remove(), 9000);
+    // phones: the balloon sits over the bottom of a full-screen window; a tap anywhere else puts it away (like a toast)
+    if (FR.mobile) setTimeout(() => {
+      const away = e => { if (!b.contains(e.target)) b.remove(); if (!b.isConnected) document.removeEventListener('touchstart', away, true); };
+      if (b.isConnected) document.addEventListener('touchstart', away, { capture: true, passive: true });
+    }, 1200);
   };
+
+  /* ---------- phones: long-press = right-click, and the soft keyboard never covers the field being typed in ----------
+     Everything here only acts while FR.mobile is on. */
+  // long-press (550 ms, finger still) sends a contextmenu event to what's under the finger: desktop icons, Explorer items…
+  // Android also fires its own contextmenu on a long-press; whichever comes first wins, the other is swallowed.
+  let lp = null, lpBlockUntil = 0, lpClickUntil = 0;
+  const lpCancel = () => { if (lp) { clearTimeout(lp.timer); if (!lp.fired) lp = null; } };
+  document.addEventListener('touchstart', e => {
+    lpCancel(); lp = null;
+    // formulas, passwords, cell addresses: the phone keyboard must not capitalise or "correct" them
+    const f = FR.mobile && e.target && e.target.tagName === 'INPUT' ? e.target : null;
+    if (f && !f.hasAttribute('autocapitalize')) { f.setAttribute('autocapitalize', 'off'); f.setAttribute('autocorrect', 'off'); }
+    if (!FR.mobile || e.touches.length !== 1) return;
+    const t = e.touches[0], target = e.target;
+    if (!target.closest || target.closest('input, textarea, select, iframe, [contenteditable]')) return;
+    const x = t.clientX, y = t.clientY;
+    const me = lp = { x, y, fired: false, timer: setTimeout(() => {
+      if (lp !== me) return;
+      me.fired = true; lpBlockUntil = Date.now() + 700;
+      if (navigator.vibrate) { try { navigator.vibrate(12); } catch (err) {} }
+      target.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, view: window, clientX: x, clientY: y, button: 2, buttons: 2 }));
+    }, 550) };
+  }, { capture: true, passive: true });
+  document.addEventListener('touchmove', e => {
+    if (!lp || lp.fired) return;
+    const t = e.touches[0];
+    if (!t || Math.abs(t.clientX - lp.x) > 10 || Math.abs(t.clientY - lp.y) > 10) lpCancel();
+  }, { capture: true, passive: true });
+  document.addEventListener('touchend', e => {
+    // after a long-press, the lift must not also "tap" (open) what was under the finger
+    if (lp && lp.fired) { if (e.cancelable) e.preventDefault(); lp = null; lpClickUntil = Date.now() + 350; return; }
+    lpCancel();
+  }, { capture: true, passive: false });
+  document.addEventListener('touchcancel', () => { lpCancel(); lp = null; }, { capture: true, passive: true });
+  document.addEventListener('contextmenu', e => {
+    if (!FR.mobile || !e.isTrusted) return;
+    if (lp && !lp.fired) { clearTimeout(lp.timer); lp.fired = true; lpBlockUntil = Date.now() + 700; return; }   // the browser's own long-press came first
+    if (Date.now() < lpBlockUntil) { e.preventDefault(); e.stopImmediatePropagation(); }                         // ours already opened the menu
+  }, true);
+  document.addEventListener('click', e => { if (FR.mobile && Date.now() < lpClickUntil && e.isTrusted) { e.preventDefault(); e.stopImmediatePropagation(); } }, true);
+
+  // soft keyboard: when it shrinks the visible area, #fr-root shrinks to that area (windows, dialogs and the taskbar
+  // move up above the keyboard), and the focused field is scrolled into view
+  const vv = window.visualViewport;
+  let kbOpen = false;
+  FR.viewportFit = (vh, vtop) => {
+    const root = document.getElementById('fr-root'); if (!root) return;
+    const h = vh != null ? vh : vv ? vv.height : innerHeight, t = vtop != null ? vtop : vv ? vv.offsetTop : 0;
+    const zoomed = vh == null && vv && Math.abs((vv.scale || 1) - 1) > 0.02;
+    const open = FR.mobile && !zoomed && innerHeight - h > 120;
+    if (open) {
+      if (vh == null && window.scrollY) window.scrollTo(0, 0);
+      root.style.top = Math.round(t) + 'px'; root.style.bottom = 'auto'; root.style.height = Math.round(h) + 'px';
+    } else if (kbOpen) { root.style.top = ''; root.style.bottom = ''; root.style.height = ''; }
+    if (open === kbOpen && !open) return;
+    kbOpen = open; document.documentElement.classList.toggle('fr-kb', open);
+    wins.forEach(w => { if (w.el.classList.contains('fr-dialog')) FR.wm.fitDialog(w, false); });
+    const a = document.activeElement;
+    if (open && a && a !== document.body && (/^(INPUT|TEXTAREA)$/.test(a.tagName) || a.isContentEditable)) setTimeout(() => { try { a.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (err) {} }, 60);
+  };
+  if (vv) { vv.addEventListener('resize', () => FR.viewportFit()); vv.addEventListener('scroll', () => { if (kbOpen) FR.viewportFit(); }); }
+  // a field tapped while the keyboard is already up
+  document.addEventListener('focusin', e => {
+    if (!FR.mobile || !kbOpen) return;
+    const a = e.target; if (a && /^(INPUT|TEXTAREA)$/.test(a.tagName)) setTimeout(() => { try { a.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (err) {} }, 60);
+  });
 })();
 
 ;
@@ -4489,12 +4857,46 @@ FR.data.logo = {"mark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"380
       document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up);
     });
     wrap.addEventListener('dblclick', e => {
-      const p = cellAt(e); if (!p || st.edit) return;
+      const p = cellAt(e); if (!p || st.edit || FR.mobile) return;
       select(p.r, p.c);
       startEdit('edit', fbarText(p.r, p.c));
     });
     let tipCell = null;
+    /* phones: no hover and no double-click. Tapping a cell shows its note (red triangle); tapping the selected cell
+       again edits it in the formula bar, with the old content selected so typing replaces it. */
+    const editInBar = () => { if (st.edit) return; fin.focus(); try { fin.setSelectionRange(0, fin.value.length); } catch (x) {} };
+    if (FR.mobile) {
+      wrap.addEventListener('mousedown', e => {
+        const p = cellAt(e);
+        const lt = st.lastTap;   // only a cell the player tapped already (not the one a workbook opens on)
+        st.tapAgain = !!(p && lt && lt.si === st.si && lt.r === p.r && lt.c === p.c && !st.edit && p.r === st.ar && p.c === st.ac && st.anchor.r === st.focus.r && st.anchor.c === st.focus.c);
+      }, true);
+      wrap.addEventListener('click', e => {
+        const p = cellAt(e); if (!p) return;
+        tapNote(e.target.closest('td[data-r]'));
+        if (st.tapAgain && !st.edit) editInBar();
+        st.tapAgain = false; st.lastTap = { si: st.si, r: p.r, c: p.c };
+      });
+    }
+    function tapNote(td) {
+      cmtip.innerHTML = ''; tipCell = null;
+      if (!td || !td.classList.contains('xl-hascm') || st.showCm) return;
+      const r = +td.dataset.r, c = +td.dataset.c, cl = sh().cells[r + ',' + c];
+      if (!cl || !cl.cm) return;
+      const g = cmBox(cl.cm, r, c, false); cmtip.appendChild(g); tipCell = td;
+      // inside the visible part of the grid: right of the cell if it fits there, else just under it
+      const box = g.querySelector('.xl-cm'), ln = g.querySelector('.xl-cm-ln');
+      const vw = scroll.clientWidth, vl = scroll.scrollLeft;
+      box.style.width = Math.min(230, vw - RHW - 12) + 'px';
+      const bw = box.offsetWidth;
+      if (colX[c] + colWd[c] + 12 + bw > vl + vw - 4) {
+        box.style.left = Math.max(vl + RHW + 4, Math.min(colX[c], vl + vw - bw - 4)) + 'px';
+        box.style.top = rowY[r] + rowHt[r] + 4 + 'px';
+        if (ln) ln.style.display = 'none';
+      }
+    }
     wrap.addEventListener('mouseover', e => {
+      if (FR.mobile) return;
       const td = e.target.closest && e.target.closest('td.xl-hascm');
       if (!td || st.showCm) { if (tipCell && !e.target.closest('.xl-cmtip')) { cmtip.innerHTML = ''; tipCell = null; } return; }
       const r = +td.dataset.r, c = +td.dataset.c;
@@ -4596,7 +4998,7 @@ FR.data.logo = {"mark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"380
       editor.value = fin.value; if (st.edit) { st.edit.point = null; pointbox.style.display = 'none'; } sizeEditor();
     });
     fin.addEventListener('mousedown', e => { e.stopPropagation(); });
-    fin.addEventListener('focus', () => { if (!st.edit) { const v = fbarText(st.ar, st.ac); startEdit('edit', v, 'fbar'); } });
+    fin.addEventListener('focus', () => { if (!st.edit) { const v = fbarText(st.ar, st.ac); startEdit('edit', v, 'fbar'); } if (FR.mobile) tapNote(null); });
     editor.addEventListener('mousedown', e => e.stopPropagation());
     q('.xl-fx-x').onmousedown = e => { e.preventDefault(); cancelEdit(); };
     q('.xl-fx-ok').onmousedown = e => { e.preventDefault(); commit(0, 0); };
@@ -5843,8 +6245,10 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
     if (!tb.dataset.wired) {
       tb.dataset.wired = '1';
       const rowMsg = e => { const tr = e.target.closest('tr[data-id]'); return tr && byId(tr.dataset.id); };
-      tb.addEventListener('mousedown', e => { const m = rowMsg(e); if (!m) return; e.preventDefault(); if (V.sel[V.folder] !== m.id) select(m); else V.el.querySelector('.oe-list').focus({ preventScroll: true }); });
-      tb.addEventListener('dblclick', e => { const m = rowMsg(e); if (m) openRow(m); });
+      let again = null;   // phones: tapping the selected message again opens it in its own window (no double-click)
+      tb.addEventListener('mousedown', e => { const m = rowMsg(e); if (!m) return; e.preventDefault(); again = FR.mobile && V.sel[V.folder] === m.id ? m.id : null; if (V.sel[V.folder] !== m.id) select(m); else V.el.querySelector('.oe-list').focus({ preventScroll: true }); });
+      tb.addEventListener('click', e => { const m = rowMsg(e); if (FR.mobile && m && again === m.id) openRow(m); again = null; });
+      tb.addEventListener('dblclick', e => { if (FR.mobile) return; const m = rowMsg(e); if (m) openRow(m); });
     }
     renderStart();
   }
@@ -6906,11 +7310,14 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
         if (e.target.closest('th')) return;
         if (it) this.select(it.dataset.id); else if (!e.target.closest('.ex-link')) this.select(null);
       });
-      v.addEventListener('dblclick', e => { const it = e.target.closest('.ex-it'); if (it) this.openItem(this.findItem(it.dataset.id)); });
+      v.addEventListener('dblclick', e => { if (FR.mobile) return; const it = e.target.closest('.ex-it'); if (it) this.openItem(this.findItem(it.dataset.id)); });
       v.addEventListener('click', e => {
         const th = e.target.closest('th[data-sort]');
         if (th) { const k = th.dataset.sort; if (['packed', 'pw', 'ratio', 'total', 'free'].includes(k)) return; this.sort = { k, d: this.sort.k === k ? -this.sort.d : 1 }; this.render(); return; }
-        if (e.target.closest('[data-reveal]')) { this.revealed.add(this.cur); this.render(); }
+        if (e.target.closest('[data-reveal]')) { this.revealed.add(this.cur); this.render(); return; }
+        // phones: one tap opens (there is no double-click); a quick second tap (double-tap habit) is ignored
+        const it = FR.mobile && e.target.closest('.ex-it');
+        if (it && Date.now() > (this.tapGuard || 0)) { this.tapGuard = Date.now() + 500; this.openItem(this.findItem(it.dataset.id)); }
       });
       v.addEventListener('contextmenu', e => {
         e.preventDefault();
@@ -8503,6 +8910,8 @@ Website:      still says 'Director'. Steve. Don't ask.
       hints: ['The website is the referee. The homepage gives the headcount; the About Us timeline gives the size of the 2024 warehouse.', 'Open each file: check the Headcount tab against the website, the Gross margin % row, and the Rent & leases line in Opex Detail.', 'The 2024 warehouse is 40,000 sq ft (About page timeline) × $6.00 = $240K, so Rent & leases must be $420K. Only v5_FINAL_USE_THIS has 118 heads, 22.0% and $420K.'] },
     { id: 'unlock', level: 2, t: 'Unlock the Board copy of the budget', d: 'Budget_FY27_BOARD.xls is password-protected. Frank left the hint inside the approved version.', auto: true,
       where: [W.file('bud_v5ut', 'The approved version'), W.file('bud_board', 'Budget_FY27_BOARD.xls'), W.site('about.html', 'About Us'), W.site('quality.html', 'Quality & Safety')],
+      // phones have no hover: the first hint says "tap" there (mhints replaces hints[i] when FR.mobile)
+      mhints: ["In the approved file, tap cell A1 (the one with the red triangle) to read Frank's note, or read its Notes tab."],
       hints: ['In the approved file, hover the red triangle in cell A1 (or read its Notes tab).', "Walter's seed money is in \"How We Got Started\" on About Us. The ISO year is on Quality & Safety.", '=SUM(2400, 2006) → 4406.'] },
     { id: 'ebitda', level: 1, t: 'Repair FY27 EBITDA in the Board copy', d: 'Frank broke the EBITDA row at 3 AM (#REF!). Fix row 12 in Excel — FY and all four quarters (E12:H12) — or type the FY number here.', input: 'FY27 EBITDA ($K)', ph: 'e.g. 1,234',
       where: [W.file('bud_board', 'Budget_FY27_BOARD.xls')],
@@ -8554,7 +8963,7 @@ Website:      still says 'Director'. Steve. Don't ask.
         ${hasSave ? '<button class="fr-bigbtn" data-a="new">Start over</button>' : ''}
         <a class="fr-small" href="${CONFIG.siteUrl}" target="_blank" rel="noopener">Open packacorp.com ↗</a>
       </div>
-      <p class="fr-small fr-save-line" style="margin-top:14px">Made for finance people. Best on a laptop or desktop. ${saveLine()}</p>
+      <p class="fr-small fr-save-line" style="margin-top:14px">Made for finance people. ${FR.mobile ? 'Best on a laptop or desktop, but it works on a phone too (Excel is easier sideways).' : 'Best on a laptop or desktop.'} ${saveLine()}</p>
     </div></div>`);
     el.querySelector('[data-a=go]').onclick = () => { FR.sound.play('click'); if (!FR.state.startedAt) { FR.state.startedAt = Date.now(); FR.save(); } boot(); };
     const n = el.querySelector('[data-a=new]');
@@ -8623,7 +9032,8 @@ Website:      still says 'Director'. Steve. Don't ask.
       const top = Math.max(r.bottom, slot.childElementCount ? er.bottom : 0);
       hintEl = $(`<div class="fr-login-hint"><b>${FR.icon('info', 14)} Password hint</b>=LOWER(the town where Packa started) &amp; the year it started. (Yes, an Excel formula. No spaces.)${extra ? `<div style="margin-top:6px"><b style="display:inline">Still stuck?</b> It's right on the <a href="${CONFIG.siteUrl}" target="_blank" rel="noopener">packacorp.com</a> homepage: the town, then the year.</div>` : ''}<div class="fr-login-fos">FinanceOS Assist is available once you're in.</div></div>`);
       hintEl.style.left = r.left + 'px'; hintEl.style.top = top + 10 + 'px';
-      el.appendChild(hintEl);
+      // phones: in the flow under the password box, so it moves with it when the keyboard comes up
+      if (FR.mobile) { hintEl.classList.add('fr-login-hint-m'); slot.after(hintEl); } else el.appendChild(hintEl);
     };
     el.querySelector('.fr-q').onclick = () => { FR.sound.play('ding'); hintEl ? (hintEl.remove(), hintEl = null) : showHint(fails >= 2); };
     const attempt = () => {
@@ -8691,14 +9101,15 @@ Website:      still says 'Director'. Steve. Don't ask.
       const d = $(`<div class="fr-dicon${ic.shortcut ? ' fr-dicon-lnk' : ''}" tabindex="0">${FR.icon(ic.i, 32)}<span class="fr-dl">${esc(ic.n).replace(/([_.])/g, '$1<wbr>')}</span></div>`);
       d.title = ic.n;
       const select = () => { box.querySelectorAll('.sel').forEach(s => s.classList.remove('sel')); d.classList.add('sel'); };
-      d.onclick = e => { e.stopPropagation(); select(); if (touch) ic.a(); };
+      // touch / phones: one tap opens; a double-tap (desktop habit) must not open it two or three times
+      d.onclick = e => { e.stopPropagation(); select(); if ((touch || FR.mobile) && Date.now() > (d.tapGuard || 0)) { d.tapGuard = Date.now() + 600; ic.a(); } };
       d.oncontextmenu = e => {
         e.preventDefault(); e.stopPropagation(); select();
         const items = [{ label: 'Open', action: () => ic.a() }];
         if (ic.node) items.push({ sep: true }, { label: 'Properties', action: () => props(ic.node) });
         ctxMenu(e.clientX, e.clientY, items);
       };
-      d.ondblclick = () => { FR.sound.play('click'); ic.a(); };
+      d.ondblclick = () => { if (touch || FR.mobile) return; FR.sound.play('click'); ic.a(); };
       d.onkeydown = e => { if (e.key === 'Enter') ic.a(); };
       box.appendChild(d);
     });
@@ -8751,9 +9162,11 @@ Website:      still says 'Director'. Steve. Don't ask.
     'F4 toggles $ in a reference. Absolute ranges, absolute peace.',
     'Alt+= AutoSums the block above. Kristians does it blindfolded.',
   ];
+  // phones: same tips where they need a mouse, said for a finger
+  const KTIPS_M = { 2: 'A red triangle in a cell corner means a comment. Tap the cell to read it.', 3: 'Long-press a file and choose Properties. Authors and dates tell stories.' };
   let kIdx = 0;
   function kTip(i) {
-    const t = KTIPS[(i ?? kIdx) % KTIPS.length]; kIdx = (i ?? kIdx) + 1;
+    const n = (i ?? kIdx) % KTIPS.length, t = (FR.mobile && KTIPS_M[n]) || KTIPS[n]; kIdx = (i ?? kIdx) + 1;
     FR.balloon("Kristians' Cheat Sheet of the Day", `<div class="fr-ktip"><img src="${FR.data.images.kristians}" alt=""><span>${esc(t)}</span></div>`, null);
   }
   setInterval(() => { if (document.querySelector('.fr-desktop') && !document.querySelector('.fr-balloon')) kTip(); }, 240000);
@@ -8864,7 +9277,7 @@ Website:      still says 'Director'. Steve. Don't ask.
     FR.wm.open({ id: 'help', title: 'Help and Support Center', icon: 'help', width: 520, height: 470, content: `<div class="fr-help">
       <h3>What is going on?</h3><p>Frank Warmington, Packa's FP&amp;A Manager, disappeared on Friday night. The Board meets at 9:00 AM and the bank's $4.0M survival package depends on a complete, honest Board Pack. Everything is on this computer.</p>
       <h3>How to play</h3><p>Open <b>Board Pack — TO DO</b> (desktop or the clipboard in the tray) to see where you stand. Items unlock one by one. The orange dots show how hard each one is. Each one has <b>Look in</b> shortcuts that open the right folder, email or web page. Some items tick themselves when you crack something in Excel or Outlook; others ask you to pick or type an answer.</p>
-      <p>Double-click to open files and folders. Right-click files (on the desktop too) for Properties. Excel works like Excel: type formulas, and select cells to see their Sum in the status bar.</p>
+      ${FR.mobile ? `<p>Tap to open files and folders. Long-press a file (on the desktop too) for Properties. In Excel, tap a cell, then tap it again (or tap the formula bar) to type; Enter or ✓ puts it in. A cell with a red triangle has a note: tap it to read it. Switch windows with the buttons on the taskbar.</p>` : `<p>Double-click to open files and folders. Right-click files (on the desktop too) for Properties. Excel works like Excel: type formulas, and select cells to see their Sum in the status bar.</p>`}
       <h3>Where are the clues?</h3><p>In Frank's email, his Excel files, his folders (some are hidden), his Recycle Bin, and on <a href="${CONFIG.siteUrl}" target="_blank" rel="noopener">www.packacorp.com</a> — the company website. Keep it open in another tab.</p>
       <h3>Stuck?</h3><p>Emily from finance installed a Datarails FinanceOS trial on Frank's machine (day 13 of 14). Every checklist item has an <b>Ask FinanceOS</b> button with three hints, from a gentle nudge to the full answer.</p><h3>Score</h3><p>${esc(FR.score.rulesLine())}.${FR.score.available() ? ' Signed-in players are ranked on <b>Board Pack Rescue - Who Covered for Frank?</b> on Packa\'s intranet (the shortcut on the desktop); your first finished game is the one that counts.' : ''}</p>
       <h3>Progress</h3><p>Your progress saves in this browser. Log off and come back any time.</p></div>` });
@@ -8918,7 +9331,7 @@ Website:      still says 'Director'. Steve. Don't ask.
         <div class="ck-t"><span class="ck-n">${idx + 1}.</span> ${solved ? `<s>${esc(it.t)}</s>` : unlocked ? esc(it.t) : 'Locked — finish the item above first'} ${active && it.id !== 'login' ? pips : ''}</div>
         ${active ? `<div class="ck-d">${esc(it.d)}</div>` : ''}
         ${active && it.where ? `<div class="ck-where"><span>Look in:</span></div>` : ''}
-        ${active && it.input ? `<div class="ck-ans"><input type="text" placeholder="${esc(it.ph || '')}" aria-label="${esc(it.input)}" spellcheck="false"><button>Submit</button></div>` : ''}
+        ${active && it.input ? `<div class="ck-ans"><input type="text" placeholder="${esc(it.ph || '')}" aria-label="${esc(it.input)}" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off"><button>Submit</button></div>` : ''}
         ${active && it.pick ? `<div class="ck-pick ck-pick-${it.pick}"></div>` : ''}
         ${active ? `<div class="ck-fb"></div>` : ''}
         ${active && it.auto && it.id !== 'login' ? `<div class="ck-auto">Ticks itself when you do it.</div>` : ''}
@@ -8931,7 +9344,7 @@ Website:      still says 'Director'. Steve. Don't ask.
       const wh = row.querySelector('.ck-where');
       if (wh) it.where.forEach(([label, act]) => { const c = $(`<button class="ck-chip"></button>`); c.textContent = label; c.onclick = () => { FR.sound.play('click'); act(); }; wh.appendChild(c); });
       const hbox = row.querySelector('.ck-hints');
-      if (active) for (let i = 0; i < used; i++) hbox.appendChild($(`<div class="ck-hint ck-fos"><div class="ck-fos-h">${FOS_MARK}<b>Datarails FinanceOS</b><span>· Emily's trial · hint ${i + 1}/3</span></div><div class="ck-fos-p">${esc(FOS_PREFACE[(idx + i) % FOS_PREFACE.length])}</div><div class="ck-fos-t">${esc(it.hints[i])}</div></div>`));
+      if (active) for (let i = 0; i < used; i++) hbox.appendChild($(`<div class="ck-hint ck-fos"><div class="ck-fos-h">${FOS_MARK}<b>Datarails FinanceOS</b><span>· Emily's trial · hint ${i + 1}/3</span></div><div class="ck-fos-p">${esc(FOS_PREFACE[(idx + i) % FOS_PREFACE.length])}</div><div class="ck-fos-t">${esc((FR.mobile && it.mhints && it.mhints[i]) || it.hints[i])}</div></div>`));
       const hb = row.querySelector('.ck-hbtn');
       if (hb) hb.onclick = () => {
         const n = FR.state.hintsUsed[it.id] || 0;

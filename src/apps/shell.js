@@ -715,11 +715,14 @@
         if (e.target.closest('th')) return;
         if (it) this.select(it.dataset.id); else if (!e.target.closest('.ex-link')) this.select(null);
       });
-      v.addEventListener('dblclick', e => { const it = e.target.closest('.ex-it'); if (it) this.openItem(this.findItem(it.dataset.id)); });
+      v.addEventListener('dblclick', e => { if (FR.mobile) return; const it = e.target.closest('.ex-it'); if (it) this.openItem(this.findItem(it.dataset.id)); });
       v.addEventListener('click', e => {
         const th = e.target.closest('th[data-sort]');
         if (th) { const k = th.dataset.sort; if (['packed', 'pw', 'ratio', 'total', 'free'].includes(k)) return; this.sort = { k, d: this.sort.k === k ? -this.sort.d : 1 }; this.render(); return; }
-        if (e.target.closest('[data-reveal]')) { this.revealed.add(this.cur); this.render(); }
+        if (e.target.closest('[data-reveal]')) { this.revealed.add(this.cur); this.render(); return; }
+        // phones: one tap opens (there is no double-click); a quick second tap (double-tap habit) is ignored
+        const it = FR.mobile && e.target.closest('.ex-it');
+        if (it && Date.now() > (this.tapGuard || 0)) { this.tapGuard = Date.now() + 500; this.openItem(this.findItem(it.dataset.id)); }
       });
       v.addEventListener('contextmenu', e => {
         e.preventDefault();

@@ -2167,12 +2167,46 @@
       document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up);
     });
     wrap.addEventListener('dblclick', e => {
-      const p = cellAt(e); if (!p || st.edit) return;
+      const p = cellAt(e); if (!p || st.edit || FR.mobile) return;
       select(p.r, p.c);
       startEdit('edit', fbarText(p.r, p.c));
     });
     let tipCell = null;
+    /* phones: no hover and no double-click. Tapping a cell shows its note (red triangle); tapping the selected cell
+       again edits it in the formula bar, with the old content selected so typing replaces it. */
+    const editInBar = () => { if (st.edit) return; fin.focus(); try { fin.setSelectionRange(0, fin.value.length); } catch (x) {} };
+    if (FR.mobile) {
+      wrap.addEventListener('mousedown', e => {
+        const p = cellAt(e);
+        const lt = st.lastTap;   // only a cell the player tapped already (not the one a workbook opens on)
+        st.tapAgain = !!(p && lt && lt.si === st.si && lt.r === p.r && lt.c === p.c && !st.edit && p.r === st.ar && p.c === st.ac && st.anchor.r === st.focus.r && st.anchor.c === st.focus.c);
+      }, true);
+      wrap.addEventListener('click', e => {
+        const p = cellAt(e); if (!p) return;
+        tapNote(e.target.closest('td[data-r]'));
+        if (st.tapAgain && !st.edit) editInBar();
+        st.tapAgain = false; st.lastTap = { si: st.si, r: p.r, c: p.c };
+      });
+    }
+    function tapNote(td) {
+      cmtip.innerHTML = ''; tipCell = null;
+      if (!td || !td.classList.contains('xl-hascm') || st.showCm) return;
+      const r = +td.dataset.r, c = +td.dataset.c, cl = sh().cells[r + ',' + c];
+      if (!cl || !cl.cm) return;
+      const g = cmBox(cl.cm, r, c, false); cmtip.appendChild(g); tipCell = td;
+      // inside the visible part of the grid: right of the cell if it fits there, else just under it
+      const box = g.querySelector('.xl-cm'), ln = g.querySelector('.xl-cm-ln');
+      const vw = scroll.clientWidth, vl = scroll.scrollLeft;
+      box.style.width = Math.min(230, vw - RHW - 12) + 'px';
+      const bw = box.offsetWidth;
+      if (colX[c] + colWd[c] + 12 + bw > vl + vw - 4) {
+        box.style.left = Math.max(vl + RHW + 4, Math.min(colX[c], vl + vw - bw - 4)) + 'px';
+        box.style.top = rowY[r] + rowHt[r] + 4 + 'px';
+        if (ln) ln.style.display = 'none';
+      }
+    }
     wrap.addEventListener('mouseover', e => {
+      if (FR.mobile) return;
       const td = e.target.closest && e.target.closest('td.xl-hascm');
       if (!td || st.showCm) { if (tipCell && !e.target.closest('.xl-cmtip')) { cmtip.innerHTML = ''; tipCell = null; } return; }
       const r = +td.dataset.r, c = +td.dataset.c;
@@ -2274,7 +2308,7 @@
       editor.value = fin.value; if (st.edit) { st.edit.point = null; pointbox.style.display = 'none'; } sizeEditor();
     });
     fin.addEventListener('mousedown', e => { e.stopPropagation(); });
-    fin.addEventListener('focus', () => { if (!st.edit) { const v = fbarText(st.ar, st.ac); startEdit('edit', v, 'fbar'); } });
+    fin.addEventListener('focus', () => { if (!st.edit) { const v = fbarText(st.ar, st.ac); startEdit('edit', v, 'fbar'); } if (FR.mobile) tapNote(null); });
     editor.addEventListener('mousedown', e => e.stopPropagation());
     q('.xl-fx-x').onmousedown = e => { e.preventDefault(); cancelEdit(); };
     q('.xl-fx-ok').onmousedown = e => { e.preventDefault(); commit(0, 0); };

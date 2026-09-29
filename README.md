@@ -20,6 +20,7 @@ player accounts (`/api/*`, see below).
 | `src/account.js`, `src/account.css` | Player sign-in screen and cloud save (talks to `api/`). |
 | `src/score_rules.js` | The scoring rules. One copy, used by the game and by the server. |
 | `src/score.js`, `src/score.css` | Score in the checklist and ending, and the leaderboard page. |
+| `src/mobile.css` | Phones and small tablets only (see "Phones" below). |
 | `api/` | Vercel functions for player accounts and the scoreboard: `register`, `login`, `logout`, `me`, `save`, `scores` (shared code in `_lib.js`). No npm dependencies. |
 | `build.py` | Concatenates `src/` into `dist/index.html` and copies `public/` next to it. Python 3, standard library only. |
 | `config.json` | Site links, end-screen CTA and share-card metadata, injected at build time. |
@@ -138,6 +139,20 @@ inside the game. Players can still open the site in another tab (the intro says 
 allow the game's domain in the Packa site's `frame-ancestors`. The website clue changes the puzzles depend on are
 listed in `docs/PACKA_SITE_GAME_CLUES.md`.
 
+### Phones
+
+The game also plays on a phone or small tablet. `src/core.js` decides it once with one media query,
+`(max-width: 760px), (pointer: coarse) and (max-width: 1100px)` (`FR.mobile`, and `<html class="fr-m">`), and follows
+rotation. Desktop browsers never match it and are unchanged. On a phone:
+
+- app windows fill the screen above a taller taskbar (no Maximize, nothing to drag); dialogs sit in the upper part of the screen;
+- one tap opens desktop icons, Explorer items and (tapping it again) a selected message; a long-press is a right-click;
+- Excel: tap a cell to select it (and read its red-triangle note), tap it again to type in the formula bar; Enter or ✓ puts it in;
+- when the soft keyboard comes up, the screen shrinks to the part above it, so the field being typed in stays visible;
+- tap targets, text and inputs are bigger (inputs are 16px, so iOS doesn't zoom in); landscape gets slimmer toolbars.
+
+All mobile CSS is in `src/mobile.css`, inside that media query; mobile JS only runs when `FR.mobile` is set.
+
 ## Tests
 
 ```bash
@@ -148,6 +163,7 @@ pip install playwright && python3 test/play.py   # full honest playthrough in he
 python3 test/account_play.py             # sign up, continue on another computer, guest → player, sign out, conflicts
 python3 test/erp_play.py                 # ShowMe ERP: every module, exports, no puzzle answers inside
 python3 test/score_play.py               # checklist score, paid hints, desktop shortcut → leaderboard, ending rank
+python3 test/mobile_play.py              # the whole game by touch on an emulated iPhone, plus landscape and a small phone
 ```
 
 ## Sounds

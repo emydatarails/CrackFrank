@@ -91,7 +91,7 @@
     document.body.appendChild(p);
     const w = p.offsetWidth, h = p.offsetHeight;
     p.style.left = Math.max(0, Math.min(x, window.innerWidth - w - 2)) + 'px';
-    p.style.top = Math.max(0, Math.min(y, window.innerHeight - h - 2)) + 'px';
+    p.style.top = Math.max(0, Math.min(y, window.innerHeight - h - 2 - (FR.mobile ? 46 : 0))) + 'px';   // phones: clear of the taskbar
     if (level === 0) popRoot = p;
     return p;
   }
@@ -338,6 +338,7 @@
       const icn = this.search ? 'search' : iconOf(n);
       if (this._icn !== icn) { this._icn = icn; if (win.setIcon) win.setIcon(icn); }
       this.addr.value = this.search ? 'Search Results' : addrOf(this.cur);
+      if (FR.mobile) setTimeout(() => { this.addr.scrollLeft = this.addr.scrollWidth; }, 0);   // phones: show the end of a long path
       this.root.querySelector('.ex-addr-i').innerHTML = ico(icn, 16);
       const tb = this.root.querySelector('.ex-tb');
       tb.querySelector('[data-a=back]').disabled = !this.back.length && !this.search;
@@ -1175,7 +1176,10 @@
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'g' && !S.wrap) { e.preventDefault(); goTo(); }
       else if (e.key === 'Tab') { e.preventDefault(); ta.setRangeText('\t', ta.selectionStart, ta.selectionEnd, 'end'); S.dirty = true; }
     });
-    setWrap(true);
+    // phones: Frank's preformatted files (tables, the boarding pass) keep their layout: no wrapping, scroll sideways
+    // (Format › Word Wrap still switches it). Plain prose keeps wrapping.
+    const lines = ta.value.split('\n').filter(l => l.trim()), art = lines.filter(l => /\S {3,}\S|[|+=_\-]{4,}/.test(l)).length;
+    setWrap(!(FR.mobile && lines.length && art / lines.length >= 0.2));
     setTimeout(() => { ta.focus(); ta.setSelectionRange(0, 0); ta.scrollTop = 0; }, 40);
     return win;
   }

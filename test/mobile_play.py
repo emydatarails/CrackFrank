@@ -67,11 +67,12 @@ def close_top(pg):
 
 
 def dlg_btn(pg, text):
+    pg.wait_for_timeout(550)   # a message box ignores taps for its first half second (tap guard)
     tap(pg, pg.locator('.fr-dialog .fr-dlg-btns button', has_text=text).last, 350)
 
 
 def dlg_type(pg, value, button='OK'):
-    pg.wait_for_selector('.fr-dialog .fr-dlg-input input', timeout=4000)
+    pg.wait_for_selector('.fr-dialog .fr-dlg-input input', timeout=4000); pg.wait_for_timeout(550)
     tap(pg, pg.locator('.fr-dialog .fr-dlg-input input').last, 150)
     pg.keyboard.type(value, delay=15)
     dlg_btn(pg, button); pg.wait_for_timeout(300)
@@ -85,10 +86,12 @@ def closeall(pg):
             tap(pg, no.last if no.count() else d.last, 250); continue
         ids = pg.evaluate("() => [...FR.wm.wins.values()].filter(w => w.id !== 'checklist' && !w.el.classList.contains('fr-dialog')).map(w => w.id)")
         if not ids: return
-        # bring it back with its taskbar button, then close it with the title-bar X
-        if not pg.evaluate("id => FR.wm.active && FR.wm.active.id === id", ids[-1]):
-            tap(pg, pg.locator('.fr-task').nth(pg.evaluate("id => [...document.querySelectorAll('.fr-task')].indexOf(FR.wm.wins.get(id).tb)", ids[-1])), 300)
-        close_top(pg)
+        # close it from the window list (the taskbar's switcher button on a phone)
+        tap(pg, pg.locator('.fr-switch'), 350)
+        rows = pg.locator('.fr-swlist .fr-swl-r:not(.fr-swl-desk)')
+        title = pg.evaluate("id => FR.wm.wins.get(id).el.querySelector('.fr-title').textContent", ids[-1])
+        tap(pg, rows.filter(has_text=title).first.locator('.fr-swl-x'), 400)
+        if pg.locator('.fr-swlist').count(): tap(pg, pg.locator('.fr-switch'), 300)
 
 
 def ex_tap(pg, id_, wait=700):
@@ -97,7 +100,9 @@ def ex_tap(pg, id_, wait=700):
 
 
 def task(pg, text):
-    tap(pg, pg.locator('.fr-task', has_text=text).first, 400)
+    """switch windows the phone way: the taskbar's switcher button lists every open window by its full title"""
+    tap(pg, pg.locator('.fr-switch'), 400)
+    tap(pg, pg.locator('.fr-swlist .fr-swl-r', has_text=text).first, 450)
 
 
 def xl_type(pg, r, c, text):
@@ -107,6 +112,9 @@ def xl_type(pg, r, c, text):
     active = pg.evaluate("() => document.activeElement && document.activeElement.className")
     if active != 'xl-fin': ok(False, f'second tap on R{r}C{c} did not open the formula bar (focus: {active})')
     pg.keyboard.type(text, delay=10); pg.keyboard.press('Enter'); pg.wait_for_timeout(350)
+    nb = pg.evaluate("() => document.querySelector('.fr-win:not(.fr-inactive) .xl-nb-in').value")
+    want = pg.evaluate("([r, c]) => { let s = '', n = c + 1; while (n) { s = String.fromCharCode(65 + (n - 1) % 26) + s; n = Math.floor((n - 1) / 26); } return s + (r + 1); }", [r, c])
+    if nb != want: ok(False, f'Enter should stay on {want} on a phone (now on {nb})')
 
 
 def topmost_is_visible(pg, sel):
@@ -140,7 +148,17 @@ with sync_playwright() as p:
     ok('Still stuck' in pg.inner_text('.fr-login-hint'), 'log-on: hint grows after two misses')
     ok(topmost_is_visible(pg, '.fr-login-hint') and topmost_is_visible(pg, '.fr-pw-row input'), 'log-on: hint and password box both on screen')
     shot(pg, 'login_fail')
-    tap(pg, inp, 100); pg.keyboard.type('Sedalia 1958'); tap(pg, pg.locator('.fr-go'), 3800)
+    y_before = pg.evaluate("() => document.querySelector('.fr-pw-row input').getBoundingClientRect().top")
+    tap(pg, pg.locator('.fr-login-web'), 1500)
+    ok(pg.frame_locator('.fr-win iframe').locator('body').inner_text().count('1958') > 0, 'P9: the log-on screen opens the Packa homepage in IE')
+    close_top(pg)
+    ok(pg.locator('.fr-win').count() == 0, 'P9: closing IE goes back to the log-on screen')
+    tap(pg, inp, 100); pg.keyboard.type('nope'); pg.keyboard.press('Enter'); pg.wait_for_timeout(300)
+    ok(abs(pg.evaluate("() => document.querySelector('.fr-pw-row input').getBoundingClientRect().top") - y_before) < 2, 'P10: a wrong password leaves the password box where it was')
+    tap(pg, inp, 700); pg.evaluate('() => FR.viewportFit(innerHeight - 300, 0)'); pg.wait_for_timeout(400)
+    ok(pg.evaluate("() => { const r = document.querySelector('.fr-pw-row input').getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight - 300; }"), 'soft keyboard up: the password box sits above it')
+    shot(pg, 'login_keyboard'); pg.evaluate('() => FR.viewportFit(innerHeight, 0)')
+    pg.keyboard.type('Sedalia 1958'); tap(pg, pg.locator('.fr-go'), 3800)
     ok('login' in solved(pg), '1 login by touch')
     ok(pg.evaluate("() => FR.wm.wins.get('checklist') && FR.wm.wins.get('checklist').max"), 'checklist opens filling the screen')
     ok(pg.locator(TOP + ' .title-bar-controls button[aria-label=Maximize]').first.is_hidden(), 'no Maximize button on phone windows')
@@ -162,7 +180,10 @@ with sync_playwright() as p:
         if fid == 'bud_v5ut': shot(pg, 'excel_v5ut')
         closeall(pg)
     ok(all('Gross margin' in v for v in gm.values()), 'all five budgets open from the checklist by tap')
-    tap(pg, ck(pg).locator('.ck-file', has_text='v5_FINAL_FINAL').first.locator('.ck-pickbtn'), 300); dlg_btn(pg, 'Send to Diane')
+    tap(pg, ck(pg).locator('.ck-file', has_text='v5_FINAL_FINAL').first.locator('.ck-pickbtn'), 60)
+    pg.locator('.fr-dialog .fr-dlg-btns button', has_text='Send to Diane').last.tap(); pg.wait_for_timeout(200)
+    ok(pg.locator('.fr-dialog').count() == 1 and 'version' not in solved(pg), 'P1: a tap in the first half second of a confirm box is ignored (no accidental answer)')
+    dlg_btn(pg, 'Send to Diane')
     ok('version' not in solved(pg), '2 wrong budget is refused')
     tap(pg, ck(pg).locator('.ck-file', has_text='v5_FINAL_USE_THIS').first.locator('.ck-pickbtn'), 300); dlg_btn(pg, 'Send to Diane')
     ok('version' in solved(pg), '2 version by touch')
@@ -174,7 +195,13 @@ with sync_playwright() as p:
     tap(pg, a1, 400)
     tip = pg.evaluate("() => { const t = document.querySelector('.fr-win:not(.fr-inactive) .xl-cmtip .xl-cm'); if (!t) return null; const r = t.getBoundingClientRect(); return [t.innerText, r.left >= 0 && r.right <= innerWidth + 1] }")
     ok(bool(tip) and 'PW = SUM' in tip[0] and tip[1], "unlock: tapping A1 shows Frank's note, fully on screen")
-    shot(pg, 'excel_note'); closeall(pg)
+    shot(pg, 'excel_note')
+    ok(pg.evaluate("() => getComputedStyle(document.querySelector('.fr-win:not(.fr-inactive) .xl-grid td[data-c=\"0\"]')).position === 'sticky'"), 'Excel: column A is frozen on a phone')
+    tap(pg, pg.locator(TOP + ' .xl-tab', has_text='Notes'), 400)
+    long = pg.locator(TOP + ' .xl-grid td[data-r="7"][data-c="2"]').first
+    tap(pg, long, 400)
+    ok(pg.evaluate("() => { const t = document.querySelector('.fr-win:not(.fr-inactive) .xl-cm-text'); return !!t && /Revenue to 40,000/.test(t.innerText); }"), 'Excel: a tap on a cut-off text cell shows the whole text')
+    shot(pg, 'excel_longtext'); closeall(pg)
     chip(pg, 'About Us', 1200); closeall(pg)
     chip(pg, 'Budget_FY27_BOARD.xls', 700)
     ok(topmost_is_visible(pg, '.fr-dialog .fr-dlg-input input'), 'password dialog fits the phone screen')
@@ -236,10 +263,16 @@ with sync_playwright() as p:
     chip(pg, "Rachel's email"); close_top(pg)
     chip(pg, 'Careers page', 1300); close_top(pg)
     task(pg, 'Cash_13wk')
+    wrong0 = pg.evaluate("() => FR.state.wrong")
     for c in (1, 3, 5, 7, 9, 11, 13): xl_type(pg, 13, c, '196')
     shot(pg, 'cash_payroll')
+    tap(pg, ck(pg).locator('.ck-weeks button', has_text=re.compile(r'^13$')), 300)
+    ok(pg.evaluate("() => FR.state.wrong") == wrong0 and pg.locator('.ck-confirm').count() == 1, 'P2: one tap on a week only picks it (Submit button, no answer yet)')
     tap(pg, ck(pg).locator('.ck-weeks button', has_text=re.compile(r'^6$')), 300)
-    tap(pg, ck(pg).locator('.ck-weeks button', has_text=re.compile(r'^5$')), 500)
+    tap(pg, ck(pg).locator('.ck-conf-ok', has_text='Week 6'), 400)
+    tap(pg, ck(pg).locator('.ck-weeks button', has_text=re.compile(r'^5$')), 300)
+    shot(pg, 'week_confirm')
+    tap(pg, ck(pg).locator('.ck-conf-ok', has_text='Week 5'), 500)
     ok('cash' in solved(pg), '6 cash by touch')
     closeall(pg)
 
@@ -260,18 +293,27 @@ with sync_playwright() as p:
     # ---- 9 send: tap the message, Reply, Send
     pg.wait_for_timeout(3000)
     chip(pg, 'Outlook Express', 900); shot(pg, 'outlook')
+    tap(pg, pg.locator('.fr-switch'), 400)
+    ok(pg.locator('.fr-swlist .fr-swl-r', has_text='Inbox - Outlook Express').count() == 1, 'P3: the window list shows full window titles')
+    shot(pg, 'window_list'); tap(pg, pg.locator('.fr-switch'), 300)
     row = pg.locator(TOP + ' tr[data-id]', has_text='Send me the pack').first
     tap(pg, row, 400)
     ok(pg.evaluate("() => document.querySelector('.fr-win:not(.fr-inactive) .oe-prev').innerText.length > 40"), 'Outlook: a tap shows the message in the preview')
     tap(pg, pg.locator(TOP + ' .oe-tbb', has_text='Reply').first, 800); shot(pg, 'reply')
     tap(pg, pg.locator(TOP + ' .oe-tbb-send'), 800)
     ok('send' in solved(pg), '9 send by touch')
+    pg.evaluate("() => { FR.mail.open('m_diane_which'); }"); pg.wait_for_timeout(600)
+    pg.evaluate("() => { FR.mail.open('m_karen_capex'); }"); pg.wait_for_timeout(600)
+    ok(pg.evaluate("() => [...FR.wm.wins.keys()].filter(k => /^oe-msg-/.test(k)).length") == 1, 'P3: one message window at a time on a phone')
     pg.wait_for_timeout(8000); closeall(pg)
 
     # ---- 10 frank
     chip(pg, "Rachel's email"); closeall(pg)
-    tap(pg, ck(pg).locator('.ck-sus', has_text='Drew'), 300)
-    tap(pg, ck(pg).locator('.ck-sus', has_text='Kristians'), 500)
+    chip(pg, 'Recycle Bin'); ex_tap(pg, 'boarding', 700)
+    ok(pg.evaluate("() => !!document.querySelector('.fr-win:not(.fr-inactive) .np-ta.np-nowrap')"), 'P13: the ASCII boarding pass opens without wrapping')
+    shot(pg, 'boarding'); closeall(pg)
+    tap(pg, ck(pg).locator('.ck-sus', has_text='Drew'), 300); tap(pg, ck(pg).locator('.ck-conf-ok'), 300)
+    tap(pg, ck(pg).locator('.ck-sus', has_text='Kristians'), 300); tap(pg, ck(pg).locator('.ck-conf-ok'), 500)
     ok('frank' in solved(pg), '10 frank by touch')
     pg.wait_for_timeout(4200); shot(pg, 'reveal')
     close_top(pg); pg.wait_for_timeout(1500)
@@ -287,7 +329,8 @@ with sync_playwright() as p:
     p2.goto(URL + '?dev=1&solve=unlock'); p2.wait_for_selector('.fr-desktop'); p2.wait_for_timeout(800)
     ok(p2.evaluate('() => FR.mobile'), 'landscape phone is mobile too')
     p2.evaluate("() => FR.openFile('bud_board')"); p2.wait_for_timeout(900)
-    ok(p2.evaluate("() => { const s = document.querySelector('.fr-win:not(.fr-inactive) .xl-scroll'); return s && s.clientHeight > 150; }"), 'landscape Excel keeps a usable grid')
+    rows = p2.evaluate("() => { const s = document.querySelector('.fr-win:not(.fr-inactive) .xl-scroll'); return Math.floor((s.getBoundingClientRect().height - 22) / 20.4); }")
+    ok(rows >= 11, f'P5: landscape Excel shows {rows} rows (slim chrome, no menu bar)')
     p2.screenshot(path=f'{OUT}/mobile_landscape_excel.png')
     p2.evaluate("() => { FR.wm.wins.forEach(w => w.close()); document.querySelector('.fr-startbtn').click(); }"); p2.wait_for_timeout(400)
     ok(p2.evaluate("() => { const m = document.querySelector('.fr-start'); const r = m.getBoundingClientRect(); return r.top >= 0 && m.scrollHeight >= m.clientHeight; }"), 'landscape Start menu fits (scrolls)')
@@ -298,7 +341,7 @@ with sync_playwright() as p:
     se = dict(p.devices['iPhone SE']); se.pop('default_browser_type', None)
     ctx3 = b.new_context(**se); p3 = ctx3.new_page(); p3.on('pageerror', lambda e: logs.append('PAGEERROR ' + str(e)))
     p3.goto(URL + '?dev=1&solve=unlock'); p3.wait_for_selector('.fr-desktop'); p3.wait_for_timeout(800)
-    p3.locator('.fr-win .ck-item.open .ck-ans input').tap(); p3.wait_for_timeout(200)
+    p3.locator('.fr-win .ck-item.open .ck-ans input').tap(); p3.wait_for_timeout(700)   # (after the focus handler's own checks)
     p3.evaluate('() => FR.viewportFit(innerHeight - 260, 0)'); p3.wait_for_timeout(300)   # what the soft keyboard does
     ok(p3.evaluate("() => { const i = document.activeElement, r = i.getBoundingClientRect(); return i.tagName === 'INPUT' && r.bottom <= innerHeight - 260 + 1 && r.top >= 0; }"), 'soft keyboard up: the answer box moves above it')
     p3.screenshot(path=f'{OUT}/mobile_se_keyboard.png')

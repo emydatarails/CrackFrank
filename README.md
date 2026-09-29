@@ -146,6 +146,10 @@ The game also plays on a phone or small tablet. `src/core.js` decides it once wi
 rotation. Desktop browsers never match it and are unchanged. On a phone:
 
 - app windows fill the screen above a taller taskbar (no Maximize, nothing to drag); dialogs sit in the upper part of the screen;
+- the taskbar has one switcher button that lists every open window by its full title; IE keeps its bars at the bottom;
+- a tap that started just before a message box or window appeared is ignored (no answering by accident); one-tap checklist
+  answers (weeks, suspects) ask for a Submit; balloons are a toast at the top that never vanishes under a finger;
+- Excel keeps column A frozen, Enter stays on the cell, and tapping cut-off text shows all of it;
 - one tap opens desktop icons, Explorer items and (tapping it again) a selected message; a long-press is a right-click;
 - Excel: tap a cell to select it (and read its red-triangle note), tap it again to type in the formula bar; Enter or ✓ puts it in;
 - when the soft keyboard comes up, the screen shrinks to the part above it, so the field being typed in stays visible;

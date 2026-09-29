@@ -160,12 +160,60 @@ FR.apps = FR.apps || {};
   const menuClosers = new Set();
   const topWin = (except) => [...wins.values()].filter(v => !v.min && v !== except && !v.el.classList.contains('fr-dialog')).sort((a, b) => (+b.el.style.zIndex || 0) - (+a.el.style.zIndex || 0))[0];
   let layer, taskbarList;
+  /* phones: the taskbar's window buttons become one "switcher" button (active window's full title + how many are
+     open); tapping it lists every open window by its full name, to switch to or close. */
+  let swT = 0, swEl = null;
+  function swSoon() { if (FR.mobile && !swT) swT = setTimeout(() => { swT = 0; swUpdate(); }, 0); }
+  const appWins = () => [...wins.values()].filter(v => v.tb && v.tb.isConnected).sort((a, b) => (+b.el.style.zIndex || 0) - (+a.el.style.zIndex || 0));
+  const winTitle = v => v.el.querySelector('.fr-title').textContent;
+  function swUpdate() {
+    if (!FR.mobile || !taskbarList || !taskbarList.isConnected) return;
+    let b = taskbarList.parentElement.querySelector('.fr-switch');
+    if (!b) {
+      b = $(`<button class="fr-switch" aria-label="Open windows"><span class="fr-sw-i"></span><span class="fr-sw-t"></span><span class="fr-sw-n"></span></button>`);
+      taskbarList.before(b);
+      b.onclick = e => { e.stopPropagation(); FR.sound.play('click'); swList(!swEl); };
+    }
+    const ws = appWins(), a = FR.wm.active && ws.includes(FR.wm.active) ? FR.wm.active : null;
+    b.querySelector('.fr-sw-i').innerHTML = a ? a.tb.querySelector('.fr-ico').outerHTML : FR.icon('views', 18);
+    b.querySelector('.fr-sw-t').textContent = a ? winTitle(a) : ws.length ? 'Open windows' : 'No open windows';
+    b.querySelector('.fr-sw-n').textContent = ws.length;
+    b.classList.toggle('on', !!swEl);
+    if (swEl) swList(true);
+  }
+  function swList(show) {
+    if (swEl) { swEl.remove(); swEl = null; }
+    const host = taskbarList && taskbarList.closest('.fr-desktop');
+    if (!show || !host) { const b = document.querySelector('.fr-switch'); if (b) b.classList.remove('on'); return; }
+    const ws = appWins();
+    const L = $(`<div class="fr-swlist"><div class="fr-swl-h">Open windows (${ws.length})</div><div class="fr-swl-b"></div></div>`);
+    const body = L.querySelector('.fr-swl-b');
+    if (!ws.length) body.appendChild($('<div class="fr-swl-empty">Nothing is open. Open something from the desktop or the Start menu.</div>'));
+    ws.forEach(v => {
+      const r = $(`<div class="fr-swl-r${v === FR.wm.active ? ' on' : ''}${v.min ? ' min' : ''}">${v.tb.querySelector('.fr-ico').outerHTML}<span class="fr-swl-t"></span><button class="fr-swl-x" aria-label="Close">&#x2715;</button></div>`);
+      r.querySelector('.fr-swl-t').textContent = winTitle(v) + (v.min ? ' (minimized)' : '');
+      r.onclick = e => { e.stopPropagation(); swList(false); if (v.min) v.restore(); v.focus(); };
+      r.querySelector('.fr-swl-x').onclick = e => { e.stopPropagation(); FR.sound.play('click'); v.close(); setTimeout(() => { if (swEl) swList(true); }, 160); };
+      body.appendChild(r);
+    });
+    if (ws.some(v => !v.min)) {
+      const d = $(`<div class="fr-swl-r fr-swl-desk">${FR.icon('computer', 18)}<span class="fr-swl-t">Show the desktop</span></div>`);
+      d.onclick = e => { e.stopPropagation(); swList(false); ws.forEach(v => v.minimize()); };
+      body.appendChild(d);
+    }
+    L._frShown = Date.now(); L._frGuard = 300;
+    host.appendChild(L); swEl = L;
+    const b = document.querySelector('.fr-switch'); if (b) b.classList.add('on');
+    setTimeout(() => document.addEventListener('mousedown', function h(e) { if (!swEl || swEl !== L) return document.removeEventListener('mousedown', h, true); if (!L.contains(e.target) && !e.target.closest('.fr-switch')) { swList(false); document.removeEventListener('mousedown', h, true); } }, true), 0);
+  }
+  FR.wm_switcher = swList;
   FR.wm = {
     wins,
     init(layerEl, taskbarEl) {
       // a fresh desktop (e.g. after Log Off) starts with no windows
       wins.forEach(w => { w.el.remove(); w.tb.remove(); }); wins.clear(); FR.wm.active = null;
       layer = layerEl; taskbarList = taskbarEl;
+      swList(false); swSoon();
     },
     layer() {
       if (layer && layer.isConnected && !document.querySelector('.fr-end')) return layer;   // over the end card, dialogs float above it
@@ -200,23 +248,26 @@ FR.apps = FR.apps || {};
       const isDlg = (o.className || '').includes('fr-dialog');
       const w = {
         id, el, body, opts: o, min: false, max: false, dz: isDlg ? 100000 + (++dn) : 0,
-        setTitle(t) { el.querySelector('.fr-title').textContent = t; tb.querySelector('.fr-task-t').textContent = t; },
+        setTitle(t) { el.querySelector('.fr-title').textContent = t; tb.querySelector('.fr-task-t').textContent = t; swSoon(); },
         setIcon(n) { el.querySelector('.title-bar-text .fr-ico').outerHTML = FR.icon(n, 16); tb.querySelector('.fr-ico').outerHTML = FR.icon(n, 16); },
         setStatus(i, t) { const f = el.querySelectorAll('.status-bar-field')[i]; if (f) f.innerHTML = t; },
-        focus() {
+        focus(fromUser) {
+          // phones: a window that jumps to the front by itself (not by a tap in it) ignores taps for a moment (no ghost taps)
+          if (FR.mobile && !fromUser && FR.wm.active !== w) el._frShown = Date.now();
+          swSoon();
           wins.forEach(v => { v.el.classList.add('fr-inactive'); v.tb.classList.remove('active'); });
           el.classList.remove('fr-inactive'); tb.classList.add('active'); el.style.zIndex = w.dz || ++z; FR.wm.active = w;
         },
         _toTb() { const r = el.getBoundingClientRect(), t = tb.getBoundingClientRect(); if (!t.width) return 'scale(.2)'; const sx = t.width / r.width, sy = t.height / r.height; return `translate(${t.left - r.left}px, ${t.top - r.top}px) scale(${sx}, ${sy})`; },
         minimize() {
-          if (w.min) return; w.min = true; tb.classList.remove('active'); el.classList.add('fr-inactive'); FR.sound.play('minimize');
+          if (w.min) return; w.min = true; tb.classList.remove('active'); el.classList.add('fr-inactive'); FR.sound.play('minimize'); swSoon();
           if (FR.wm.active === w) { FR.wm.active = null; const nx = topWin(w); if (nx) nx.focus(); }
           el.style.transformOrigin = '0 0'; el.style.transition = 'transform .2s ease-in, opacity .2s ease-in';
           el.style.transform = w._toTb(); el.style.opacity = '0';
           setTimeout(() => { if (w.min) { el.style.display = 'none'; el.style.transition = ''; } }, 200);
         },
         restore() {
-          if (!w.min) return; w.min = false; el.style.display = ''; FR.sound.play('restore');
+          if (!w.min) return; w.min = false; el.style.display = ''; FR.sound.play('restore'); el._frShown = Date.now(); swSoon();
           el.style.transition = 'none'; el.style.transformOrigin = '0 0'; el.style.transform = w._toTb(); el.style.opacity = '0';
           void el.offsetWidth; el.style.transition = 'transform .2s ease-out, opacity .2s ease-out'; el.style.transform = ''; el.style.opacity = '';
           setTimeout(() => { el.style.transition = ''; }, 220);
@@ -230,7 +281,7 @@ FR.apps = FR.apps || {};
           if (wins.get(id) !== w) return;                   // already closed (double-close)
           if (o.onClose && o.onClose() === false) return;
           if (wins.get(id) !== w) return;                   // onClose already tore it down (dialogs)
-          tb.remove(); wins.delete(id); if (FR.wm.active === w) FR.wm.active = null; el.classList.add('fr-closing'); el.style.pointerEvents = 'none'; setTimeout(() => el.remove(), 140);
+          tb.remove(); wins.delete(id); swSoon(); if (FR.wm.active === w) FR.wm.active = null; el.classList.add('fr-closing'); el.style.pointerEvents = 'none'; setTimeout(() => el.remove(), 140);
           const top = [...wins.values()].filter(v => !v.min).sort((a, b) => b.el.style.zIndex - a.el.style.zIndex)[0];
           if (top) top.focus();
         },
@@ -244,7 +295,7 @@ FR.apps = FR.apps || {};
       if (o.resizable === false) bMax.disabled = true;
       tb.onclick = () => { if (w.min) { w.restore(); w.focus(); } else if (FR.wm.active === w && !el.classList.contains('fr-inactive')) w.minimize(); else w.focus(); };
       // bring to front on ANY interaction anywhere in the window: mouse, pen, touch, keyboard focus
-      const raise = () => { if (!w.min && FR.wm.active !== w) w.focus(); };
+      const raise = () => { if (!w.min && FR.wm.active !== w) w.focus(true); };
       ['pointerdown', 'mousedown', 'touchstart', 'focusin'].forEach(ev => el.addEventListener(ev, raise, { capture: true, passive: true }));
       el.addEventListener('click', raise, true);
       // drag
@@ -275,6 +326,7 @@ FR.apps = FR.apps || {};
       if (o.menu) FR.wm.menubar(el.querySelector('.fr-menubar'), o.menu, w);
       if (!isDlg && (o.maximized || FR.mobile || window.innerWidth < 700 || ((o.className || '').includes('xl-win') && window.innerWidth < 1300))) w.maximize(FR.mobile);
       el.classList.add('fr-opening'); setTimeout(() => el.classList.remove('fr-opening'), 200);
+      el._frShown = Date.now(); el._frGuard = isDlg ? 500 : 250;
       w.focus();
       return w;
     },
@@ -295,7 +347,11 @@ FR.apps = FR.apps || {};
           });
           d.style.left = b.offsetLeft + 'px'; bar.appendChild(d);
           // phones: the menu bar scrolls sideways, so the drop-down floats (fixed) under its item and stays on screen
-          if (FR.mobile) { const r = b.getBoundingClientRect(); d.classList.add('fr-menu-fixed'); d.style.top = r.bottom + 'px'; d.style.left = Math.max(2, Math.min(r.left, innerWidth - d.offsetWidth - 2)) + 'px'; }
+          if (FR.mobile) {
+            const r = b.getBoundingClientRect(); d.classList.add('fr-menu-fixed'); d.style.left = Math.max(2, Math.min(r.left, innerWidth - d.offsetWidth - 2)) + 'px';
+            // a menu bar low on the screen (IE puts its bars at the bottom on a phone) opens its menus upwards
+            d.style.top = (r.bottom + d.offsetHeight > innerHeight - 44 ? Math.max(2, r.top - d.offsetHeight) : r.bottom) + 'px';
+          }
         };
         b.onmousedown = e => { e.stopPropagation(); openM === b ? closeAll() : show(); };
         b.onmouseenter = () => { if (openM && openM !== b && !FR.mobile) show(); };   // (a tap fires mouseenter too)
@@ -366,6 +422,10 @@ FR.apps = FR.apps || {};
   /* ---------- balloon ---------- */
   FR.balloon = (title, text, onClick, opts = {}) => {
     if (document.querySelector('.fr-end')) return;
+    // phones: never while typing (keyboard up) or while a message box waits for an answer; it waits its turn
+    if (FR.mobile && (document.documentElement.classList.contains('fr-kb') || FR.wm.topDialog())) {
+      const n = (opts.tries || 0) + 1; if (n < 20) setTimeout(() => FR.balloon(title, text, onClick, Object.assign({}, opts, { tries: n })), 1500); return;
+    }
     if (!opts.silent && Date.now() - (FR._lastSound || 0) > 400) FR.sound.play('notify');
     const tray = document.querySelector('.fr-tray');
     document.querySelectorAll('.fr-balloon').forEach(b => b.remove());
@@ -373,14 +433,44 @@ FR.apps = FR.apps || {};
     b.querySelector('b').textContent = title; b.querySelector('.fr-balloon-b').innerHTML = text;
     document.body.appendChild(b);
     if (tray) { const r = tray.getBoundingClientRect(); b.style.right = Math.max(6, window.innerWidth - r.right + 4) + 'px'; }
-    b.onclick = e => { b.remove(); if (!e.target.classList.contains('fr-balloon-x') && onClick) onClick(); };
-    setTimeout(() => b.remove(), 9000);
-    // phones: the balloon sits over the bottom of a full-screen window; a tap anywhere else puts it away (like a toast)
-    if (FR.mobile) setTimeout(() => {
-      const away = e => { if (!b.contains(e.target)) b.remove(); if (!b.isConnected) document.removeEventListener('touchstart', away, true); };
-      if (b.isConnected) document.addEventListener('touchstart', away, { capture: true, passive: true });
-    }, 1200);
+    // phones: when it goes, a tap already on its way to it must not land on what was underneath (see the tap guard below)
+    const bye = () => { if (!b.isConnected) return; if (FR.mobile) balloonGhost = { r: b.getBoundingClientRect(), at: Date.now() }; b.remove(); };
+    b.onclick = e => { bye(); if (!e.target.classList.contains('fr-balloon-x') && onClick) onClick(); };
+    // phones: it doesn't vanish from under a finger (waits while the screen is being touched)
+    const auto = () => { if (FR.mobile && Date.now() - lastTouch < 1500) return setTimeout(auto, 1500); bye(); };
+    setTimeout(auto, 9000);
+    if (FR.mobile) {
+      b._frShown = Date.now(); b._frGuard = 500;
+      // a tap anywhere else puts it away (like a toast)
+      setTimeout(() => {
+        const away = e => { if (!b.contains(e.target)) bye(); if (!b.isConnected) document.removeEventListener('touchstart', away, true); };
+        if (b.isConnected) document.addEventListener('touchstart', away, { capture: true, passive: true });
+      }, 1200);
+    }
   };
+
+  /* ---------- phones: tap guard ----------
+     A finger that was already on its way when something appeared under it (a message box, a window that came to the
+     front by itself, a balloon, the window list) must not press what appeared, and a tap aimed at a balloon that just
+     went away must not press what was underneath. Only touch taps are filtered (a mouse on a tablet is not). */
+  let lastTouch = 0, balloonGhost = null;
+  const noteTouch = () => { lastTouch = Date.now(); };
+  window.addEventListener('touchstart', noteTouch, { capture: true, passive: true });
+  window.addEventListener('pointerdown', e => { if (e.pointerType === 'touch') noteTouch(); }, { capture: true, passive: true });
+  const tapBlocked = e => {
+    if (!FR.mobile || !e.isTrusted) return false;
+    const touch = e.pointerType ? e.pointerType === 'touch' : Date.now() - lastTouch < 1000;
+    if (!touch) return false;
+    const t = e.target && e.target.closest ? e.target.closest('.fr-win, .fr-swlist, .fr-balloon') : null;
+    if (t && t._frShown && lastTouch < t._frShown + (t._frGuard || 350)) return true;
+    const g = balloonGhost;
+    if (g && lastTouch > g.at - 1500 && lastTouch < g.at + 600 && e.clientX >= g.r.left && e.clientX <= g.r.right && e.clientY >= g.r.top && e.clientY <= g.r.bottom) return true;
+    return false;
+  };
+  ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click', 'dblclick'].forEach(ev => window.addEventListener(ev, e => {
+    if (tapBlocked(e)) { e.preventDefault(); e.stopImmediatePropagation(); }
+  }, true));
+  FR.tapGuard = { blocked: tapBlocked, lastTouch: () => lastTouch };
 
   /* ---------- phones: long-press = right-click, and the soft keyboard never covers the field being typed in ----------
      Everything here only acts while FR.mobile is on. */
@@ -426,25 +516,40 @@ FR.apps = FR.apps || {};
   // move up above the keyboard), and the focused field is scrolled into view
   const vv = window.visualViewport;
   let kbOpen = false;
+  // Works both ways browsers do it: iOS Safari / Chrome (visual viewport shrinks, layout stays) and Android Chrome with
+  // interactive-widget=resizes-content (the layout itself shrinks). baseH = the full height for this orientation.
+  let baseH = innerHeight, baseW = innerWidth;
+  const inField = a => a && a !== document.body && (/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) || a.isContentEditable);
+  const reveal = a => {
+    if (!inField(a)) return;
+    try { a.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (err) {}
+    // still under the keyboard (nothing scrollable around it): nudge the nearest scroller
+    const h = vv ? vv.height : innerHeight, r = a.getBoundingClientRect();
+    if (r.bottom > h - 6) { let p = a.parentElement; while (p && p !== document.body && !(p.scrollHeight > p.clientHeight + 2 && /auto|scroll/.test(getComputedStyle(p).overflowY))) p = p.parentElement; if (p && p !== document.body) p.scrollTop += r.bottom - h + 16; }
+  };
   FR.viewportFit = (vh, vtop) => {
     const root = document.getElementById('fr-root'); if (!root) return;
+    if (Math.abs(innerWidth - baseW) > 40) { baseW = innerWidth; baseH = innerHeight; }   // rotated: a new full height
+    else if (innerHeight > baseH) baseH = innerHeight;
+    if (vh == null && window.scrollY && FR.mobile) window.scrollTo(0, 0);                 // iOS scrolls the page to the field; the game never scrolls
     const h = vh != null ? vh : vv ? vv.height : innerHeight, t = vtop != null ? vtop : vv ? vv.offsetTop : 0;
     const zoomed = vh == null && vv && Math.abs((vv.scale || 1) - 1) > 0.02;
-    const open = FR.mobile && !zoomed && innerHeight - h > 120;
-    if (open) {
-      if (vh == null && window.scrollY) window.scrollTo(0, 0);
-      root.style.top = Math.round(t) + 'px'; root.style.bottom = 'auto'; root.style.height = Math.round(h) + 'px';
-    } else if (kbOpen) { root.style.top = ''; root.style.bottom = ''; root.style.height = ''; }
-    if (open === kbOpen && !open) return;
-    kbOpen = open; document.documentElement.classList.toggle('fr-kb', open);
-    wins.forEach(w => { if (w.el.classList.contains('fr-dialog')) FR.wm.fitDialog(w, false); });
-    const a = document.activeElement;
-    if (open && a && a !== document.body && (/^(INPUT|TEXTAREA)$/.test(a.tagName) || a.isContentEditable)) setTimeout(() => { try { a.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (err) {} }, 60);
+    const open = FR.mobile && !zoomed && Math.max(baseH, innerHeight) - h > 120;
+    if (open && (innerHeight - h > 60 || t > 0)) { root.style.top = Math.round(t) + 'px'; root.style.bottom = 'auto'; root.style.height = Math.round(h) + 'px'; }
+    else if (root.style.height) { root.style.top = ''; root.style.bottom = ''; root.style.height = ''; }
+    if (open !== kbOpen) {
+      kbOpen = open; document.documentElement.classList.toggle('fr-kb', open);
+      wins.forEach(w => { if (w.el.classList.contains('fr-dialog')) FR.wm.fitDialog(w, false); });
+    }
+    if (open) { const a = document.activeElement; setTimeout(() => reveal(a), 60); setTimeout(() => reveal(a), 350); }
   };
-  if (vv) { vv.addEventListener('resize', () => FR.viewportFit()); vv.addEventListener('scroll', () => { if (kbOpen) FR.viewportFit(); }); }
-  // a field tapped while the keyboard is already up
+  if (vv) { vv.addEventListener('resize', () => FR.viewportFit()); vv.addEventListener('scroll', () => { if (kbOpen || window.scrollY) FR.viewportFit(); }); }
+  window.addEventListener('resize', () => { if (FR.mobile) FR.viewportFit(); });
+  // a field that gets focus: once the keyboard is up (it takes ~300 ms to slide in), make sure the field is above it
   document.addEventListener('focusin', e => {
-    if (!FR.mobile || !kbOpen) return;
-    const a = e.target; if (a && /^(INPUT|TEXTAREA)$/.test(a.tagName)) setTimeout(() => { try { a.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (err) {} }, 60);
+    if (!FR.mobile || !inField(e.target)) return;
+    const a = e.target; setTimeout(() => { FR.viewportFit(); reveal(a); }, 60); setTimeout(() => { FR.viewportFit(); reveal(a); }, 450);
   });
+  // Android Chrome: let the keyboard shrink the layout itself (iOS ignores this); phones only
+  if (FR.mobile) { const vp = document.querySelector('meta[name=viewport]'); if (vp && !/interactive-widget/.test(vp.content)) vp.content += ', interactive-widget=resizes-content'; }
 })();

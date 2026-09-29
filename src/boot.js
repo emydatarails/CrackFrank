@@ -104,6 +104,8 @@
     el.querySelector('[data-a=go]').onclick = () => { FR.sound.play('click'); if (!FR.state.startedAt) { FR.state.startedAt = Date.now(); FR.save(); } boot(); };
     const n = el.querySelector('[data-a=new]');
     if (n) n.onclick = () => confirmStartOver();
+    // phones: the site opens in Frank's Internet Explorer, over this page (no second tab to find your way back from)
+    if (FR.mobile) el.querySelector('.fr-intro-start .fr-small').onclick = e => { e.preventDefault(); FR.apps.ie(CONFIG.siteUrl); };
     const acct = el.querySelector('[data-a=acct]'), out = el.querySelector('[data-a=out]');
     if (acct) acct.onclick = e => { e.preventDefault(); FR.sound.play('click'); FR.account.screen('new').then(intro); };
     if (out) out.onclick = e => { e.preventDefault(); FR.dialog({ icon: 'question', title: 'Sign out', message: `Sign out of <b>${esc(FR.account.user)}</b>?<br><br>Your progress stays saved in your player account.`, buttons: ['Sign out', 'Cancel'] }).then(r => { if (r.button === 'Sign out') FR.account.signOut(); }); };
@@ -188,6 +190,14 @@
     el.querySelector('.fr-go').onclick = attempt;
     inp.onkeydown = e => { if (e.key === 'Enter') attempt(); };
     el.querySelector('.fr-offbtn').onclick = () => FR.dialog({ icon: 'warn', title: 'Turn off computer', message: "It's almost midnight and the Board meets at 9:00 AM.<br>Frank would never." });
+    // phones: no second browser tab to juggle; the company homepage (the password hint) opens in Frank's Internet Explorer,
+    // right over the log-on screen (close it to come back). The sticky note does the same.
+    if (FR.mobile) {
+      const web = $(`<button class="fr-login-web">${FR.icon('ie', 22)}<span>www.packacorp.com</span></button>`);
+      web.onclick = () => { FR.sound.play('click'); FR.apps.ie(CONFIG.siteUrl); };
+      el.querySelector('.fr-login-bot').appendChild(web);
+      el.querySelector('.fr-postit').onclick = () => web.onclick();
+    }
   }
 
   function welcome(resume) {
@@ -299,10 +309,21 @@
     'Alt+= AutoSums the block above. Kristians does it blindfolded.',
   ];
   // phones: same tips where they need a mouse, said for a finger
-  const KTIPS_M = { 2: 'A red triangle in a cell corner means a comment. Tap the cell to read it.', 3: 'Long-press a file and choose Properties. Authors and dates tell stories.' };
+  // phones: no keyboard-shortcut tips (a phone has no F2 or Alt), and the mouse ones said for a finger
+  const KTIPS_M = [
+    'Tap a cell, then tap it again to type. Type straight over what was there, no need to delete it first.',
+    'A red triangle in a cell corner means a comment. Tap the cell to read it.',
+    'Long-press a file and choose Properties. Authors and dates tell stories.',
+    'Hidden files are still files. Tools › Folder Options › View shows them.',
+    "Never plug a number you can calculate. There's always a formula.",
+    'Wide sheet? Turn the phone sideways. Kristians uses two phones.',
+    'Lost a window? The button next to Start lists every open window.',
+  ];
   let kIdx = 0;
   function kTip(i) {
-    const n = (i ?? kIdx) % KTIPS.length, t = (FR.mobile && KTIPS_M[n]) || KTIPS[n]; kIdx = (i ?? kIdx) + 1;
+    // phones: none after the Board Pack has gone out (the game is over)
+    if (FR.mobile && FR.puzzle.isSolved('frank')) return;
+    const list = FR.mobile ? KTIPS_M : KTIPS, t = list[(i ?? kIdx) % list.length]; kIdx = (i ?? kIdx) + 1;
     FR.balloon("Kristians' Cheat Sheet of the Day", `<div class="fr-ktip"><img src="${FR.data.images.kristians}" alt=""><span>${esc(t)}</span></div>`, null);
   }
   setInterval(() => { if (document.querySelector('.fr-desktop') && !document.querySelector('.fr-balloon')) kTip(); }, 240000);
@@ -366,6 +387,8 @@
     });
     m.style.left = Math.min(x, innerWidth - 180) + 'px'; m.style.top = Math.min(y, innerHeight - 160) + 'px';
     document.body.appendChild(m);
+    // phones: the whole menu on screen, clear of the taskbar
+    if (FR.mobile) { m.style.left = Math.max(4, Math.min(x, innerWidth - m.offsetWidth - 4)) + 'px'; m.style.top = Math.max(4, Math.min(y, innerHeight - 46 - m.offsetHeight)) + 'px'; }
     setTimeout(() => document.addEventListener('mousedown', function h(e) { if (!m.contains(e.target)) { m.remove(); document.removeEventListener('mousedown', h); } }), 0);
   }
 
@@ -535,7 +558,8 @@
         for (let wk = 1; wk <= 13; wk++) {
           const b = $(`<button>${wk}</button>`);
           b.title = 'Week ' + wk;
-          b.onclick = () => { if (!tryAnswer(String(wk), 'Week ' + wk)) b.classList.add('ck-x'); };
+          const go = () => { if (!tryAnswer(String(wk), 'Week ' + wk)) b.classList.add('ck-x'); };
+          b.onclick = () => FR.mobile ? confirmPick(pk, b, 'Week ' + wk, go) : go();
           g.appendChild(b);
         }
         pk.appendChild(g);
@@ -545,7 +569,8 @@
           const c = $(`<button class="ck-sus"><span class="ck-sus-ph"><svg viewBox="0 0 40 44"><circle cx="20" cy="15" r="9" fill="#9fb0cc"/><path d="M3 44c1-11 8-17 17-17s16 6 17 17z" fill="#9fb0cc"/></svg></span><b></b><small></small></button>`);
           c.querySelector('b').textContent = sp.n; c.querySelector('small').textContent = sp.r;
           if (sp.photo && FR.data.images && FR.data.images.kristians) c.querySelector('.ck-sus-ph').innerHTML = `<img src="${FR.data.images.kristians}" alt="">`;
-          c.onclick = () => { if (!tryAnswer(sp.n, sp.n, sp.id === 'kristians')) { c.classList.add('ck-x'); fb.textContent = SUSPECT_NO[sp.id]; } };
+          const go = () => { if (!tryAnswer(sp.n, sp.n, sp.id === 'kristians')) { c.classList.add('ck-x'); fb.textContent = SUSPECT_NO[sp.id]; } };
+          c.onclick = () => FR.mobile ? confirmPick(pk, c, sp.n, go) : go();
           pk.appendChild(c);
         });
       }
@@ -556,6 +581,22 @@
     const focusRow = list.querySelector('.ck-just') || list.querySelector('.ck-item.open');
     if (focusRow && (!scrollTop || justSolved)) setTimeout(() => focusRow.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 0);
     if (justSolved) { const j = justSolved; setTimeout(() => { if (justSolved === j) justSolved = null; }, 1500); }
+  }
+  // phones: a one-tap answer (week, suspect) is only picked by the first tap; a Submit button under the picker sends it,
+  // so a stray tap can't answer for the player
+  function confirmPick(pk, btn, label, go) {
+    pk.querySelectorAll('.ck-sel').forEach(x => x.classList.remove('ck-sel'));
+    let bar = pk.parentElement.querySelector('.ck-confirm');
+    if (bar && bar._for === btn) { bar.remove(); return; }
+    btn.classList.add('ck-sel');
+    if (bar) bar.remove();
+    bar = $(`<div class="ck-confirm"><button class="ck-conf-ok"></button><button class="ck-conf-no">Cancel</button></div>`);
+    bar._for = btn;
+    bar.querySelector('.ck-conf-ok').textContent = 'Submit: ' + label;
+    bar.querySelector('.ck-conf-ok').onclick = () => { bar.remove(); btn.classList.remove('ck-sel'); go(); };
+    bar.querySelector('.ck-conf-no').onclick = () => { bar.remove(); btn.classList.remove('ck-sel'); };
+    pk.after(bar);
+    setTimeout(() => { try { bar.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) {} }, 0);
   }
   const SUSPECT_NO = {
     drew: "Drew is in Vegas looking for Frank. Loudly. In a cowboy hat.",

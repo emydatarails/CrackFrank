@@ -1118,6 +1118,8 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
     setRead(m, true);
     const id = 'oe-msg-' + m.id;
     if (FR.wm.wins.get(id)) return FR.wm.open({ id });
+    // phones: one message window at a time (it replaces the one before), so windows don't pile up
+    if (FR.mobile) [...FR.wm.wins.values()].filter(v => /^oe-msg-/.test(v.id)).forEach(v => v.close());
     const el = $(`<div class="oe-app oe-mw"><div class="oe-tb"></div><div class="oe-mh">${hdrHTML(m, true)}</div><div class="oe-pbody oe-mbody">${renderBody(m)}</div></div>`);
     const w = FR.wm.open({ id, title: m.subject || '(no subject)', icon: 'eml', width: 680, height: 520, className: 'oe-win', content: el,
       menu: [

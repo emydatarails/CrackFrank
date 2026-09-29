@@ -1661,6 +1661,8 @@
       const d = dims(s);
       NR = d.nr; NC = d.nc;
       colWd = []; for (let c = 0; c < NC; c++) colWd[c] = s.colW[c] || DEFW;
+      // phones: column A is frozen (sticky), so it may take at most ~40% of the grid's width; longer labels show in full on tap
+      if (FR.mobile) { const vw = scroll.clientWidth || (innerWidth / 1.2); colWd[0] = Math.min(colWd[0], Math.max(96, Math.round((vw - RHW) * 0.42))); }
       rowHt = []; for (let r = 0; r < NR; r++) rowHt[r] = s.rowH[r] || DEFH;
       let h = `<colgroup><col style="width:${RHW}px">${colWd.map(w => `<col style="width:${w}px">`).join('')}</colgroup><thead><tr><th class="xl-corner"><span></span></th>`;
       for (let c = 0; c < NC; c++) h += `<th class="xl-ch" data-c="${c}">${colName(c)}</th>`;
@@ -1816,7 +1818,7 @@
       for (let c = c0; c <= c1; c++) if (colTh[c]) { colTh[c].classList.add('xl-hs'); st.hs.push(colTh[c]); }
       for (let r = r0; r <= r1; r++) if (rowTh[r]) { rowTh[r].classList.add('xl-hs'); st.hs.push(rowTh[r]); }
       const b = boxFor(r0, c0, r1, c1);
-      Object.assign(selbox.style, { left: b.x + 'px', top: b.y + 'px', width: b.w + 'px', height: b.h + 'px', display: st.edit && st.edit.si === st.si && !multi ? 'none' : '' });
+      Object.assign(selbox.style, { left: b.x + 'px', top: b.y + 'px', width: b.w + 'px', height: b.h + 'px', display: st.edit && st.edit.si === st.si && !multi && !(FR.mobile && st.edit.from === 'fbar') ? 'none' : '' });
       if (!st.drag) nbin.value = a1(st.ar, st.ac);
       if (!st.edit) fin.value = fbarText(st.ar, st.ac);
       // copy marquee
@@ -1854,6 +1856,14 @@
     }
     function ensureVisible(r, c) {
       const x = colX[c], y = rowY[r], w = colWd[c], h = rowHt[r];
+      if (FR.mobile) {   // phones: column A is frozen, and a cell wider than the screen shows from its left edge
+        const fz = c > 0 ? colWd[0] : 0;
+        if (x - RHW - fz < scroll.scrollLeft || w > scroll.clientWidth - RHW - fz) scroll.scrollLeft = Math.max(0, x - RHW - fz);
+        else if (x + w > scroll.scrollLeft + scroll.clientWidth) scroll.scrollLeft = x + w - scroll.clientWidth;
+        if (y - CHH < scroll.scrollTop) scroll.scrollTop = y - CHH;
+        else if (y + h > scroll.scrollTop + scroll.clientHeight) scroll.scrollTop = y + h - scroll.clientHeight;
+        return;
+      }
       if (x - RHW < scroll.scrollLeft) scroll.scrollLeft = x - RHW;
       else if (x + w > scroll.scrollLeft + scroll.clientWidth) scroll.scrollLeft = x + w - scroll.clientWidth;
       if (y - CHH < scroll.scrollTop) scroll.scrollTop = y - CHH;
@@ -2176,6 +2186,7 @@
        again edits it in the formula bar, with the old content selected so typing replaces it. */
     const editInBar = () => { if (st.edit) return; fin.focus(); try { fin.setSelectionRange(0, fin.value.length); } catch (x) {} };
     if (FR.mobile) {
+      scroll.addEventListener('scroll', () => scroll.classList.toggle('xl-sx', scroll.scrollLeft > 2), { passive: true });
       wrap.addEventListener('mousedown', e => {
         const p = cellAt(e);
         const lt = st.lastTap;   // only a cell the player tapped already (not the one a workbook opens on)
@@ -2190,17 +2201,26 @@
     }
     function tapNote(td) {
       cmtip.innerHTML = ''; tipCell = null;
-      if (!td || !td.classList.contains('xl-hascm') || st.showCm) return;
+      if (!td) return;
       const r = +td.dataset.r, c = +td.dataset.c, cl = sh().cells[r + ',' + c];
-      if (!cl || !cl.cm) return;
-      const g = cmBox(cl.cm, r, c, false); cmtip.appendChild(g); tipCell = td;
+      let g, text = false;
+      if (td.classList.contains('xl-hascm') && cl && cl.cm) { if (st.showCm) return; g = cmBox(cl.cm, r, c, false); }
+      else {
+        // text cut off by its cell or by the edge of the screen: shown whole, in a box like a note
+        const t = td.textContent.trim(); if (!t || !cl) return;
+        const sp = td.querySelector('.xl-sp') || td, R = sp.getBoundingClientRect(), S = scroll.getBoundingClientRect();
+        if (!(sp.scrollWidth > sp.clientWidth + 1 || R.right > S.right + 1)) return;
+        g = cmBox({ a: '', t }, r, c, false); text = true;
+        const bx = g.querySelector('.xl-cm'); bx.classList.add('xl-cm-text'); bx.querySelector('b').remove();
+      }
+      cmtip.appendChild(g); tipCell = td;
       // inside the visible part of the grid: right of the cell if it fits there, else just under it
       const box = g.querySelector('.xl-cm'), ln = g.querySelector('.xl-cm-ln');
-      const vw = scroll.clientWidth, vl = scroll.scrollLeft;
-      box.style.width = Math.min(230, vw - RHW - 12) + 'px';
+      const fz = c > 0 ? colWd[0] : 0, vw = scroll.clientWidth, vl = scroll.scrollLeft;
+      box.style.width = Math.min(text ? 300 : 230, vw - RHW - 12) + 'px';
       const bw = box.offsetWidth;
-      if (colX[c] + colWd[c] + 12 + bw > vl + vw - 4) {
-        box.style.left = Math.max(vl + RHW + 4, Math.min(colX[c], vl + vw - bw - 4)) + 'px';
+      if (text || colX[c] + colWd[c] + 12 + bw > vl + vw - 4) {
+        box.style.left = Math.max(vl + RHW + 4, Math.min(Math.max(colX[c], vl + RHW + fz), vl + vw - bw - 4)) + 'px';
         box.style.top = rowY[r] + rowHt[r] + 4 + 'px';
         if (ln) ln.style.display = 'none';
       }
@@ -2268,7 +2288,8 @@
         if (inp === fin && k === 'Enter') { e.preventDefault(); focusGrid(); }
         return;
       }
-      if (k === 'Enter') { e.preventDefault(); commit(e.shiftKey ? -1 : 1, 0); return; }
+      // phones: Enter puts the value in and stays on the cell (no jump, no scroll: the next tap lands where aimed)
+      if (k === 'Enter') { e.preventDefault(); commit(FR.mobile ? 0 : e.shiftKey ? -1 : 1, 0); return; }
       if (k === 'Tab') { e.preventDefault(); commit(0, e.shiftKey ? -1 : 1); return; }
       if (k === 'Escape') { e.preventDefault(); cancelEdit(); return; }
       if (k === 'F2') { e.preventDefault(); st.edit.mode = st.edit.mode === 'edit' ? 'enter' : 'edit'; drawSel(); return; }

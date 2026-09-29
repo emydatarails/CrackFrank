@@ -49,7 +49,7 @@
   FR.eggs = { list: EGGS.map(([id, name]) => ({ id, name })), find, count, total: EGGS.length, has: id => !!got()[id] };
 
   /* ---------- files: diary, karaoke setlist (hidden), resignation letter (Recycle Bin), self-portrait (Paint) ---------- */
-  const F = (id, parent, name, extra) => Object.assign({ id, parent, name, type: 'file', app: 'notepad', icon: 'txt', size: '1 KB', author: 'Frank Warmington' }, extra);
+  const F = (id, parent, name, extra) => Object.assign({ id, parent, name, type: 'file', app: 'notepad', icon: 'txt', size: '1 KB', author: 'Frank Warmington', wide: true }, extra);
   const PORTRAIT = 'frank_self_portrait_(drews_hat).bmp';
   const portraitSaved = () => FR.state.paint && Array.isArray(FR.state.paint.files) && FR.state.paint.files.some(f => f && f.name && f.name.toLowerCase() === PORTRAIT);
   const FILES = [
@@ -110,15 +110,15 @@
 
  #  Song                                           Key  Notes
  1  Total Eclipse of the Chart                     Bb   the closer. 97 pts
- 2  Livin' on a Pivot                              E    "WOAH-OH, we're halfway through the quarter"
+ 2  Livin' on a Pivot                              E    "WOAH-OH, we're halfway there (Q2)"
  3  Don't Stop Believin' (in the Forecast)         E    Drew's request. He believes every forecast
  4  Sum-thing Stupid                               C    solo. Rachel keeps volunteering
  5  I Will Survive (the Audit)                     Am
  6  Hit Me With Your Best Plot                     E    scatter, obviously
  7  Every Breath You Take (I'll Be Auditing You)   Ab   Karen's anthem
- 8  Don't You (Forget About Me) — VLOOKUP remix    D    for column index 7, wherever it went
- 9  Hello (Is It Me You're Looking For)            A    only if Diane is in the room. She never is
-10  Take On Me                                     A    NEVER AGAIN. The high note is a circular reference
+ 8  Don't You (Forget About Me) — VLOOKUP remix    D    for column 7, wherever it went
+ 9  Hello (Is It Me You're Looking For)            A    only if Diane's in the room. Never
+10  Take On Me                                     A    NEVER AGAIN. The high note is circular
 
 Banned by management: "Ice Ice Baby" (I rapped the INDEX/MATCH syntax. Twice.)
 Do NOT hand Drew the mic. He does "Achy Breaky Heart". In the hat.`;

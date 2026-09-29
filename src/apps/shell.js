@@ -1163,7 +1163,7 @@
         { label: 'About Notepad', action: () => FR.dialog({ title: 'About Notepad', icon: 'notepad', message: 'Notepad<br>Version 5.1 (Build 2600.xpsp_sp3)<br><br>This product is licensed to:<br>&nbsp;&nbsp;Frank Warmington<br>&nbsp;&nbsp;Packa Corporation' }) },
       ] },
     ];
-    const wide = node && ['loan', 'agenda', 'boarding', 'packlist', 'k_webinar', 'todo', 'realnotes'].includes(node.id);
+    const wide = node && (node.wide || ['loan', 'agenda', 'boarding', 'packlist', 'k_webinar', 'todo', 'realnotes'].includes(node.id));
     const win = FR.wm.open({
       id, title: `${name} - Notepad`, icon: 'notepad', width: wide ? 800 : 620, height: wide ? 560 : 440, className: 'np-win', menu, content: root,
       onClose: () => {

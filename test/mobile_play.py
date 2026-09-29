@@ -1,7 +1,10 @@
 """The whole game on a phone, by touch only: an emulated iPhone 13 (390x664, touch, mobile browser) taps its way through
 every checklist item the way test/play.py clicks through them on a desktop. Taps (no double-clicks), a long-press for
 the context menu, typing with the phone keyboard into the formula bar, dialogs and the checklist. Then a few screens in
-landscape and on a small phone. Screenshots go to OUT (default test/out).
+landscape and on a small phone. The same on a Pixel 7 and on an iPhone SE (320x568), with round-3 regression checks
+(S1: nothing invisible over a property sheet's OK/Cancel/Apply; S2: toasts open up, never vanish under a finger and a tap
+where one just vanished doesn't go through; S4 Submit label; S5 comment marker; S6 formula bar; S7/S8 Notepad).
+Screenshots go to OUT (default test/out).
 Usage: python3 test/mobile_play.py      (Playwright + Chromium, like test/play.py; CHROMIUM=path to use another binary)"""
 import os, re, sys
 from playwright.sync_api import sync_playwright
@@ -13,7 +16,7 @@ PAGES = {'/': 'home.html', '/index.html': 'home.html'}
 fails, logs, n = [0], [], [0]
 PFX = ['']
 FILL = [False]   # Pixel: the EBITDA row by "Fill…"; iPhone: cell by cell
-DEVICES = sys.argv[1:] or ['iPhone 13', 'Pixel 7']   # the whole game on each
+DEVICES = sys.argv[1:] or ['iPhone 13', 'Pixel 7', 'iPhone SE']   # the whole game on each (iPhone SE: 320x568, the smallest)
 TOP = '.fr-win:not(.fr-inactive):not(.fr-closing)'
 
 
@@ -78,11 +81,13 @@ def swipe(pg, x1, y1, x2, y2, steps=14):
 
 def tap(pg, loc, wait=350, what=''):
     loc.wait_for(state='attached', timeout=10000)
-    h = None
+    h = None; waited = False
     for _ in range(14):
         h = loc.first.evaluate(HIT)
+        if h['ok'] and waited:   # a toast just went: like a person, don't tap in the same instant (S2 swallows that tap)
+            pg.wait_for_timeout(700); waited = False; continue
         if h['ok']: break
-        if h.get('bal'): pg.wait_for_timeout(1500); continue          # a toast over it: wait for it to go
+        if h.get('bal'): pg.wait_for_timeout(1500); waited = True; continue          # a toast over it: wait for it to go
         if 'sx' not in h: pg.wait_for_timeout(400); continue
         mx, my = min(220, 2 * h['hw']), min(220, 2 * h['hh'])   # the whole swipe stays inside the scrolling box
         dx, dy = max(-mx, min(mx, h['dx'])), max(-my, min(my, h['dy']))
@@ -334,7 +339,7 @@ def playthrough(p, b, devname):
     tap(pg, pg.locator('.fr-balloon .fr-balloon-go'), 350)
     ok(pg.evaluate("() => window.__s2 === 1 && !document.querySelector('.fr-balloon')"), "S2: the opened toast's button does what the toast is for")
     # S2: it never goes away from under a finger resting on it (well past its 5 s)
-    pg.evaluate("() => FR.balloon('Test 3', 'a short one')"); pg.wait_for_selector('.fr-balloon:has-text("Test 3")', timeout=6000); pg.wait_for_timeout(700)
+    pg.evaluate("() => { FR.__bal = FR.balloon; FR.balloon = (t, ...a) => t === 'Test 3' ? FR.__bal(t, ...a) : null; FR.balloon('Test 3', 'a short one'); }");   # (no other tip meanwhile) pg.wait_for_selector('.fr-balloon:has-text("Test 3")', timeout=6000); pg.wait_for_timeout(700)
     r3 = pg.locator('.fr-balloon').bounding_box(); cx, cy = r3['x'] + 60, r3['y'] + r3['height'] / 2
     cdp = pg.context.new_cdp_session(pg)
     cdp.send('Input.dispatchTouchEvent', {'type': 'touchStart', 'touchPoints': [{'x': cx, 'y': cy}]})
@@ -348,8 +353,7 @@ def playthrough(p, b, devname):
     pg.touchscreen.tap(cx, cy); pg.wait_for_timeout(250)
     thru = pg.evaluate("() => window.__thru")
     pg.wait_for_timeout(900); pg.touchscreen.tap(cx, cy); pg.wait_for_timeout(300)   # (control: a second later a tap there counts)
-    thru2 = pg.evaluate("() => { window.__thruOn = false; return window.__thru; }")
-    print('DBG', cx, cy, pg.evaluate("(p) => { const e = document.elementFromPoint(p[0], p[1]); return e && (e.tagName + '.' + e.className); }", [cx, cy]))
+    thru2 = pg.evaluate("() => { window.__thruOn = false; FR.balloon = FR.__bal; return window.__thru; }")
     ok(thru is None and thru2 is not None, f'S2: a tap landing where a toast just vanished does not go through (then: {thru}, a second later: {thru2})')
     closeall(pg)
     chip(pg, 'About Us', 1200); closeall(pg)

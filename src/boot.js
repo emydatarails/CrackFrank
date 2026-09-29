@@ -161,6 +161,7 @@
     </div>`);
     show(el);
     const inp = el.querySelector('input'), slot = el.querySelector('.fr-err-slot');
+    if (FR.mobile && innerWidth < 360) inp.placeholder = 'Password';   // (R3) 320 px: "Type your password" was cut to "Type your pas"
     setTimeout(() => inp.focus(), 50);
     let hintEl = null;
     const showHint = (extra) => {

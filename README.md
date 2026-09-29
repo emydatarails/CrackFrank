@@ -152,12 +152,14 @@ rotation. Desktop browsers never match it and are unchanged. On a phone:
   windows from it); IE keeps its bars at the bottom;
 - a tap that started just before a message box or window appeared is ignored (no answering by accident); one-tap checklist
   answers (weeks, suspects) ask for a Submit; balloons are a slim strip above the taskbar with a big ✕ that never vanishes
-  under a finger; the end screen ignores taps for a moment and "Play again" asks with Cancel as the default;
+  under a finger (a tap where one just vanished is ignored; a cut-off one opens up on a tap, with its action as a button);
+  the end screen ignores taps for a moment and "Play again" asks with Cancel as the default;
 - Excel keeps column A frozen (and very wide columns capped), Enter stays on the cell, tapping cut-off text shows all of it,
   Fit / 100% zooms the sheet to the screen width and Fill… copies a cell right or down (the fill handle);
 - Notepad has a Wrap on/off button;
 - one tap opens desktop icons, Explorer items and (tapping it again) a selected message; a long-press is a right-click;
-- Excel: tap a cell to select it (and read its red-triangle note), tap it again to type in the formula bar; Enter or ✓ puts it in;
+- Excel: tap a cell to select it (and read its red-triangle note), tap it again to type in the formula bar; Enter or ✓ puts it in
+  (the first tap into the formula bar selects its content, the next one places the caret);
 - when the soft keyboard comes up, the screen shrinks to the part above it, so the field being typed in stays visible;
 - tap targets, text and inputs are bigger (inputs are 16px, so iOS doesn't zoom in); landscape gets slimmer toolbars.
 
@@ -173,7 +175,7 @@ pip install playwright && python3 test/play.py   # full honest playthrough in he
 python3 test/account_play.py             # sign up, continue on another computer, guest → player, sign out, conflicts
 python3 test/erp_play.py                 # ShowMe ERP: every module, exports, no puzzle answers inside
 python3 test/score_play.py               # checklist score, paid hints, desktop shortcut → leaderboard, ending rank
-python3 test/mobile_play.py              # the whole game by touch on an emulated iPhone 13 and Pixel 7, plus landscape and a small phone
+python3 test/mobile_play.py              # the whole game by touch on an emulated iPhone 13, Pixel 7 and iPhone SE (320x568), plus landscape
 ```
 
 ## Sounds

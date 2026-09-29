@@ -135,8 +135,8 @@
     if (n.type === 'folder') return ({ cdrive: 'Local Disk', ddrive: 'CD Drive', pdrive: 'Disconnected Network Drive', mycomputer: 'System Folder', recycle: 'Recycle Bin', desktop: 'System Folder' })[n.id] || 'File Folder';
     return TYPES[extOf(n)] || (extOf(n).toUpperCase() + ' File');
   }
-  const OPENS = { excel: 'Excel', notepad: 'Notepad', image: 'Windows Picture and Fax Viewer', mail: 'Outlook Express', zip: 'Compressed (zipped) Folders', pdf: 'Document Viewer' };
-  const OPENS_ICO = { excel: 'excel', notepad: 'notepad', image: 'image', mail: 'mail', zip: 'zip', pdf: 'txt' };
+  const OPENS = { excel: 'Excel', notepad: 'Notepad', image: 'Windows Picture and Fax Viewer', mail: 'Outlook Express', zip: 'Compressed (zipped) Folders', pdf: 'Document Viewer', paint: 'Paint' };
+  const OPENS_ICO = { excel: 'excel', notepad: 'notepad', image: 'image', mail: 'mail', zip: 'zip', pdf: 'txt', paint: 'paint' };
   const iconOf = n => n.id === 'recycle' ? (FR.fs.children('recycle').length ? 'recycleFull' : 'recycle') : (n.icon || (n.type === 'folder' ? 'folder' : 'txt'));
   const nameOf = n => n.id === 'mydocs' ? 'My Documents' : n.name;
   const inRecycle = n => n && n.parent === 'recycle';
@@ -602,7 +602,8 @@
         case 'delete': {
           if (!sel || sel.fake) return;
           const r = await FR.dialog({ title: sel.type === 'folder' ? 'Confirm Folder Delete' : 'Confirm File Delete', icon: 'question', buttons: ['Yes', 'No'], message: `Are you sure you want to send '${esc(nm)}' to the Recycle Bin?` });
-          if (r.button === 'Yes') return denied('Delete', nm);
+          // only files the player made (Paint pictures) can really be deleted; everything of Frank's is protected
+          if (r.button === 'Yes') { if (sel.onDelete) { FR.sound.play('recycle'); this.sel = null; return sel.onDelete(); } return denied('Delete', nm); }
           return;
         }
         case 'publish': return FR.dialog({ title: 'Web Publishing Wizard', icon: 'error', message: 'The Web Publishing Wizard could not connect to the Internet.<br><br>Check your connection settings, or ask your network administrator.' });

@@ -17,9 +17,12 @@
 
   function api(path, method = 'GET', body, keepalive) {
     const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 8000);
+    const json = body ? JSON.stringify(body) : undefined;
+    // browsers refuse keepalive bodies over 64 KB (a save with Paint pictures in it): send those as a normal request
+    keepalive = !!keepalive && (!json || json.length < 60000);
     return fetch('/api/' + path, {
-      method, credentials: 'same-origin', cache: 'no-store', keepalive: !!keepalive, signal: keepalive ? undefined : ctl.signal,
-      headers: body ? { 'Content-Type': 'application/json' } : undefined, body: body ? JSON.stringify(body) : undefined,
+      method, credentials: 'same-origin', cache: 'no-store', keepalive, signal: keepalive ? undefined : ctl.signal,
+      headers: body ? { 'Content-Type': 'application/json' } : undefined, body: json,
     }).then(async r => { clearTimeout(t); let data = {}; try { data = await r.json(); } catch (e) {} return { ok: r.ok, status: r.status, data }; },
       e => { clearTimeout(t); throw e; });
   }

@@ -35,7 +35,7 @@ const ok = (cond, msg) => { console.log((cond ? 'ok   ' : 'FAIL ') + msg); if (!
   r = await a('save', 'PUT', { state: state(6000), rev: 1 }); ok(r.status === 409 && r.data.rev === 2, 'stale browser gets 409, not an overwrite');
   r = await a('me'); ok(r.data.state.playMs === 9000 && r.data.rev === 2, 'newest save wins');
   r = await a('save', 'PUT', { state: { nope: 1 }, rev: 2 }); ok(r.status === 400, 'malformed state rejected');
-  r = await a('save', 'PUT', { state: { solved: {}, pad: 'x'.repeat(200000) }, rev: 2 }); ok(r.status === 413, 'oversized save rejected');
+  r = await a('save', 'PUT', { state: { solved: {}, pad: 'x'.repeat(1200000) }, rev: 2 }); ok(r.status === 413, 'oversized save rejected');
   r = await a('save', 'POST', { state: state(1), rev: 2 }); ok(r.status === 405, 'wrong method rejected');
   r = await a('save', 'PUT', undefined, { 'Content-Type': 'text/plain' }); ok(r.status === 415, 'non-JSON write rejected (no cross-site form posts)');
 

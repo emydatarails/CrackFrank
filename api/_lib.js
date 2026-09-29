@@ -6,7 +6,7 @@ const RULES = require('../src/score_rules.js');   // the same scoring code the g
 
 const SESSION_DAYS = 30;
 const COOKIE = 'fc_session';
-const MAX_SAVE = 100 * 1024;           // bytes of JSON; a finished game is ~3 KB
+const MAX_SAVE = 1024 * 1024;          // bytes of JSON; a finished game is ~3 KB, Paint pictures (src/apps/paint.js) add up to ~600 KB
 const USER_RE = /^[A-Za-z0-9_.-]{3,20}$/;
 
 /* ---------- Redis (Upstash REST) ---------- */

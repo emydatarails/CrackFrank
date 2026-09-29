@@ -43,6 +43,12 @@ FR.apps = FR.apps || {};
     OBJ_KEYS.forEach(k => { if (st[k] !== undefined && (!st[k] || typeof st[k] !== 'object' || Array.isArray(st[k]))) st[k] = {}; });
     ['playMs', 'wrong'].forEach(k => { if (typeof st[k] !== 'number' || !isFinite(st[k]) || st[k] < 0) st[k] = 0; });
     Object.keys(st.hintsUsed).forEach(k => { const n = +st.hintsUsed[k]; st.hintsUsed[k] = isFinite(n) ? Math.max(0, Math.min(3, n)) : 0; });
+    // Paint's saved pictures (src/apps/paint.js): keep only well-formed ones
+    if (st.paint !== undefined) {
+      const okPic = f => f && typeof f === 'object' && typeof f.id === 'string' && typeof f.name === 'string' && f.name.length <= 80 && typeof f.png === 'string'
+        && f.png.startsWith('data:image/png;base64,') && f.w >= 1 && f.w <= 800 && f.h >= 1 && f.h <= 800;
+      st.paint = { files: (st.paint && Array.isArray(st.paint.files) ? st.paint.files.filter(okPic) : []).slice(0, 8) };
+    }
     return st;
   };
   FR.state = fresh();

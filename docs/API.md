@@ -24,6 +24,7 @@ Test page: `dist/index.html?dev=1` skips intro/login (logged in, all items unloc
 - `FR.balloon(title, text, onClick?)` → XP tray balloon notification.
 - `FR.sound.play('ding'|'chord'|'error'|'mail'|'tada'|'click'|'unlock')`.
 - `FR.state` (persisted): `{ solved: {id: timestampMs}, flags: {}, hintsUsed: {id: n}, readMail: {} , startedAt }`.
+  Paint adds `paint: { files: [{ id, name, w, h, png (PNG data URL), savedAt }] }` (max 8 pictures / 600 KB, validated by `harden` in core.js).
   `FR.save()` persists. `FR.flags.get(k)`, `FR.flags.set(k, v)` (persists + emits 'flag').
 - `FR.loadState(obj)` → a validated state (or null) built from a save that came from elsewhere.
 - `FR.account` (src/account.js): `{ user (player name or null), available (account server reachable), start(), screen(mode), signOut() }`.
@@ -47,7 +48,10 @@ Test page: `dist/index.html?dev=1` skips intro/login (logged in, all items unloc
   author?, title?, comments?, parent }`. Special folder ids: 'desktop', 'mycomputer', 'cdrive', 'mydocs', 'budget', 'board', 'bank',
   'cashdir'(hidden), 'personal', 'pics', 'recycle', 'bankzip' (a file node with app 'zip', whose `children` are listed by FR.fs.children('bankzip') once unlocked).
 - `FR.openFile(nodeOrId)` → dispatches to `FR.apps[node.app](node)`.
-- `FR.apps` — register your app: `FR.apps.excel = (node|null) => {...}`. App names: 'erp' (ShowMe ERP, no args), 'excel', 'mail' (Outlook Express; called with an .eml
+- `FR.fs.extra` — an app can push `() => [node, ...]` to add nodes generated at listing time from `FR.state` (Paint's saved
+  pictures in My Pictures). `FR.fs.get/children/path/nodes` include them. A generated node may carry `onDelete()`: Explorer's
+  Delete then really deletes it (everything else of Frank's stays "Access is denied").
+- `FR.apps` — register your app: `FR.apps.excel = (node|null) => {...}`. App names: 'erp' (ShowMe ERP, no args), 'paint' (Paint; null → kristians_by_frank.bmp, or a My Pictures node from FR.fs.extra), 'excel', 'mail' (Outlook Express; called with an .eml
   node or null), 'explorer' (called with a folder node/id), 'zip', 'notepad', 'image', 'ie' (called with url string or null), 'calc', 'checklist'
   (core), 'recycle' (= explorer at 'recycle').
 - Text file contents: `FR.data.texts[fileId] = '...'` (defined by the shell-apps file). Workbook data: inside excel.js. Emails: inside outlook.js.

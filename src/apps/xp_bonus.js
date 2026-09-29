@@ -144,8 +144,9 @@ P.S. Somebody keeps buying all the Funyuns at 2 AM.`,
   ];
   const BY = Object.fromEntries(TASKS.map(t => [t.id, t]));
   const pts = id => (R && R.BONUS && R.BONUS[id]) || 0;
-  const solved = () => (FR.state.bonus && typeof FR.state.bonus === 'object') ? FR.state.bonus : (FR.state.bonus = {});
+  const solved = () => (FR.state.bonus && typeof FR.state.bonus === 'object') ? FR.state.bonus : {};
   const flags = () => FR.state.flags;
+  const peekMail = () => { const v = flags().bonusMail; return v && typeof v === 'object' ? { at: v.at || {}, last: v.last || 0 } : { at: {}, last: 0 }; };   // (a tick never writes)
   const mailSt = () => { const f = flags(); if (!f.bonusMail || typeof f.bonusMail !== 'object') f.bonusMail = { at: {}, last: 0 }; f.bonusMail.at = f.bonusMail.at || {}; return f.bonusMail; };
   const tries = id => { const f = flags(); f.bonusTries = f.bonusTries && typeof f.bonusTries === 'object' ? f.bonusTries : {}; return f.bonusTries[id] || 0; };
   const addTry = id => { tries(id); flags().bonusTries[id] = (flags().bonusTries[id] || 0) + 1; FR.save(); return flags().bonusTries[id]; };
@@ -156,7 +157,7 @@ P.S. Somebody keeps buying all the Funyuns at 2 AM.`,
   function deliver(id, quiet) {
     const t = BY[id]; if (!t || !FR.mail || !FR.mail.incoming) return false;
     const ms = mailSt();
-    if (ms.at[id] != null || (FR.mail.byId && FR.mail.byId(mailId(id)))) return false;
+    if (ms.at[id] != null || hasMail(id)) return false;
     ms.at[id] = FR.clock.playMs(); ms.last = FR.clock.playMs(); FR.save();
     FR.mail.incoming({ id: mailId(id), from: t.from, subject: t.subject, body: t.body, bonus: id, read: false }, false);
     if (!quiet) {
@@ -166,11 +167,13 @@ P.S. Somebody keeps buying all the Funyuns at 2 AM.`,
     FR.bus.emit('bonus-mail', id);
     return true;
   }
-  const nextTask = () => TASKS.find(t => mailSt().at[t.id] == null && !(FR.mail.byId && FR.mail.byId(mailId(t.id))));
+  // (without touching Outlook's mailbox object: FR.mail.byId would create it, and a tick must never change the save)
+  const hasMail = id => { const oe = FR.state.flags.oe; return !!(oe && Array.isArray(oe.extra) && oe.extra.some(m => m && m.id === mailId(id))); };
+  const nextTask = () => { const at = peekMail().at; return TASKS.find(t => at[t.id] == null && !hasMail(t.id)); };
   FR.bus.on('play-tick', ms => {
     if (FR.xp.noPopups || FR.state.finishedAt) return;
     const t = nextTask(); if (!t || !FR.puzzle.isSolved(t.after)) return;
-    const s = mailSt();
+    const s = peekMail();
     if (ms < FIRST || (s.last && ms - s.last < GAP)) return;
     if (FR.xp.quiet() || document.querySelector('.fr-balloon')) return;   // its toast waits for a calm moment
     deliver(t.id);
@@ -179,7 +182,8 @@ P.S. Somebody keeps buying all the Funyuns at 2 AM.`,
   /* ---------- grading ---------- */
   function award(id, label) {
     if (!pts(id) || solved()[id]) return false;
-    solved()[id] = { solvedAt: Date.now(), pts: pts(id) };
+    if (!FR.state.bonus || typeof FR.state.bonus !== 'object') FR.state.bonus = {};
+    FR.state.bonus[id] = { solvedAt: Date.now(), pts: pts(id) };
     FR.save();
     FR.sound.play('unlock');
     const sc = FR.score ? FR.score.now() : null;

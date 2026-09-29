@@ -20,6 +20,8 @@
     "E-mail scanning: 14 messages from Drew in ALL CAPS. Loud, not malicious.",
     'Virus definitions are up to date. Excel is from 2003. Nobody is perfect.',
   ];
+  // (read-only until a popup is due: a tick must not change the save, or two computers would race each other)
+  const peek = () => { const v = FR.state.flags.norton; return v && typeof v === 'object' ? v : { next: FIRST, n: 0 }; };
   const st = () => { const f = FR.state.flags; if (!f.norton || typeof f.norton !== 'object') f.norton = { next: FIRST, n: 0 }; return f.norton; };
   const busy = () => FR.xp.quiet() || !!document.querySelector('.fr-balloon') || (FR.bsod && FR.bsod.active());
 
@@ -33,9 +35,9 @@
   }
   FR.bus.on('play-tick', ms => {
     if (FR.xp.noPopups || FR.state.finishedAt && document.querySelector('.fr-end')) return;
-    const s = st();
-    if (ms < s.next || busy()) return;          // not yet, or not now (it waits its turn)
+    if (ms < peek().next || busy()) return;     // not yet, or not now (it waits its turn)
     pop();
+    const s = st();
     s.next = ms + MIN + Math.floor(Math.random() * (MAX - MIN)); FR.save();
   });
 
@@ -43,7 +45,7 @@
   function statusWin() {
     if (FR.wm.wins.has('norton')) { const w = FR.wm.wins.get('norton'); w.restore(); w.focus(); return w; }
     const el = $(`<div class="nv">
-      <div class="nv-side"><div class="nv-brand"><span class="nv-ico32">${SHIELD}</span><b>Norton<br>AntiVirus</b><small>2003 &middot; Professional</small></div>
+      <div class="nv-side"><div class="nv-brand"><span class="nv-ico32">${SHIELD}</span><b>Norton <br>AntiVirus</b><small>2003 &middot; Professional</small></div>
         <a class="nv-nav on" data-p="status">Status</a><a class="nv-nav" data-p="scan">Scan for Viruses</a><a class="nv-nav" data-p="reports">Reports</a><a class="nv-nav nv-dis">Options</a></div>
       <div class="nv-main"></div></div>`);
     const main = el.querySelector('.nv-main');

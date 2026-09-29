@@ -22,7 +22,7 @@
     ['clock', 'Riga time'],
   ];
   const NAME = Object.fromEntries(EGGS);
-  const got = () => (FR.state.eggs && typeof FR.state.eggs === 'object') ? FR.state.eggs : (FR.state.eggs = {});
+  const got = () => (FR.state.eggs && typeof FR.state.eggs === 'object') ? FR.state.eggs : {};
   const count = () => EGGS.filter(([id]) => got()[id]).length;
 
   /* ---------- the note ("Easter egg found (n/N)") ---------- */
@@ -37,7 +37,8 @@
   }
   function find(id) {
     if (!NAME[id] || got()[id]) return false;
-    got()[id] = Date.now();
+    if (!FR.state.eggs || typeof FR.state.eggs !== 'object') FR.state.eggs = {};
+    FR.state.eggs[id] = Date.now();
     const n = count();
     FR.save();
     toast(id, n);
@@ -177,11 +178,11 @@ I'm taking Thursday off.
     g.strokeStyle = '#ffff00'; g.lineWidth = 2; path([[200, 131], [212, 131]]); g.stroke(); path([[268, 131], [280, 131]]); g.stroke();
     // labels, in Paint's Arial, crooked
     g.fillStyle = '#000000'; g.font = 'bold 22px Arial, sans-serif';
-    g.save(); g.translate(26, 42); g.rotate(-0.06); g.fillText('ME', 0, 0); g.restore();
-    g.lineWidth = 3; g.strokeStyle = '#000000'; path([[62, 44], [150, 110]]); g.stroke(); path([[150, 110], [134, 106]]); g.stroke(); path([[150, 110], [144, 95]]); g.stroke();
-    g.font = '14px Arial, sans-serif'; g.fillText("(Drew's hat. borrowed. he doesn't know)", 18, 76);
+    g.save(); g.translate(22, 38); g.rotate(-0.06); g.fillText('ME', 0, 0); g.restore();
+    g.font = '14px Arial, sans-serif'; g.fillText("(in Drew's hat. borrowed. he doesn't know)", 22, 60);
+    g.lineWidth = 3; g.strokeStyle = '#000000'; path([[60, 70], [150, 114]]); g.stroke(); path([[150, 114], [133, 113]]); g.stroke(); path([[150, 114], [140, 100]]); g.stroke();
     g.font = 'italic 13px "Times New Roman", serif'; g.fillText('self portrait, 2 AM. F.W.', 330, 344);
-    g.fillStyle = '#ff0000'; g.font = 'bold 15px Arial, sans-serif'; g.save(); g.translate(334, 108); g.rotate(0.12); g.fillText('YEEHAW = XLOOKUP', 0, 0); g.restore();
+    g.fillStyle = '#ff0000'; g.font = 'bold 15px Arial, sans-serif'; g.save(); g.translate(318, 96); g.rotate(0.1); g.fillText('YEEHAW = XLOOKUP', 0, 0); g.restore();
     // snap every pixel to Paint's 28 colours, no anti-aliasing: it has to look like 2 AM in mspaint
     const PAL = ['#000000', '#808080', '#800000', '#808000', '#008000', '#008080', '#000080', '#800080', '#804000', '#ffffff', '#c0c0c0', '#ff0000', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#ff00ff', '#ffff80', '#80ffff', '#0080ff', '#ff8040']
       .map(h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]);

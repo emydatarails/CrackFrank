@@ -122,7 +122,7 @@
 
   function confirmStartOver() {
     const keeps = FR.account && FR.account.user && FR.puzzle.isSolved('frank') ? '<br><br>Your place on the leaderboard stays: only your first finished game counts.' : '';
-    return FR.dialog({ icon: 'warn', title: 'Start over', message: "Start over from the beginning?<br><br>Everything you've done at Frank's desk will be erased: the checklist, hints and time." + keeps, buttons: ['Start over', 'Cancel'] })
+    return FR.dialog({ icon: 'warn', title: 'Start over', message: "Start over from the beginning?<br><br>Everything you've done at Frank's desk will be erased: the checklist, hints and time." + keeps, buttons: ['Start over', 'Cancel'], def: FR.mobile ? 1 : 0 })
       .then(r => { if (r.button === 'Start over') Promise.resolve(FR.resetSave()).then(() => location.reload()); });
   }
 
@@ -720,6 +720,10 @@
       if (d.me) rankEl.innerHTML = `You're <b>#${d.me.rank}</b> of ${FR.score.fmt(d.players)} ${d.players === 1 ? 'person who has' : 'people who have'} covered for Frank${d.me.score !== sc.score ? ` with your first finished game (${FR.score.fmt(d.me.score)} points)` : ''}.`;
     }, () => {});
     e.querySelector('[data-a=again]').onclick = () => confirmStartOver();
+    // phones: it comes up by itself, so a tap already on its way (meant for the taskbar, a window) must not press
+    // anything on it (1.5 s); "Play again" sits apart, never in the bottom strip where the taskbar was (mobile.css),
+    // and its "Start over?" box has Cancel as the default
+    if (FR.mobile) { e.classList.add('fr-guard'); e._frShown = Date.now(); e._frGuard = 1500; }
     root.appendChild(e);
     FR.sound.play('tada');
   }

@@ -1662,7 +1662,12 @@
       NR = d.nr; NC = d.nc;
       colWd = []; for (let c = 0; c < NC; c++) colWd[c] = s.colW[c] || DEFW;
       // phones: column A is frozen (sticky), so it may take at most ~40% of the grid's width; longer labels show in full on tap
-      if (FR.mobile) { const vw = scroll.clientWidth || (innerWidth / 1.2); colWd[0] = Math.min(colWd[0], Math.max(96, Math.round((vw - RHW) * 0.42))); }
+      if (FR.mobile) {
+        const vw = scroll.clientWidth || (innerWidth / 1.2);
+        colWd[0] = Math.min(colWd[0], Math.max(96, Math.round((vw - RHW) * 0.42)));
+        // any other column at most ~55% of the grid, so a very wide text column never pushes the numbers off-screen
+        for (let c = 1; c < NC; c++) colWd[c] = Math.min(colWd[c], Math.max(110, Math.round((vw - RHW) * 0.55)));
+      }
       rowHt = []; for (let r = 0; r < NR; r++) rowHt[r] = s.rowH[r] || DEFH;
       let h = `<colgroup><col style="width:${RHW}px">${colWd.map(w => `<col style="width:${w}px">`).join('')}</colgroup><thead><tr><th class="xl-corner"><span></span></th>`;
       for (let c = 0; c < NC; c++) h += `<th class="xl-ch" data-c="${c}">${colName(c)}</th>`;
@@ -2075,6 +2080,20 @@
       pushUndo(batch);
       applyChanges(batch.map(x => ({ si: x.si, r: x.r, c: x.c, raw: x.neu, s: x.neuS })));
     }
+    function fillTo() {
+      if (st.edit && !commit(0, 0)) return;
+      const from = a1(st.ar, st.ac), r0 = st.ar, c0 = st.ac, si = st.si;
+      FR.dialog({ icon: 'question', title: 'Fill', message: `Copy <b>${from}</b> right or down, up to which cell?<br><small>A cell in the same row fills right (e.g. ${a1(r0, Math.min(NC - 1, c0 + 3))}), one in the same column fills down (e.g. ${a1(Math.min(NR - 1, r0 + 3), c0)}). A formula moves along, like dragging the fill handle.</small>`, input: { label: 'Up to cell:', value: '' }, buttons: ['Fill', 'Cancel'] }).then(r => {
+        if (r.button !== 'Fill' || st.si !== si) return;
+        const p = parseA1((r.value || '').trim().replace(/^.*!/, '').split(':').pop());
+        if (!p || (p.r !== r0 && p.c !== c0) || (p.r === r0 && p.c === c0)) { FR.dialog({ icon: 'error', title: 'Microsoft Excel', message: `Pick a cell in the same row (to fill right) or the same column (to fill down) as ${from}.` }); return; }
+        const r1 = Math.min(NR - 1, p.r), c1 = Math.min(NC - 1, p.c);
+        st.ar = Math.min(r0, r1); st.ac = Math.min(c0, c1);
+        st.anchor = { r: r0, c: c0 }; st.focus = { r: r1, c: c1 };
+        fillRange({ r0, r1: r0, c0, c1: c0 }, { r0: Math.min(r0, r1), r1: Math.max(r0, r1), c0: Math.min(c0, c1), c1: Math.max(c0, c1) });
+        st.ar = r0; st.ac = c0; drawSel();
+      });
+    }
     function fillDir(dir) {
       if (st.edit && !commit(0, 0)) return;
       const { r0, r1, c0, c1 } = selRect();
@@ -2207,7 +2226,10 @@
     if (FR.mobile) {
       const zb = $('<button class="xl-zoomb" aria-label="Fit the sheet to the screen width">Fit</button>');
       zb.onclick = e => { e.stopPropagation(); setFit(!st.fit); };
-      q('.xl-tabbar').appendChild(zb);
+      // no fill handle to drag on a phone: "Fill…" copies the current cell right or down to a cell you name
+      const fb = $('<button class="xl-fillb" aria-label="Fill right or down">Fill…</button>');
+      fb.onclick = e => { e.stopPropagation(); fillTo(); };
+      q('.xl-tabbar').append(fb, zb);
       scroll.addEventListener('scroll', () => scroll.classList.toggle('xl-sx', scroll.scrollLeft > 2), { passive: true });
       wrap.addEventListener('mousedown', e => {
         const p = cellAt(e);

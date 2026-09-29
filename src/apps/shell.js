@@ -878,7 +878,9 @@
       root.querySelectorAll('.sh-pane').forEach(p => (p.hidden = p.dataset.i !== b.dataset.i));
     }));
     const win = FR.wm.open({ id, title, icon, width, height: 480, resizable: false, className: 'sh-sheetwin', content: root });
-    win.el.style.height = 'auto';
+    // phones: the sheet fills the screen (the window manager maximizes it); its page scrolls by touch and
+    // OK / Cancel / Apply stay pinned at the bottom
+    if (FR.mobile) { if (!win.max) win.maximize(true); } else win.el.style.height = 'auto';
     const apply = root.querySelector('.sh-apply');
     root.addEventListener('change', () => (apply.disabled = false));
     root.addEventListener('input', () => (apply.disabled = false));
@@ -1100,7 +1102,11 @@
       const v = ta.value.slice(0, ta.selectionStart); const lines = v.split('\n');
       root.querySelector('.np-pos').textContent = `Ln ${lines.length}, Col ${lines[lines.length - 1].length + 1}`;
     };
-    const setWrap = on => { S.wrap = on; ta.setAttribute('wrap', on ? 'soft' : 'off'); ta.classList.toggle('np-nowrap', !on); };
+    // phones: a visible Wrap switch (the Format menu is far away and sideways swiping a wide text is tiring)
+    const wrapB = FR.mobile ? $('<button class="np-wrapb" aria-label="Word wrap"></button>') : null;
+    const setWrap = on => { S.wrap = on; ta.setAttribute('wrap', on ? 'soft' : 'off'); ta.classList.toggle('np-nowrap', !on);
+      if (wrapB) { wrapB.textContent = on ? 'Wrap: on' : 'Wrap: off'; wrapB.classList.toggle('on', on); } };
+    if (wrapB) { root.appendChild(wrapB); wrapB.onclick = e => { e.stopPropagation(); setWrap(!S.wrap); if (S.wrap) setStatus(false); }; }
     const setStatus = on => { S.status = on; root.classList.toggle('np-sbon', on); pos(); };
     const saveDenied = () => FR.dialog({ title: 'Notepad', icon: 'error', message: `Cannot create the ${esc(node ? FR.fs.path(node.parent) + '\\' + node.name : 'Untitled.txt')} file.<br><br>Access is denied. Make sure the path and file name are correct.` });
     const find = async () => {

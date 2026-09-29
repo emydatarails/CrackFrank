@@ -19,7 +19,8 @@ Test page: `dist/index.html?dev=1` skips intro/login (logged in, all items unloc
   If `id` is given and a window with that id exists, it is focused and returned instead of opening a new one.
   `win` = `{ id, el (the .window), body (the .window-body element; you fill it), setTitle(t), setStatus(i, text), close(), focus(), minimize(), maximize() }`.
 - `FR.wm.dialog({ title, icon: 'error'|'warn'|'info'|'question'|'lock'|'key', message (html), input?: {label, type:'password'|'text', value?},
-  buttons?: ['OK'] | ['OK','Cancel'] | ['Yes','No'], width? })` → Promise resolving `{ button, value }`. Modal, beeps (error/warn).
+  buttons?: ['OK'] | ['OK','Cancel'] | ['Yes','No'], width?, def? })` → Promise resolving `{ button, value }`. Modal, beeps (error/warn).
+  `def` = index of the default (focused) button, 0 if omitted; closing with ✕ always answers the last button.
 - `FR.balloon(title, text, onClick?)` → XP tray balloon notification.
 - `FR.sound.play('ding'|'chord'|'error'|'mail'|'tada'|'click'|'unlock')`.
 - `FR.state` (persisted): `{ solved: {id: timestampMs}, flags: {}, hintsUsed: {id: n}, readMail: {} , startedAt }`.

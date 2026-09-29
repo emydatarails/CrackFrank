@@ -34,7 +34,9 @@
   .fr-offbtn { padding: 8px 0; }
   /* the password row stays where it is when the error and the hint appear under it; one column on every phone/tablet
      (the two-column desktop layout doesn't fit an iPad in portrait) */
-  .fr-login-mid { flex-direction: column; justify-content: flex-start; align-items: center; gap: 20px; padding: 22px 16px 16px; }
+  .fr-login-mid { flex-direction: column; justify-content: flex-start; align-items: center; gap: 20px; padding: 22px 16px 16px; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  .fr-login-mid > * { flex: none; }
+  .fr-login-top, .fr-login-bot { flex: none; }
   .fr-login-left, .fr-login-right { width: 100%; max-width: 480px; padding: 0; align-items: center; text-align: center; }
   .fr-login-div, .fr-login-note { display: none; }
   .fr-user { min-width: 0; width: 100%; }
@@ -75,7 +77,10 @@
   .fr-swl-r.on { background: #dfe9fb; font-weight: 700; }
   .fr-swl-r.min .fr-swl-t { color: #555; }
   .fr-swl-t { flex: 1 1 auto; min-width: 0; line-height: 1.3; overflow-wrap: anywhere; }
-  #fr-root .fr-swl-x { flex: none; width: 40px; height: 40px; min-width: 0; min-height: 0; padding: 0; font-size: 15px; color: #a3261c; background: none; border: 0; box-shadow: none; }
+  .fr-swl-r.gone { opacity: .45; }
+  .fr-swl-r.gone .fr-swl-t b { text-decoration: line-through; }
+  .fr-swl-desk { margin-top: 10px; border-top: 1px solid #c9d3e6; }
+  #fr-root .fr-swl-x { margin-left: 10px; border-left: 1px solid #e3e7ef !important; border-radius: 0 !important; flex: none; width: 48px; height: 44px; min-width: 0; min-height: 0; padding: 0; font-size: 15px; color: #a3261c; background: none; border: 0; box-shadow: none; }
   .fr-swl-desk { color: #0a246a; }
   .fr-swl-empty { padding: 14px 12px; color: #555; font-size: 12.5px; }
   #fr-root .fr-task { flex: 0 1 118px; min-width: 46px; height: 32px; font-size: 12px; padding: 0 7px; }
@@ -100,12 +105,19 @@
   .fr-start-foot { flex: none; }
   .fr-sm-item { padding: 7px 6px; font-size: 12px; }
   .fr-sm-item small { font-size: 11px; }
-  /* balloons: a toast at the top (clear of the title-bar buttons), never over the work at the bottom, never while typing */
-  .fr-balloon { top: 4px; bottom: auto; left: 4px; right: auto !important; width: min(420px, calc(100vw - 84px)); font-size: 12px; padding: 7px 9px 8px; box-shadow: 2px 3px 10px rgba(0,0,0,.45); }
+  /* balloons (Q5): a slim strip just above the taskbar, never over a window's title bar, its Minimize/Close or its
+     menu bar, never over the formula bar (and never while typing); a title line + at most three lines of text,
+     and a real ✕ (44 px, set apart) at its right */
+  .fr-balloon { top: auto; bottom: 44px; left: 4px; right: 4px !important; width: auto; min-height: 46px; max-height: 76px; font-size: 12px; line-height: 15px; padding: 5px 54px 6px 9px; border-radius: 6px; overflow: hidden; box-shadow: 0 -1px 10px rgba(0,0,0,.4); }
+  .fr-balloon .fr-balloon-t { margin: 0 0 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+  .fr-balloon .fr-balloon-t .fr-ico { display: none; }
+  .fr-balloon .fr-balloon-b { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+  .fr-balloon .fr-balloon-b .fr-ktip { display: block; }
+  .fr-balloon .fr-balloon-b .fr-ktip img { display: none; }
+  .fr-balloon .fr-balloon-x { position: absolute; right: 0; top: 0; bottom: 0; width: 46px; display: flex; align-items: center; justify-content: center; border: 0; border-left: 1px solid #cfcb95; border-radius: 0 6px 6px 0; background: #f4f2c8; font-size: 16px; padding: 0; margin: 0; }
   .fr-balloon::after { display: none; }
   html.fr-kb .fr-balloon { display: none; }
   .fr-modal-shade { background: rgba(0,0,0,.28); }
-  .fr-balloon-x { font-size: 13px; padding: 3px 8px; }
   .fr-ctx { min-width: 190px; font-size: 13px; }
   .fr-ctx .fr-menu-item { padding: 10px 12px 10px 4px; }
 
@@ -192,7 +204,8 @@
   .xl-st-box { display: none; }
   .xl-cm { font-size: 13px; }
   .xl-selbox { border-width: 3px; }   /* the cell you're on stays clearly outlined */
-  #fr-root .xl-zoomb { flex: none; align-self: center; margin: 0 4px 0 auto; min-width: 52px; min-height: 0; height: 26px; padding: 0 8px; font: 700 12px Tahoma, sans-serif; }
+  #fr-root .xl-fillb { flex: none; align-self: center; margin: 0 4px 0 auto; min-width: 52px; min-height: 0; height: 26px; padding: 0 8px; font: 12px Tahoma, sans-serif; }
+  #fr-root .xl-zoomb { flex: none; align-self: center; margin: 0 4px 0 0; min-width: 52px; min-height: 0; height: 26px; padding: 0 8px; font: 700 12px Tahoma, sans-serif; }
   #fr-root .xl-zoomb.on { background: #dfe9fb; border-color: #316ac5; }
   #fr-root .ck-file.ck-sel { outline: 3px solid #316ac5; outline-offset: 1px; background: #dfe9fb; }
   .fr-swl-t b { display: block; font-weight: 400; }
@@ -250,13 +263,25 @@
   .ex-task { padding: 6px 0; }
   .sh-pop { min-width: 190px; font-size: 13px; }
   .sh-pop-i { height: 40px; }
-  .sh-sheetwin > .window-body { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .sh-sheetwin > .window-body { flex: 1 1 auto; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+  .sh-sheetwin .sh-sheet { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+  .sh-sheetwin .sh-sheet > menu[role=tablist] { flex: none; }
+  .sh-sheetwin .sh-panes { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
+  .sh-sheetwin .sh-sheet-btns { flex: none; padding-top: 8px; border-top: 1px solid #d6d2c2; background: #ece9d8; }
+  .sh-sheetwin .sh-sheet-btns button { flex: 1 1 0; }
+  /* message boxes: never taller than the screen; a long message scrolls, the buttons stay visible */
+  .fr-dialog { max-height: calc(100% - 8px); }
+  .fr-dialog > .window-body.fr-body { flex: 1 1 auto; min-height: 0; }
+  .fr-dialog .fr-dlg { display: flex; flex-direction: column; min-height: 0; max-height: 100%; }
+  .fr-dialog .fr-dlg-row { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  .fr-dialog .fr-dlg-input, .fr-dialog .fr-dlg-btns { flex: none; }
   .sh-sheet { font-size: 12.5px; }
   .sh-sheet [role=tabpanel] { height: auto; min-height: 0; }
   .sh-sheet menu[role=tablist] button { min-height: 34px; font-size: 12.5px; padding: 0 12px; }
   .sh-sheet-btns button { min-height: 38px; }
   .fo-adv { height: auto; overflow: visible; }
-  .fo-row { min-height: 34px; }
+  .fo-row { min-height: 44px; }
+  .fo-row + .fo-row { border-top: 1px solid #eef0f4; }
   .fo-opt { margin: 6px 0 9px; }
   .fo-row input, .fo-opt input { width: 22px; height: 22px; flex: none; }
   .fo-row label, .fo-opt label { padding: 6px 0; }
@@ -265,6 +290,10 @@
   /* ---------- Notepad, pictures, IE, calculator ---------- */
   #fr-root .np-ta { font-size: 13px !important; line-height: 18px; }
   #fr-root .np-ta.np-nowrap { font-size: 12px !important; line-height: 16px; }
+  .np { position: relative; }
+  #fr-root .np-wrapb { position: absolute; right: 10px; bottom: 10px; z-index: 2; min-width: 0; min-height: 0; height: 34px; padding: 0 12px; font: 12px Tahoma, sans-serif; border-radius: 17px; background: #fff; border: 1px solid #7f9db9; box-shadow: 0 1px 4px rgba(0,0,0,.25); opacity: .92; }
+  #fr-root .np-wrapb.on { background: #dfe9fb; border-color: #316ac5; }
+  #fr-root .np-sbon .np-wrapb { bottom: 30px; }
   .iv-bar { flex-wrap: wrap; }
   .iv-bar button { width: 38px; height: 38px; }
   .ie-links { display: none; }   /* the same links are under Favorites; the page gets the room */
@@ -302,10 +331,12 @@
   .st-t td:nth-child(2) { overflow-wrap: anywhere; min-width: 70px; }
 
   /* ---------- ending ---------- */
-  .fr-end { padding: 16px 12px; align-items: flex-start; }
+  /* (Q2) the bottom strip, where the taskbar was, stays empty: a stray tap there never lands on a button */
+  .fr-end { padding: 16px 12px 110px; align-items: flex-start; }
   .fr-end-card p { font-size: 14px; }
   .fr-end-stats div { min-width: 0; flex: 1 1 40%; padding: 10px 8px; }
   .fr-end-cta a, .fr-end-cta button { min-height: 44px; }
+  .fr-end-cta [data-a=again] { order: 9; width: 140px; margin: 16px calc(50% - 70px) 0; background: none; border: 0; text-decoration: underline; color: #9fb0d9; min-height: 40px; }
   .fr-saver-m { font-size: 32px; }
   .fr-shut-box { width: min(320px, calc(100vw - 16px)); }
   .fr-shut-b div { padding: 6px; }
@@ -341,7 +372,22 @@
   html.fr-m .oe-list { flex: 0 0 52%; }
   html.fr-m .oe-prev-split { display: none !important; }
   html.fr-m .oe-tbb .oe-tbi { width: 20px; height: 20px; margin-bottom: 0; }
-  html.fr-m .fr-balloon { width: min(330px, calc(100vw - 16px)); }
+  /* Outlook sideways: no menu bar, one-line toolbar buttons, tighter headers (about twice the message text) */
+  html.fr-m .oe-win > .fr-menubar { display: none; }
+  html.fr-m .oe-tbb { flex-direction: row; gap: 4px; min-width: 0; padding: 2px 6px; }
+  html.fr-m .oe-tb { padding: 1px 4px; min-height: 0; }
+  html.fr-m .oe-ph, html.fr-m .oe-mh { font-size: 11.5px; line-height: 15px; padding: 2px 8px 3px; }
+  html.fr-m .oe-tn { height: 30px; }
+  html.fr-m .oe-tbb { height: 34px; }
+  html.fr-m .oe-ph .oe-hr, html.fr-m .oe-mh .oe-hr { display: inline; margin-right: 14px; }   /* From · Date · To on one line */
+  html.fr-m .oe-ph .oe-hr b, html.fr-m .oe-mh .oe-hr b { min-width: 0; }
+  html.fr-m .oe-ph .oe-hr-att, html.fr-m .oe-mh .oe-hr-att { display: flex; }
+  /* property sheets sideways: slimmer tabs and buttons, the settings get the height */
+  html.fr-m .sh-sheet menu[role=tablist] button { min-height: 30px; }
+  html.fr-m .sh-sheetwin .sh-sheet-btns { padding-top: 4px; }
+  html.fr-m .sh-sheet-btns button { min-height: 34px; }
+  html.fr-m .fr-balloon { bottom: 37px; min-height: 40px; max-height: 50px; padding-top: 3px; padding-bottom: 3px; }
+  html.fr-m .fr-balloon .fr-balloon-b { -webkit-line-clamp: 2; }
   html.fr-m .fr-start-head { height: 44px; }
   /* Excel sideways: no menu bar, slimmer title bar, formula bar, tabs and taskbar (about 13 rows instead of 8) */
   html.fr-m .xl-win .fr-menubar { display: none; }

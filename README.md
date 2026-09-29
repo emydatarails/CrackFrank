@@ -145,11 +145,17 @@ The game also plays on a phone or small tablet. `src/core.js` decides it once wi
 `(max-width: 760px), (pointer: coarse) and (max-width: 1100px)` (`FR.mobile`, and `<html class="fr-m">`), and follows
 rotation. Desktop browsers never match it and are unchanged. On a phone:
 
-- app windows fill the screen above a taller taskbar (no Maximize, nothing to drag); dialogs sit in the upper part of the screen;
-- the taskbar has one switcher button that lists every open window by its full title; IE keeps its bars at the bottom;
+- app windows fill the screen above a taller taskbar (no Maximize, nothing to drag); dialogs sit in the upper part of the screen
+  and never grow past it (a long message scrolls, the buttons stay); property sheets (Folder Options) fill the screen with
+  OK / Cancel pinned at the bottom and a page that scrolls by swiping;
+- the taskbar has one switcher button that lists every open window by its full title (rows stay put while you close
+  windows from it); IE keeps its bars at the bottom;
 - a tap that started just before a message box or window appeared is ignored (no answering by accident); one-tap checklist
-  answers (weeks, suspects) ask for a Submit; balloons are a toast at the top that never vanishes under a finger;
-- Excel keeps column A frozen, Enter stays on the cell, and tapping cut-off text shows all of it;
+  answers (weeks, suspects) ask for a Submit; balloons are a slim strip above the taskbar with a big ✕ that never vanishes
+  under a finger; the end screen ignores taps for a moment and "Play again" asks with Cancel as the default;
+- Excel keeps column A frozen (and very wide columns capped), Enter stays on the cell, tapping cut-off text shows all of it,
+  Fit / 100% zooms the sheet to the screen width and Fill… copies a cell right or down (the fill handle);
+- Notepad has a Wrap on/off button;
 - one tap opens desktop icons, Explorer items and (tapping it again) a selected message; a long-press is a right-click;
 - Excel: tap a cell to select it (and read its red-triangle note), tap it again to type in the formula bar; Enter or ✓ puts it in;
 - when the soft keyboard comes up, the screen shrinks to the part above it, so the field being typed in stays visible;
@@ -167,7 +173,7 @@ pip install playwright && python3 test/play.py   # full honest playthrough in he
 python3 test/account_play.py             # sign up, continue on another computer, guest → player, sign out, conflicts
 python3 test/erp_play.py                 # ShowMe ERP: every module, exports, no puzzle answers inside
 python3 test/score_play.py               # checklist score, paid hints, desktop shortcut → leaderboard, ending rank
-python3 test/mobile_play.py              # the whole game by touch on an emulated iPhone, plus landscape and a small phone
+python3 test/mobile_play.py              # the whole game by touch on an emulated iPhone 13 and Pixel 7, plus landscape and a small phone
 ```
 
 ## Sounds

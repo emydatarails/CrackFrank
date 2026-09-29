@@ -179,7 +179,7 @@ FR.apps = FR.apps || {};
     b.querySelector('.fr-sw-t').textContent = a ? splitTitle(winTitle(a))[0] : 'Windows';
     b.querySelector('.fr-sw-n').textContent = ws.length;
     b.classList.toggle('on', !!swEl);
-    if (swEl) swList(true);
+    if (swEl) swMark();   // the open list keeps its rows where they are (it is re-sorted the next time it opens)
   }
   // "Microsoft Excel - Budget.xls" → ['Budget.xls', 'Microsoft Excel']; "Inbox - Outlook Express" → ['Inbox', 'Outlook Express']
   const splitTitle = t => {
@@ -187,6 +187,16 @@ FR.apps = FR.apps || {};
     m = /^(.+) - (Internet Explorer|Outlook Express|Notepad|Windows Picture and Fax Viewer|Document Viewer)$/.exec(t); if (m) return [m[1], m[2]];
     return [t, ''];
   };
+  // the open list after a window was closed or switched: the row stays (greyed, "closed"), nothing moves under the finger
+  function swMark() {
+    if (!swEl) return;
+    const open = appWins();
+    swEl.querySelectorAll('.fr-swl-r[data-wid]').forEach(r => {
+      const v = open.find(x => x.id === r.dataset.wid);
+      if (!v && !r.classList.contains('gone')) { r.classList.add('gone'); r.classList.remove('on'); r.onclick = null; const sm = r.querySelector('small'); if (sm) sm.textContent = 'closed'; const x = r.querySelector('.fr-swl-x'); if (x) { x.onclick = null; x.style.visibility = 'hidden'; } const c = r.querySelector('.fr-swl-cur'); if (c) c.remove(); }
+    });
+    const h = swEl.querySelector('.fr-swl-h'); if (h) h.textContent = `Open windows (${open.length})`;
+  }
   function swList(show) {
     if (swEl) { swEl.remove(); swEl = null; }
     const host = taskbarList && taskbarList.closest('.fr-desktop');
@@ -202,7 +212,7 @@ FR.apps = FR.apps || {};
       r.querySelector('b').textContent = t;
       r.querySelector('small').textContent = [app, v.min ? 'minimized' : ''].filter(Boolean).join(' · ');
       r.onclick = e => { e.stopPropagation(); swList(false); if (v.min) v.restore(); v.focus(); };
-      r.querySelector('.fr-swl-x').onclick = e => { e.stopPropagation(); FR.sound.play('click'); v.close(); setTimeout(() => { if (swEl) swList(true); }, 160); };
+      r.querySelector('.fr-swl-x').onclick = e => { e.stopPropagation(); FR.sound.play('click'); v.close(); setTimeout(swMark, 0); };
       return r;
     };
     if (ck) body.appendChild(row(ck, true));
@@ -215,11 +225,13 @@ FR.apps = FR.apps || {};
     if (!ws.length) body.appendChild($('<div class="fr-swl-empty">Nothing else is open. Open something from the desktop or the Start menu.</div>'));
     if (all.some(v => !v.min)) {
       const d = $(`<div class="fr-swl-r fr-swl-desk">${FR.icon('computer', 18)}<span class="fr-swl-t"><b>Show the desktop</b></span></div>`);
-      d.onclick = e => { e.stopPropagation(); swList(false); all.forEach(v => v.minimize()); };
+      d.onclick = e => { e.stopPropagation(); swList(false); appWins().forEach(v => v.minimize()); };
       body.appendChild(d);
     }
     L._frShown = Date.now(); L._frGuard = 300;
     host.appendChild(L); swEl = L;
+    // anchored at its top edge from now on: closing a window never slides the rows below the finger
+    L.style.top = L.offsetTop + 'px'; L.style.bottom = 'auto';
     const b = document.querySelector('.fr-switch'); if (b) b.classList.add('on');
     setTimeout(() => document.addEventListener('mousedown', function h(e) { if (!swEl || swEl !== L) return document.removeEventListener('mousedown', h, true); if (!L.contains(e.target) && !e.target.closest('.fr-switch')) { swList(false); document.removeEventListener('mousedown', h, true); } }, true), 0);
   }
@@ -397,7 +409,7 @@ FR.apps = FR.apps || {};
         const btns = o.buttons || ['OK'];
         const content = $(`<div class="fr-dlg"><div class="fr-dlg-row">${FR.icon(iconName, 32)}<div class="fr-dlg-msg">${o.message || ''}</div></div>
           ${o.input ? `<div class="fr-dlg-input"><label>${o.input.label || ''}</label><input type="${o.input.type || 'text'}" autocomplete="off" spellcheck="false" autocapitalize="off" autocorrect="off"></div>` : ''}
-          <div class="fr-dlg-btns">${btns.map((b, i) => `<button ${i === 0 ? 'class="default"' : ''}>${b}</button>`).join('')}</div></div>`);
+          <div class="fr-dlg-btns">${btns.map((b, i) => `<button ${i === (o.def || 0) ? 'class="default"' : ''}>${b}</button>`).join('')}</div></div>`);
         FR.wm.layer().appendChild(shade);
         const prev = FR.wm.active;
         const w = FR.wm.open({ title: o.title || 'Frank Warmington\'s Computer', icon: iconName, width: o.width || 380, height: o.height || (o.input ? 190 : 150), resizable: false, content, className: 'fr-dialog', onClose: () => { finish(btns[btns.length - 1]); } });
@@ -419,7 +431,7 @@ FR.apps = FR.apps || {};
           setTimeout(() => { if (!FR.wm.topDialog()) FR.bus.emit('dialog-closed', back && wins.has(back.id) ? back : FR.wm.active); }, 0); }
         content.querySelectorAll('.fr-dlg-btns button').forEach((b, i) => (b.onclick = () => finish(btns[i])));
         if (inp) { inp.value = o.input.value || ''; setTimeout(() => inp.focus(), 30); inp.onkeydown = e => { if (e.key === 'Enter') finish(btns[0]); if (e.key === 'Escape') finish(btns[btns.length - 1]); }; }
-        else setTimeout(() => content.querySelector('button').focus(), 30);
+        else setTimeout(() => (content.querySelector('.fr-dlg-btns button.default') || content.querySelector('button')).focus(), 30);
         if (iconName === 'error') FR.sound.play('error'); else if (iconName === 'warn') FR.sound.play('warn'); else if (iconName !== 'lock' && iconName !== 'key') FR.sound.play('ding');
       });
     },
@@ -442,7 +454,8 @@ FR.apps = FR.apps || {};
     if (document.querySelector('.fr-end')) return;
     // phones: never while typing (keyboard up) or while a message box waits for an answer; it waits its turn
     const typing = () => { const a = document.activeElement; return !!a && (/^(INPUT|TEXTAREA)$/.test(a.tagName) && !a.readOnly) && !!a.closest('#fr-root'); };
-    if (FR.mobile && (document.documentElement.classList.contains('fr-kb') || FR.wm.topDialog() || typing())) {
+    // (nor over a property sheet's OK / Cancel or a checklist Submit bar, which sit where the toast goes)
+    if (FR.mobile && (document.documentElement.classList.contains('fr-kb') || FR.wm.topDialog() || typing() || document.querySelector('.sh-sheetwin:not(.fr-inactive):not(.fr-closing), .fr-win:not(.fr-inactive) .ck-confirm'))) {
       const n = (opts.tries || 0) + 1; if (n < 20) setTimeout(() => FR.balloon(title, text, onClick, Object.assign({}, opts, { tries: n })), 1500); return;
     }
     if (!opts.silent && Date.now() - (FR._lastSound || 0) > 400) FR.sound.play('notify');

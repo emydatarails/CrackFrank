@@ -1195,7 +1195,9 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   .fr-offbtn { padding: 8px 0; }
   /* the password row stays where it is when the error and the hint appear under it; one column on every phone/tablet
      (the two-column desktop layout doesn't fit an iPad in portrait) */
-  .fr-login-mid { flex-direction: column; justify-content: flex-start; align-items: center; gap: 20px; padding: 22px 16px 16px; }
+  .fr-login-mid { flex-direction: column; justify-content: flex-start; align-items: center; gap: 20px; padding: 22px 16px 16px; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  .fr-login-mid > * { flex: none; }
+  .fr-login-top, .fr-login-bot { flex: none; }
   .fr-login-left, .fr-login-right { width: 100%; max-width: 480px; padding: 0; align-items: center; text-align: center; }
   .fr-login-div, .fr-login-note { display: none; }
   .fr-user { min-width: 0; width: 100%; }
@@ -1236,7 +1238,10 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   .fr-swl-r.on { background: #dfe9fb; font-weight: 700; }
   .fr-swl-r.min .fr-swl-t { color: #555; }
   .fr-swl-t { flex: 1 1 auto; min-width: 0; line-height: 1.3; overflow-wrap: anywhere; }
-  #fr-root .fr-swl-x { flex: none; width: 40px; height: 40px; min-width: 0; min-height: 0; padding: 0; font-size: 15px; color: #a3261c; background: none; border: 0; box-shadow: none; }
+  .fr-swl-r.gone { opacity: .45; }
+  .fr-swl-r.gone .fr-swl-t b { text-decoration: line-through; }
+  .fr-swl-desk { margin-top: 10px; border-top: 1px solid #c9d3e6; }
+  #fr-root .fr-swl-x { margin-left: 10px; border-left: 1px solid #e3e7ef !important; border-radius: 0 !important; flex: none; width: 48px; height: 44px; min-width: 0; min-height: 0; padding: 0; font-size: 15px; color: #a3261c; background: none; border: 0; box-shadow: none; }
   .fr-swl-desk { color: #0a246a; }
   .fr-swl-empty { padding: 14px 12px; color: #555; font-size: 12.5px; }
   #fr-root .fr-task { flex: 0 1 118px; min-width: 46px; height: 32px; font-size: 12px; padding: 0 7px; }
@@ -1261,12 +1266,19 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   .fr-start-foot { flex: none; }
   .fr-sm-item { padding: 7px 6px; font-size: 12px; }
   .fr-sm-item small { font-size: 11px; }
-  /* balloons: a toast at the top (clear of the title-bar buttons), never over the work at the bottom, never while typing */
-  .fr-balloon { top: 4px; bottom: auto; left: 4px; right: auto !important; width: min(420px, calc(100vw - 84px)); font-size: 12px; padding: 7px 9px 8px; box-shadow: 2px 3px 10px rgba(0,0,0,.45); }
+  /* balloons (Q5): a slim strip just above the taskbar, never over a window's title bar, its Minimize/Close or its
+     menu bar, never over the formula bar (and never while typing); a title line + at most three lines of text,
+     and a real ✕ (44 px, set apart) at its right */
+  .fr-balloon { top: auto; bottom: 44px; left: 4px; right: 4px !important; width: auto; min-height: 46px; max-height: 76px; font-size: 12px; line-height: 15px; padding: 5px 54px 6px 9px; border-radius: 6px; overflow: hidden; box-shadow: 0 -1px 10px rgba(0,0,0,.4); }
+  .fr-balloon .fr-balloon-t { margin: 0 0 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+  .fr-balloon .fr-balloon-t .fr-ico { display: none; }
+  .fr-balloon .fr-balloon-b { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+  .fr-balloon .fr-balloon-b .fr-ktip { display: block; }
+  .fr-balloon .fr-balloon-b .fr-ktip img { display: none; }
+  .fr-balloon .fr-balloon-x { position: absolute; right: 0; top: 0; bottom: 0; width: 46px; display: flex; align-items: center; justify-content: center; border: 0; border-left: 1px solid #cfcb95; border-radius: 0 6px 6px 0; background: #f4f2c8; font-size: 16px; padding: 0; margin: 0; }
   .fr-balloon::after { display: none; }
   html.fr-kb .fr-balloon { display: none; }
   .fr-modal-shade { background: rgba(0,0,0,.28); }
-  .fr-balloon-x { font-size: 13px; padding: 3px 8px; }
   .fr-ctx { min-width: 190px; font-size: 13px; }
   .fr-ctx .fr-menu-item { padding: 10px 12px 10px 4px; }
 
@@ -1353,7 +1365,8 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   .xl-st-box { display: none; }
   .xl-cm { font-size: 13px; }
   .xl-selbox { border-width: 3px; }   /* the cell you're on stays clearly outlined */
-  #fr-root .xl-zoomb { flex: none; align-self: center; margin: 0 4px 0 auto; min-width: 52px; min-height: 0; height: 26px; padding: 0 8px; font: 700 12px Tahoma, sans-serif; }
+  #fr-root .xl-fillb { flex: none; align-self: center; margin: 0 4px 0 auto; min-width: 52px; min-height: 0; height: 26px; padding: 0 8px; font: 12px Tahoma, sans-serif; }
+  #fr-root .xl-zoomb { flex: none; align-self: center; margin: 0 4px 0 0; min-width: 52px; min-height: 0; height: 26px; padding: 0 8px; font: 700 12px Tahoma, sans-serif; }
   #fr-root .xl-zoomb.on { background: #dfe9fb; border-color: #316ac5; }
   #fr-root .ck-file.ck-sel { outline: 3px solid #316ac5; outline-offset: 1px; background: #dfe9fb; }
   .fr-swl-t b { display: block; font-weight: 400; }
@@ -1411,13 +1424,25 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   .ex-task { padding: 6px 0; }
   .sh-pop { min-width: 190px; font-size: 13px; }
   .sh-pop-i { height: 40px; }
-  .sh-sheetwin > .window-body { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .sh-sheetwin > .window-body { flex: 1 1 auto; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+  .sh-sheetwin .sh-sheet { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+  .sh-sheetwin .sh-sheet > menu[role=tablist] { flex: none; }
+  .sh-sheetwin .sh-panes { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
+  .sh-sheetwin .sh-sheet-btns { flex: none; padding-top: 8px; border-top: 1px solid #d6d2c2; background: #ece9d8; }
+  .sh-sheetwin .sh-sheet-btns button { flex: 1 1 0; }
+  /* message boxes: never taller than the screen; a long message scrolls, the buttons stay visible */
+  .fr-dialog { max-height: calc(100% - 8px); }
+  .fr-dialog > .window-body.fr-body { flex: 1 1 auto; min-height: 0; }
+  .fr-dialog .fr-dlg { display: flex; flex-direction: column; min-height: 0; max-height: 100%; }
+  .fr-dialog .fr-dlg-row { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  .fr-dialog .fr-dlg-input, .fr-dialog .fr-dlg-btns { flex: none; }
   .sh-sheet { font-size: 12.5px; }
   .sh-sheet [role=tabpanel] { height: auto; min-height: 0; }
   .sh-sheet menu[role=tablist] button { min-height: 34px; font-size: 12.5px; padding: 0 12px; }
   .sh-sheet-btns button { min-height: 38px; }
   .fo-adv { height: auto; overflow: visible; }
-  .fo-row { min-height: 34px; }
+  .fo-row { min-height: 44px; }
+  .fo-row + .fo-row { border-top: 1px solid #eef0f4; }
   .fo-opt { margin: 6px 0 9px; }
   .fo-row input, .fo-opt input { width: 22px; height: 22px; flex: none; }
   .fo-row label, .fo-opt label { padding: 6px 0; }
@@ -1426,6 +1451,10 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   /* ---------- Notepad, pictures, IE, calculator ---------- */
   #fr-root .np-ta { font-size: 13px !important; line-height: 18px; }
   #fr-root .np-ta.np-nowrap { font-size: 12px !important; line-height: 16px; }
+  .np { position: relative; }
+  #fr-root .np-wrapb { position: absolute; right: 10px; bottom: 10px; z-index: 2; min-width: 0; min-height: 0; height: 34px; padding: 0 12px; font: 12px Tahoma, sans-serif; border-radius: 17px; background: #fff; border: 1px solid #7f9db9; box-shadow: 0 1px 4px rgba(0,0,0,.25); opacity: .92; }
+  #fr-root .np-wrapb.on { background: #dfe9fb; border-color: #316ac5; }
+  #fr-root .np-sbon .np-wrapb { bottom: 30px; }
   .iv-bar { flex-wrap: wrap; }
   .iv-bar button { width: 38px; height: 38px; }
   .ie-links { display: none; }   /* the same links are under Favorites; the page gets the room */
@@ -1463,10 +1492,12 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   .st-t td:nth-child(2) { overflow-wrap: anywhere; min-width: 70px; }
 
   /* ---------- ending ---------- */
-  .fr-end { padding: 16px 12px; align-items: flex-start; }
+  /* (Q2) the bottom strip, where the taskbar was, stays empty: a stray tap there never lands on a button */
+  .fr-end { padding: 16px 12px 110px; align-items: flex-start; }
   .fr-end-card p { font-size: 14px; }
   .fr-end-stats div { min-width: 0; flex: 1 1 40%; padding: 10px 8px; }
   .fr-end-cta a, .fr-end-cta button { min-height: 44px; }
+  .fr-end-cta [data-a=again] { order: 9; width: 140px; margin: 16px calc(50% - 70px) 0; background: none; border: 0; text-decoration: underline; color: #9fb0d9; min-height: 40px; }
   .fr-saver-m { font-size: 32px; }
   .fr-shut-box { width: min(320px, calc(100vw - 16px)); }
   .fr-shut-b div { padding: 6px; }
@@ -1502,7 +1533,22 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   html.fr-m .oe-list { flex: 0 0 52%; }
   html.fr-m .oe-prev-split { display: none !important; }
   html.fr-m .oe-tbb .oe-tbi { width: 20px; height: 20px; margin-bottom: 0; }
-  html.fr-m .fr-balloon { width: min(330px, calc(100vw - 16px)); }
+  /* Outlook sideways: no menu bar, one-line toolbar buttons, tighter headers (about twice the message text) */
+  html.fr-m .oe-win > .fr-menubar { display: none; }
+  html.fr-m .oe-tbb { flex-direction: row; gap: 4px; min-width: 0; padding: 2px 6px; }
+  html.fr-m .oe-tb { padding: 1px 4px; min-height: 0; }
+  html.fr-m .oe-ph, html.fr-m .oe-mh { font-size: 11.5px; line-height: 15px; padding: 2px 8px 3px; }
+  html.fr-m .oe-tn { height: 30px; }
+  html.fr-m .oe-tbb { height: 34px; }
+  html.fr-m .oe-ph .oe-hr, html.fr-m .oe-mh .oe-hr { display: inline; margin-right: 14px; }   /* From · Date · To on one line */
+  html.fr-m .oe-ph .oe-hr b, html.fr-m .oe-mh .oe-hr b { min-width: 0; }
+  html.fr-m .oe-ph .oe-hr-att, html.fr-m .oe-mh .oe-hr-att { display: flex; }
+  /* property sheets sideways: slimmer tabs and buttons, the settings get the height */
+  html.fr-m .sh-sheet menu[role=tablist] button { min-height: 30px; }
+  html.fr-m .sh-sheetwin .sh-sheet-btns { padding-top: 4px; }
+  html.fr-m .sh-sheet-btns button { min-height: 34px; }
+  html.fr-m .fr-balloon { bottom: 37px; min-height: 40px; max-height: 50px; padding-top: 3px; padding-bottom: 3px; }
+  html.fr-m .fr-balloon .fr-balloon-b { -webkit-line-clamp: 2; }
   html.fr-m .fr-start-head { height: 44px; }
   /* Excel sideways: no menu bar, slimmer title bar, formula bar, tabs and taskbar (about 13 rows instead of 8) */
   html.fr-m .xl-win .fr-menubar { display: none; }
@@ -1730,7 +1776,7 @@ FR.apps = FR.apps || {};
     b.querySelector('.fr-sw-t').textContent = a ? splitTitle(winTitle(a))[0] : 'Windows';
     b.querySelector('.fr-sw-n').textContent = ws.length;
     b.classList.toggle('on', !!swEl);
-    if (swEl) swList(true);
+    if (swEl) swMark();   // the open list keeps its rows where they are (it is re-sorted the next time it opens)
   }
   // "Microsoft Excel - Budget.xls" → ['Budget.xls', 'Microsoft Excel']; "Inbox - Outlook Express" → ['Inbox', 'Outlook Express']
   const splitTitle = t => {
@@ -1738,6 +1784,16 @@ FR.apps = FR.apps || {};
     m = /^(.+) - (Internet Explorer|Outlook Express|Notepad|Windows Picture and Fax Viewer|Document Viewer)$/.exec(t); if (m) return [m[1], m[2]];
     return [t, ''];
   };
+  // the open list after a window was closed or switched: the row stays (greyed, "closed"), nothing moves under the finger
+  function swMark() {
+    if (!swEl) return;
+    const open = appWins();
+    swEl.querySelectorAll('.fr-swl-r[data-wid]').forEach(r => {
+      const v = open.find(x => x.id === r.dataset.wid);
+      if (!v && !r.classList.contains('gone')) { r.classList.add('gone'); r.classList.remove('on'); r.onclick = null; const sm = r.querySelector('small'); if (sm) sm.textContent = 'closed'; const x = r.querySelector('.fr-swl-x'); if (x) { x.onclick = null; x.style.visibility = 'hidden'; } const c = r.querySelector('.fr-swl-cur'); if (c) c.remove(); }
+    });
+    const h = swEl.querySelector('.fr-swl-h'); if (h) h.textContent = `Open windows (${open.length})`;
+  }
   function swList(show) {
     if (swEl) { swEl.remove(); swEl = null; }
     const host = taskbarList && taskbarList.closest('.fr-desktop');
@@ -1753,7 +1809,7 @@ FR.apps = FR.apps || {};
       r.querySelector('b').textContent = t;
       r.querySelector('small').textContent = [app, v.min ? 'minimized' : ''].filter(Boolean).join(' · ');
       r.onclick = e => { e.stopPropagation(); swList(false); if (v.min) v.restore(); v.focus(); };
-      r.querySelector('.fr-swl-x').onclick = e => { e.stopPropagation(); FR.sound.play('click'); v.close(); setTimeout(() => { if (swEl) swList(true); }, 160); };
+      r.querySelector('.fr-swl-x').onclick = e => { e.stopPropagation(); FR.sound.play('click'); v.close(); setTimeout(swMark, 0); };
       return r;
     };
     if (ck) body.appendChild(row(ck, true));
@@ -1766,11 +1822,13 @@ FR.apps = FR.apps || {};
     if (!ws.length) body.appendChild($('<div class="fr-swl-empty">Nothing else is open. Open something from the desktop or the Start menu.</div>'));
     if (all.some(v => !v.min)) {
       const d = $(`<div class="fr-swl-r fr-swl-desk">${FR.icon('computer', 18)}<span class="fr-swl-t"><b>Show the desktop</b></span></div>`);
-      d.onclick = e => { e.stopPropagation(); swList(false); all.forEach(v => v.minimize()); };
+      d.onclick = e => { e.stopPropagation(); swList(false); appWins().forEach(v => v.minimize()); };
       body.appendChild(d);
     }
     L._frShown = Date.now(); L._frGuard = 300;
     host.appendChild(L); swEl = L;
+    // anchored at its top edge from now on: closing a window never slides the rows below the finger
+    L.style.top = L.offsetTop + 'px'; L.style.bottom = 'auto';
     const b = document.querySelector('.fr-switch'); if (b) b.classList.add('on');
     setTimeout(() => document.addEventListener('mousedown', function h(e) { if (!swEl || swEl !== L) return document.removeEventListener('mousedown', h, true); if (!L.contains(e.target) && !e.target.closest('.fr-switch')) { swList(false); document.removeEventListener('mousedown', h, true); } }, true), 0);
   }
@@ -1948,7 +2006,7 @@ FR.apps = FR.apps || {};
         const btns = o.buttons || ['OK'];
         const content = $(`<div class="fr-dlg"><div class="fr-dlg-row">${FR.icon(iconName, 32)}<div class="fr-dlg-msg">${o.message || ''}</div></div>
           ${o.input ? `<div class="fr-dlg-input"><label>${o.input.label || ''}</label><input type="${o.input.type || 'text'}" autocomplete="off" spellcheck="false" autocapitalize="off" autocorrect="off"></div>` : ''}
-          <div class="fr-dlg-btns">${btns.map((b, i) => `<button ${i === 0 ? 'class="default"' : ''}>${b}</button>`).join('')}</div></div>`);
+          <div class="fr-dlg-btns">${btns.map((b, i) => `<button ${i === (o.def || 0) ? 'class="default"' : ''}>${b}</button>`).join('')}</div></div>`);
         FR.wm.layer().appendChild(shade);
         const prev = FR.wm.active;
         const w = FR.wm.open({ title: o.title || 'Frank Warmington\'s Computer', icon: iconName, width: o.width || 380, height: o.height || (o.input ? 190 : 150), resizable: false, content, className: 'fr-dialog', onClose: () => { finish(btns[btns.length - 1]); } });
@@ -1970,7 +2028,7 @@ FR.apps = FR.apps || {};
           setTimeout(() => { if (!FR.wm.topDialog()) FR.bus.emit('dialog-closed', back && wins.has(back.id) ? back : FR.wm.active); }, 0); }
         content.querySelectorAll('.fr-dlg-btns button').forEach((b, i) => (b.onclick = () => finish(btns[i])));
         if (inp) { inp.value = o.input.value || ''; setTimeout(() => inp.focus(), 30); inp.onkeydown = e => { if (e.key === 'Enter') finish(btns[0]); if (e.key === 'Escape') finish(btns[btns.length - 1]); }; }
-        else setTimeout(() => content.querySelector('button').focus(), 30);
+        else setTimeout(() => (content.querySelector('.fr-dlg-btns button.default') || content.querySelector('button')).focus(), 30);
         if (iconName === 'error') FR.sound.play('error'); else if (iconName === 'warn') FR.sound.play('warn'); else if (iconName !== 'lock' && iconName !== 'key') FR.sound.play('ding');
       });
     },
@@ -1993,7 +2051,8 @@ FR.apps = FR.apps || {};
     if (document.querySelector('.fr-end')) return;
     // phones: never while typing (keyboard up) or while a message box waits for an answer; it waits its turn
     const typing = () => { const a = document.activeElement; return !!a && (/^(INPUT|TEXTAREA)$/.test(a.tagName) && !a.readOnly) && !!a.closest('#fr-root'); };
-    if (FR.mobile && (document.documentElement.classList.contains('fr-kb') || FR.wm.topDialog() || typing())) {
+    // (nor over a property sheet's OK / Cancel or a checklist Submit bar, which sit where the toast goes)
+    if (FR.mobile && (document.documentElement.classList.contains('fr-kb') || FR.wm.topDialog() || typing() || document.querySelector('.sh-sheetwin:not(.fr-inactive):not(.fr-closing), .fr-win:not(.fr-inactive) .ck-confirm'))) {
       const n = (opts.tries || 0) + 1; if (n < 20) setTimeout(() => FR.balloon(title, text, onClick, Object.assign({}, opts, { tries: n })), 1500); return;
     }
     if (!opts.silent && Date.now() - (FR._lastSound || 0) > 400) FR.sound.play('notify');
@@ -4606,7 +4665,12 @@ FR.data.logo = {"mark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"380
       NR = d.nr; NC = d.nc;
       colWd = []; for (let c = 0; c < NC; c++) colWd[c] = s.colW[c] || DEFW;
       // phones: column A is frozen (sticky), so it may take at most ~40% of the grid's width; longer labels show in full on tap
-      if (FR.mobile) { const vw = scroll.clientWidth || (innerWidth / 1.2); colWd[0] = Math.min(colWd[0], Math.max(96, Math.round((vw - RHW) * 0.42))); }
+      if (FR.mobile) {
+        const vw = scroll.clientWidth || (innerWidth / 1.2);
+        colWd[0] = Math.min(colWd[0], Math.max(96, Math.round((vw - RHW) * 0.42)));
+        // any other column at most ~55% of the grid, so a very wide text column never pushes the numbers off-screen
+        for (let c = 1; c < NC; c++) colWd[c] = Math.min(colWd[c], Math.max(110, Math.round((vw - RHW) * 0.55)));
+      }
       rowHt = []; for (let r = 0; r < NR; r++) rowHt[r] = s.rowH[r] || DEFH;
       let h = `<colgroup><col style="width:${RHW}px">${colWd.map(w => `<col style="width:${w}px">`).join('')}</colgroup><thead><tr><th class="xl-corner"><span></span></th>`;
       for (let c = 0; c < NC; c++) h += `<th class="xl-ch" data-c="${c}">${colName(c)}</th>`;
@@ -5019,6 +5083,20 @@ FR.data.logo = {"mark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"380
       pushUndo(batch);
       applyChanges(batch.map(x => ({ si: x.si, r: x.r, c: x.c, raw: x.neu, s: x.neuS })));
     }
+    function fillTo() {
+      if (st.edit && !commit(0, 0)) return;
+      const from = a1(st.ar, st.ac), r0 = st.ar, c0 = st.ac, si = st.si;
+      FR.dialog({ icon: 'question', title: 'Fill', message: `Copy <b>${from}</b> right or down, up to which cell?<br><small>A cell in the same row fills right (e.g. ${a1(r0, Math.min(NC - 1, c0 + 3))}), one in the same column fills down (e.g. ${a1(Math.min(NR - 1, r0 + 3), c0)}). A formula moves along, like dragging the fill handle.</small>`, input: { label: 'Up to cell:', value: '' }, buttons: ['Fill', 'Cancel'] }).then(r => {
+        if (r.button !== 'Fill' || st.si !== si) return;
+        const p = parseA1((r.value || '').trim().replace(/^.*!/, '').split(':').pop());
+        if (!p || (p.r !== r0 && p.c !== c0) || (p.r === r0 && p.c === c0)) { FR.dialog({ icon: 'error', title: 'Microsoft Excel', message: `Pick a cell in the same row (to fill right) or the same column (to fill down) as ${from}.` }); return; }
+        const r1 = Math.min(NR - 1, p.r), c1 = Math.min(NC - 1, p.c);
+        st.ar = Math.min(r0, r1); st.ac = Math.min(c0, c1);
+        st.anchor = { r: r0, c: c0 }; st.focus = { r: r1, c: c1 };
+        fillRange({ r0, r1: r0, c0, c1: c0 }, { r0: Math.min(r0, r1), r1: Math.max(r0, r1), c0: Math.min(c0, c1), c1: Math.max(c0, c1) });
+        st.ar = r0; st.ac = c0; drawSel();
+      });
+    }
     function fillDir(dir) {
       if (st.edit && !commit(0, 0)) return;
       const { r0, r1, c0, c1 } = selRect();
@@ -5151,7 +5229,10 @@ FR.data.logo = {"mark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"380
     if (FR.mobile) {
       const zb = $('<button class="xl-zoomb" aria-label="Fit the sheet to the screen width">Fit</button>');
       zb.onclick = e => { e.stopPropagation(); setFit(!st.fit); };
-      q('.xl-tabbar').appendChild(zb);
+      // no fill handle to drag on a phone: "Fill…" copies the current cell right or down to a cell you name
+      const fb = $('<button class="xl-fillb" aria-label="Fill right or down">Fill…</button>');
+      fb.onclick = e => { e.stopPropagation(); fillTo(); };
+      q('.xl-tabbar').append(fb, zb);
       scroll.addEventListener('scroll', () => scroll.classList.toggle('xl-sx', scroll.scrollLeft > 2), { passive: true });
       wrap.addEventListener('mousedown', e => {
         const p = cellAt(e);
@@ -7772,7 +7853,9 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
       root.querySelectorAll('.sh-pane').forEach(p => (p.hidden = p.dataset.i !== b.dataset.i));
     }));
     const win = FR.wm.open({ id, title, icon, width, height: 480, resizable: false, className: 'sh-sheetwin', content: root });
-    win.el.style.height = 'auto';
+    // phones: the sheet fills the screen (the window manager maximizes it); its page scrolls by touch and
+    // OK / Cancel / Apply stay pinned at the bottom
+    if (FR.mobile) { if (!win.max) win.maximize(true); } else win.el.style.height = 'auto';
     const apply = root.querySelector('.sh-apply');
     root.addEventListener('change', () => (apply.disabled = false));
     root.addEventListener('input', () => (apply.disabled = false));
@@ -7994,7 +8077,11 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
       const v = ta.value.slice(0, ta.selectionStart); const lines = v.split('\n');
       root.querySelector('.np-pos').textContent = `Ln ${lines.length}, Col ${lines[lines.length - 1].length + 1}`;
     };
-    const setWrap = on => { S.wrap = on; ta.setAttribute('wrap', on ? 'soft' : 'off'); ta.classList.toggle('np-nowrap', !on); };
+    // phones: a visible Wrap switch (the Format menu is far away and sideways swiping a wide text is tiring)
+    const wrapB = FR.mobile ? $('<button class="np-wrapb" aria-label="Word wrap"></button>') : null;
+    const setWrap = on => { S.wrap = on; ta.setAttribute('wrap', on ? 'soft' : 'off'); ta.classList.toggle('np-nowrap', !on);
+      if (wrapB) { wrapB.textContent = on ? 'Wrap: on' : 'Wrap: off'; wrapB.classList.toggle('on', on); } };
+    if (wrapB) { root.appendChild(wrapB); wrapB.onclick = e => { e.stopPropagation(); setWrap(!S.wrap); if (S.wrap) setStatus(false); }; }
     const setStatus = on => { S.status = on; root.classList.toggle('np-sbon', on); pos(); };
     const saveDenied = () => FR.dialog({ title: 'Notepad', icon: 'error', message: `Cannot create the ${esc(node ? FR.fs.path(node.parent) + '\\' + node.name : 'Untitled.txt')} file.<br><br>Access is denied. Make sure the path and file name are correct.` });
     const find = async () => {
@@ -9290,7 +9377,7 @@ Website:      still says 'Director'. Steve. Don't ask.
 
   function confirmStartOver() {
     const keeps = FR.account && FR.account.user && FR.puzzle.isSolved('frank') ? '<br><br>Your place on the leaderboard stays: only your first finished game counts.' : '';
-    return FR.dialog({ icon: 'warn', title: 'Start over', message: "Start over from the beginning?<br><br>Everything you've done at Frank's desk will be erased: the checklist, hints and time." + keeps, buttons: ['Start over', 'Cancel'] })
+    return FR.dialog({ icon: 'warn', title: 'Start over', message: "Start over from the beginning?<br><br>Everything you've done at Frank's desk will be erased: the checklist, hints and time." + keeps, buttons: ['Start over', 'Cancel'], def: FR.mobile ? 1 : 0 })
       .then(r => { if (r.button === 'Start over') Promise.resolve(FR.resetSave()).then(() => location.reload()); });
   }
 
@@ -9888,6 +9975,10 @@ Website:      still says 'Director'. Steve. Don't ask.
       if (d.me) rankEl.innerHTML = `You're <b>#${d.me.rank}</b> of ${FR.score.fmt(d.players)} ${d.players === 1 ? 'person who has' : 'people who have'} covered for Frank${d.me.score !== sc.score ? ` with your first finished game (${FR.score.fmt(d.me.score)} points)` : ''}.`;
     }, () => {});
     e.querySelector('[data-a=again]').onclick = () => confirmStartOver();
+    // phones: it comes up by itself, so a tap already on its way (meant for the taskbar, a window) must not press
+    // anything on it (1.5 s); "Play again" sits apart, never in the bottom strip where the taskbar was (mobile.css),
+    // and its "Start over?" box has Cancel as the default
+    if (FR.mobile) { e.classList.add('fr-guard'); e._frShown = Date.now(); e._frGuard = 1500; }
     root.appendChild(e);
     FR.sound.play('tada');
   }

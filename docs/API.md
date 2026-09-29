@@ -25,6 +25,9 @@ Test page: `dist/index.html?dev=1` skips intro/login (logged in, all items unloc
 - `FR.sound.play('ding'|'chord'|'error'|'mail'|'tada'|'click'|'unlock')`.
 - `FR.state` (persisted): `{ solved: {id: timestampMs}, flags: {}, hintsUsed: {id: n}, readMail: {} , startedAt }`.
   Paint adds `paint: { files: [{ id, name, w, h, png (PNG data URL), savedAt }] }` (max 8 pictures / 600 KB, validated by `harden` in core.js).
+  The extras add `missStreak` (number), `bonus` and `eggs` (validated by `harden`). Timed things keep their schedule in
+  `flags.norton`, `flags.bonusMail`, `flags.bonusTries`, `flags.solDeals`; nothing is written on a play tick unless a
+  popup or an e-mail is actually due (two signed-in computers would otherwise race each other).
   `FR.save()` persists. `FR.flags.get(k)`, `FR.flags.set(k, v)` (persists + emits 'flag').
 - `FR.loadState(obj)` → a validated state (or null) built from a save that came from elsewhere.
 - `FR.account` (src/account.js): `{ user (player name or null), available (account server reachable), start(), screen(mode), signOut() }`.
@@ -36,7 +39,20 @@ Test page: `dist/index.html?dev=1` skips intro/login (logged in, all items unloc
 - `FR.puzzle.solve(id)` — marks a checklist item solved (only if it's the current/unlocked one or earlier; else ignored and returns false),
   plays sound, emits 'solved'. `FR.puzzle.isSolved(id)`, `FR.puzzle.isUnlocked(id)`, `FR.puzzle.norm(str)`.
   Checklist order: login, version, unlock, ebitda, dscr, cash, bridge, send, frank.
-- `FR.puzzle.miss()` — counts one wrong guess (password boxes, checklist) toward the final score and saves.
+- `FR.puzzle.miss(opts?)` — counts one wrong guess (password boxes, checklist) toward the final score and saves. Every miss
+  except `{ login: true }` (the Windows log-on screen) also adds to `FR.state.missStreak` and emits 'miss' (streak); 4 in a
+  row = the Blue Screen (`FR.bsod`, src/apps/xp_bsod.js). `FR.puzzle.hit()` ends the streak (solving an item does too).
+- Extras (src/apps/xp_*.js): `FR.xp` { LOCAL, noPopups (`?nopopups=1`, LOCAL only), quiet(), ff(ms) (LOCAL only: moves the
+  play clock) }; `FR.bsod` { show, hide, active }; `FR.norton` { pop(text?), statusWin() }; `FR.eggs` { list, find(id),
+  count(), total, has(id) } with `FR.state.eggs = { id: foundAtMs }`; `FR.bonus` { TASKS, deliver(id, quiet?), award(id),
+  grade(id, value), mount(el, msg), onReply(msg, orig) } with `FR.state.bonus = { id: { solvedAt, pts } }` (points come
+  from `BONUS` in src/score_rules.js). Other files can add Run… commands (`FR.runCommands[name] = fn`), Internet Explorer
+  pages (`FR.iePages[host] = { title, html(url), onShow? }`) and Favorites (`FR.ieFavs.push([folder, [[title, url]]])`),
+  and built-in Paint pictures (a file node with `app: 'paint'` and `paintImage()` → ImageData, via `FR.fs.extra`).
+- `FR.balloon(title, html, onClick?, { act, silent, icon, cls })` — `icon` replaces the title icon (HTML), `cls` adds a class.
+- Events added: 'miss' (streak), 'bsod' (true/false), 'egg' ({id, n, total}), 'bonus' (id), 'bonus-mail' (id), 'desktop'
+  (the desktop element, after each log-on), 'screensaver', 'calc-display' (value), 'xl-select' ({book, sheet, r, c}),
+  'xl-kristians', 'sol-deal' (seed), 'paint-open' (name).
 - Events also: 'dialog-closed' (the window that got focus back after a core dialog finished — refocus your grid), 'play-tick' (playMs, every active second).
 - `FR.wm.topDialog()`, `FR.wm.closeMenus()`. Esc (core) closes only the Start menu, context/menubar menus, or the top dialog; never app windows; ignored while typing.
 - `FR.clock.now()` = GAME_START + active play time (`FR.state.playMs`, counted only while the tab is visible, the desktop is up and no screensaver). `FR.clock.playMs()`, `FR.clock.dur(ms)`.

@@ -24,6 +24,8 @@
 .st-t td.st-name { white-space: normal; word-break: break-word; font-weight: bold; color: #17263f; }
 .st-t td.st-score { font: bold 13px Verdana, sans-serif; text-align: right; }
 .st-t th:nth-child(3) { text-align: right; }
+.st-t td.st-bonus { text-align: right; color: #1d6b3a; font-weight: bold; }
+.st-t th:nth-child(4) { text-align: right; }
 .st-rank span { display: inline-block; min-width: 20px; text-align: center; font-weight: bold; color: #555; }
 .st-m1 span, .st-m2 span, .st-m3 span { border-radius: 50%; width: 22px; height: 22px; line-height: 22px; color: #fff; text-shadow: 0 1px 1px rgba(0,0,0,.4); }
 .st-m1 span { background: radial-gradient(circle at 35% 30%, #ffe680, #d4a017); }
@@ -36,11 +38,13 @@
 .st-msg small { color: #777; }
 .st-note { margin: 8px 0 0; color: #555; font-size: 11px; }
 .st-count { margin: 6px 0 0; color: #666; font-size: 11px; }
-@media (max-width: 560px) { .st-t th:nth-child(5), .st-t td:nth-child(5), .st-t th:nth-child(7), .st-t td:nth-child(7) { display: none; } }
+@media (max-width: 560px) { .st-t th:nth-child(6), .st-t td:nth-child(6), .st-t th:nth-child(8), .st-t td:nth-child(8) { display: none; } }
 /* score on the checklist footer and the ending screen */
 .ck-foot a.ck-score { color: #0b3fa8; font-weight: 700; }
 .fr-end-stats .fr-end-score { border-color: #ffcf5a; }
 .fr-end-stats .fr-end-score b { color: #ffcf5a; }
+.fr-end-stats .fr-end-bonus b { color: #8fe3a6; }
+.ck-foot .ck-bonus { font-weight: 400; color: #1d6b3a; }
 .fr-end-card p.fr-end-rank { font-size: 14px; color: #fff; min-height: 1em; margin: -6px auto 8px; }
 .fr-end-card p.fr-end-rank:empty { display: none; }
 /* desktop shortcut to the leaderboard: the little Windows shortcut arrow */

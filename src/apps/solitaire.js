@@ -622,6 +622,7 @@
     status();
     setTimeout(() => { Object.values(cards).forEach(({ el }) => { el.style.transitionDelay = ''; }); busy = false; }, 28 * 18 + 260);
     win.el.dataset.seed = G.seed;
+    if (FR.bus) FR.bus.emit('sol-deal', G.seed);
   }
   function ensureCards() {
     const compact = geo ? geo.compact : false;

@@ -284,6 +284,12 @@
   .fo-row + .fo-row { border-top: 1px solid #eef0f4; }
   .fo-opt { margin: 6px 0 9px; }
   .fo-row input, .fo-opt input { width: 22px; height: 22px; flex: none; }
+  /* (S1) XP.css hides the real checkboxes / radios as position:fixed, opacity:0 boxes: inside a scrolling sheet they
+     stay where they were laid out, outside its clipping, so an invisible box from a row below the fold sat on top of
+     the pinned OK button (and on the taskbar). On phones they scroll with their row, are clipped with it and never
+     catch a tap (the label or the row takes it and toggles the box). */
+  #fr-root input[type=checkbox], #fr-root input[type=radio] { position: absolute; pointer-events: none; }
+  .fo-row, .fo-opt, .pr-cb { position: relative; }
   .fo-row label, .fo-opt label { padding: 6px 0; }
   .ex-det { min-width: 540px; }
 

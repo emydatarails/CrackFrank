@@ -118,7 +118,7 @@ The local server serves `dist/` fresh on every request and reloads `api/*.js` an
 |---|---|
 | Each checklist item solved (10 in all) | +1,000 |
 | Each wrong guess (password boxes, checklist answers) | −50 |
-| Hints | first 10 free, then −100 each (a hint asks before it costs) |
+| Hints | first 10 free, then −100 each (a hint asks before it costs; on a phone every hint asks first) |
 | Each bonus request answered (9, optional, see "Extras") | +100 to +250, on top |
 | Each Easter egg found (15 hidden, see "Easter eggs") | +10, on top (+150 for all 15) |
 
@@ -126,8 +126,8 @@ Score = max(0, riddles − wrong guesses − paid hints) + bonus: the main score
 eat into bonus points. A perfect game is 10,000, or 11,450 with every bonus request and every egg. Wrong bonus answers cost nothing. Change
 the numbers in `src/score_rules.js` only (`BONUS` is the bonus table): the game and the server both load that file.
 
-- The score shows in the checklist footer (with the free hints left and, once there is any, "(+N bonus)") and on the
-  ending screen (with a separate "+N Bonus" box), with the player's rank. The leaderboard has a Bonus column.
+- The score shows in the checklist footer (with the free hints left and, once there is any, "(+N bonus & eggs)") and on the
+  ending screen (with a separate "+N Bonus & eggs" box), with the player's rank. The leaderboard has a "Bonus & eggs" column.
 - The leaderboard is **"Board Pack Rescue - Who Covered for Frank?"**, a page on Packa Corporation's intranet
   (`http://intranet.packacorp.local/who-covered-for-frank`), shown in Frank's Internet Explorer: the company's list of
   the people who sat down at Frank's desk and got the Board Pack out. Open it from the **Who Covered for Frank?**
@@ -136,7 +136,7 @@ the numbers in `src/score_rules.js` only (`BONUS` is the bonus table): the game 
   player's row is highlighted, and shown under the list if they're outside the top 50. Without the account server the
   shortcut is hidden and the page says the intranet is offline.
 - **One score everywhere**: the checklist footer, the ending screen and the leaderboard always show the same number
-  (all three use `src/score_rules.js`). The ending adds how it's made up ("10 × 1,000 − 4 wrong × 50 + 1,300 bonus +
+  (all three use `src/score_rules.js`). The ending adds how it's made up ("10 × 1,000 − 4 wrong × 50 + 1,300 bonus requests +
   4 eggs × 10 = 11,140") and the leaderboard page opens with a "How points work" box; both are written from the rules file, never
   typed in twice. A wrong answer's message says what it cost ("(−50 points)"); an answer that isn't a number where a
   number is asked ("banana") gets "That's not a number" and costs nothing.

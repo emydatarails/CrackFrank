@@ -38,7 +38,7 @@ Test page: `dist/index.html?dev=1` skips intro/login (logged in, all items unloc
   account's save is wiped. Anything that must survive a reload or a change of computer has to be in `FR.state`.
 - `FR.score` (src/score.js): `now()` → `{ score, main, bonus, solved, total, hints, paidHints, freeLeft, wrong, finished, timeMs }` for `FR.state`;
   `open()` opens the leaderboard (intranet.packacorp.local/who-covered-for-frank) in IE; `render(pageEl, isCurrent)` fills an IE page; `available()`; `rules` (= `FR.scoreRules`, src/score_rules.js).
-  Wording built from the rules (never type the numbers in): `rulesList()` / `rulesLine()`, `breakdown(calc?)` ("10 × 1,000 − 4 wrong × 50 + 1,150 bonus = 10,950"),
+  Wording built from the rules (never type the numbers in): `rulesList()` / `rulesLine()`, `breakdown(calc?)` ("10 × 1,000 − 4 wrong × 50 + 1,150 bonus requests = 10,950"; eggs as "+ n eggs × 10"), `bonusWord` ("bonus & eggs": the total of both, wherever it is shown on its own),
   `boardRule` (which game is on the board), `otherGame(me)` (the board entry is an earlier game than this one: a replay). `FR.account.sync()` sends unsaved progress
   (waits for a save already on its way). Server: `GET /api/me` → `{user: null}` when signed out; `GET /api/scores` → `{top, me (+ me.game = the entry's finishedAt), players, rules}`.
 - `FR.bus.on(evt, fn)`, `FR.bus.emit(evt, data)`. Events: 'solved' (id), 'flag' ({k,v}), 'login', 'fs-change'.

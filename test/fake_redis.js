@@ -30,6 +30,10 @@ module.exports = function install(url = 'http://fake-redis.test', token = 'test-
         const stop = +a[1] < 0 ? sorted.length + +a[1] : +a[1];
         return sorted.slice(+a[0], stop + 1);
       }
+      case 'SCAN': {   // one pass returns everything (cursor 0); MATCH with a trailing * only
+        const m = a.findIndex(x => x.toUpperCase() === 'MATCH'), pre = m >= 0 ? a[m + 1].replace(/\*$/, '') : '';
+        return ['0', [...db.keys()].filter(key => live(key) && key.startsWith(pre))];
+      }
       default: throw new Error('fake redis: unsupported ' + cmd);
     }
   };

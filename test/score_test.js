@@ -152,6 +152,17 @@ ok(R.rankValue({ score: 5000, timeMs: 9e12 }) > R.rankValue({ score: 4950, timeM
   const after = (await anon('scores')).data.top.find(e => e.name === 'Cara');
   ok(before.timeMs === after.timeMs, 'a save that only moves the play clock leaves the board alone');
 
+  // tools/board_admin.js: hide a player from the board and keep them off; unhide puts them back from their save
+  const admin = require('../tools/board_admin');
+  const onBoard = async () => (await anon('scores')).data.top.some(e => e.name === 'Cara');
+  ok(await onBoard() && (await admin.list()).some(e => e.name === 'Cara'), 'admin list shows the board');
+  ok(await admin.hide('cara') === 'Cara' && !(await onBoard()), 'admin hide takes a player off the board');
+  const sv = await c('save', 'PUT', { state: st(6, {}, 2), rev: 4 });
+  ok(sv.status === 200 && !(await onBoard()) && (await admin.hidden()).includes('Cara'), 'a hidden player stays off the board when they keep playing');
+  ok((await c('me')).data.state.solved && (await c('me')).status === 200, 'a hidden player keeps their account and save');
+  ok(await admin.unhide('Cara') === 'Cara' && await onBoard(), 'admin unhide puts them back');
+  let threw = false; try { await admin.hide('nobody-here'); } catch (e) { threw = true; } ok(threw, 'admin hide of an unknown player fails loudly');
+
   server.close();
   console.log(fails ? `${fails} FAILED` : 'ALL PASS');
   process.exit(fails ? 1 : 0);

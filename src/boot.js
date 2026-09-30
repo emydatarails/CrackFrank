@@ -7,6 +7,7 @@
     seriesUrl: '',            // set to the "Frank Is Missing" episode page when it exists
   }, window.FR_CONFIG || {});
   FR.config = CONFIG;
+  if (FR.version) console.info("Frank's Computer " + FR.version.full);
   const $ = FR.$, esc = FR.esc;
   const root = document.getElementById('fr-root');
   const q = new URLSearchParams(location.search);
@@ -528,7 +529,7 @@
       ${FR.mobile ? `<p>Tap to open files and folders. Long-press a file (on the desktop too) for Properties. In Excel, tap a cell, then tap it again (or tap the formula bar) to type; Enter or ✓ puts it in. A cell with a red triangle has a note: tap it to read it. Switch windows with the buttons on the taskbar.</p>` : `<p>Double-click to open files and folders. Right-click files (on the desktop too) for Properties. Excel works like Excel: type formulas, and select cells to see their Sum in the status bar.</p>`}
       <h3>Where are the clues?</h3><p>In Frank's email, his Excel files, his folders (some are hidden), his Recycle Bin, and on <a href="${CONFIG.siteUrl}" target="_blank" rel="noopener">www.packacorp.com</a> — the company website. Keep it open in another tab.</p>
       <h3>Stuck?</h3><p>Emily from finance installed a Datarails FinanceOS trial on Frank's machine (day 13 of 14). Every checklist item has an <b>Ask FinanceOS</b> button with three hints, from a gentle nudge to the full answer.</p><h3>Score</h3><p>${esc(FR.score.rulesLine())}. Found so far: ${esc(FR.score.found())}.${FR.score.available() ? ' Signed-in players are ranked on <b>Board Pack Rescue - Who Covered for Frank?</b> on Packa\'s intranet (the shortcut on the desktop);  ' + esc(FR.score.boardRule) : ''}</p>
-      <h3>Progress</h3><p>Your progress saves in this browser. Log off and come back any time.</p></div>` });
+      <h3>Progress</h3><p>Your progress saves in this browser. Log off and come back any time.</p>${FR.version ? `<p class="fr-help-ver">Frank's Computer ${esc(FR.version.full)}</p>` : ''}</div>` });
   }
 
   /* =========================================================== CHECKLIST APP */

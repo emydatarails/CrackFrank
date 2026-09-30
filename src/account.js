@@ -48,7 +48,7 @@
     if (!A.user || blocked || !dirty()) return Promise.resolve();
     if (busy) { if (!keepalive) schedule(); return busy; }
     const s = sig(), play = FR.state.playMs || 0;
-    busy = api('save', 'PUT', { state: FR.state, rev: A.rev }, keepalive).then(r => {
+    busy = api('save', 'PUT', { state: FR.state, rev: A.rev, ver: FR.version && FR.version.full }, keepalive).then(r => {
       if (r.ok) { A.rev = r.data.rev; lastSig = s; lastPlay = play; backoff = 0; mark(); }
       else if (r.status === 409) conflict();
       else if (r.status === 401) expired();

@@ -27,6 +27,15 @@ const ok = (cond, msg) => { console.log((cond ? 'ok   ' : 'FAIL ') + msg); if (!
   r = await a('me'); ok(r.status === 200 && r.data.user === 'Emily' && r.data.state.solved.version === 2, '/me returns the player and save');
   r = await b('register', 'POST', { username: 'emily', password: 'other12' }); ok(r.status === 409 && r.data.error === 'taken', 'names are unique, case-insensitive');
 
+  // names on the public leaderboard (api/_names.js)
+  for (const bad of ['FuckThis', 'sh1t_head', 'Big.Dick', 'a55', 'Admin', 'PackaCorp', 'Datarails']) {
+    r = await b('register', 'POST', { username: bad, password: 'secret1' }); ok(r.status === 400 && r.data.error === 'name' && !r.set, `name "${bad}" is refused`);
+  }
+  const { nameProblem } = require('../api/_names');
+  const fine = ['Dickens', 'Hancock', 'Analyst', 'Scunthorpe', 'Sussex', 'Therapist', 'Cassandra', 'Nigeria', 'Speedo', 'Kristians', 'Frank2', 'Mike_2024', 'Glass', 'Essex', 'Nick'];
+  ok(fine.every(n => !nameProblem(n)), 'innocent names that contain a rude word pass: ' + fine.filter(n => nameProblem(n)).join(', '));
+  r = await b('register', 'POST', { username: 'Dickens', password: 'secret1' }); ok(r.status === 201 && r.data.user === 'Dickens', 'an innocent name registers');
+  r = await b('logout', 'POST', {});
   r = await b('login', 'POST', { username: 'EMILY', password: 'wrong!!' }); ok(r.status === 401 && r.data.error === 'credentials', 'wrong password rejected');
   r = await b('login', 'POST', { username: 'nobody', password: 'secret1' }); ok(r.status === 401 && r.data.error === 'credentials', 'unknown player gets the same message');
   r = await b('login', 'POST', { username: 'EMILY', password: 'secret1' }); ok(r.status === 200 && r.data.state.playMs === 5000 && r.data.rev === 1, 'sign in from another browser returns the save');

@@ -5,3 +5,4 @@ test/out/
 dist/artifact.html
 node_modules/
 .claude/
+.env*.local

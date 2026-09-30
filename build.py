@@ -20,6 +20,14 @@ crop = lambda svg: re.sub(r'viewBox="[^"]*"', MARK_VIEWBOX, svg, count=1)
 import json
 logos = {'mark': crop(logo_full), 'markWhite': crop(logo_full_white)}
 js += '\n;\nFR.data.logo = ' + json.dumps(logos) + ';'
+# the version players see in Help › About Windows and Help and Support (bump VERSION for each release). On Vercel the
+# build adds the commit and date; a local build (and the committed dist/index.html) says "dev", so it never churns.
+import datetime
+ver = (rd(os.path.join(root, 'VERSION')).strip() or '0.0.0')
+sha = (os.environ.get('VERCEL_GIT_COMMIT_SHA') or '')[:7]
+built = datetime.datetime.now(datetime.timezone.utc).strftime('%b %-d %Y') if sha else ''
+full_ver = f"{ver} (build {sha}, {built})" if sha else f"{ver} (dev build)"
+js += '\n;\nFR.version = ' + json.dumps({'version': ver, 'build': sha or 'dev', 'date': built, 'full': full_ver}) + ';'
 js += '\n;\n' + '\n;\n'.join(rd(p) for p in sorted(glob.glob(os.path.join(src, 'apps', '*.js'))))
 js += '\n;\n' + rd(os.path.join(src, 'boot.js'))
 js = js.replace('</script', '<\\/script')

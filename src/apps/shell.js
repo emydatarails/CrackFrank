@@ -873,7 +873,7 @@
   }
 
   function aboutWin() {
-    FR.dialog({ title: 'About Windows', icon: 'info', width: 400, message: 'Windows<br>Version 5.1 (Build 2600.xpsp_sp3)<br><br>This product is licensed to:<br>&nbsp;&nbsp;Frank Warmington<br>&nbsp;&nbsp;Packa Corporation<br><br>Physical memory available to Windows: 1,046,512 KB' });
+    FR.dialog({ title: 'About Windows', icon: 'info', width: 400, message: 'Windows<br>Version 5.1 (Build 2600.xpsp_sp3)<br><br>This product is licensed to:<br>&nbsp;&nbsp;Frank Warmington<br>&nbsp;&nbsp;Packa Corporation<br><br>Physical memory available to Windows: 1,046,512 KB' + (FR.version ? '<br><br><small>Frank\'s Computer (the game) ' + FR.version.full + '</small>' : '') });
   }
   function sysProps() {
     FR.dialog({ title: 'System Properties', icon: 'info', width: 400, message: '<b>System:</b> Windows XP Professional, Version 2002, Service Pack 3<br><br><b>Registered to:</b> Frank Warmington, Packa Corporation<br><br><b>Computer:</b> Pentium(R) 4 CPU 2.80GHz, 1.00 GB of RAM<br><br><b>Computer name:</b> PACKA-FPA-01<br><b>Total disk:</b> 37.6 GB (3.21 GB free)<br><b>Uptime:</b> 2 days, 23 hours (nobody has touched this PC since Friday night)' });

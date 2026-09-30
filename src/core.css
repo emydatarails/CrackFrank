@@ -220,6 +220,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
 
 /* help window */
 .fr-help { padding: 12px 16px; overflow: auto; line-height: 1.5; font-size: 11.5px; background: #fff; flex: 1; }
+.fr-help .fr-help-ver { margin-top: 14px; color: #777; font-size: 10.5px; }
 .fr-help h3 { font: 700 13px Tahoma, Verdana, "DejaVu Sans", Arial, sans-serif; color: #0a246a; margin: 10px 0 4px; }
 
 /* ---------- ending ---------- */

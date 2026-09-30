@@ -17,6 +17,8 @@
   `api/*.js` (Vercel Node functions, Upstash Redis over REST with `fetch`, no npm dependencies). Everything a player
   does must live in `FR.state` to be saved. Without the API (file://, static host, no database) the game runs browser-only.
   Tests: `node test/account_api_test.js` (ALL PASS) and `python3 test/account_play.py`; `node test/local_server.js` runs it locally.
+- Version: `VERSION` (bump per release) → `FR.version` (build.py adds the Vercel commit; local builds say "dev build"). Player names
+  are checked by `api/_names.js` at sign-up; `tools/board_admin.js` hides a player from the live board.
 - Score: rules live only in `src/score_rules.js` (loaded by the game and by `api/_lib.js`). Leaderboard ("Board Pack Rescue - Who Covered for Frank?"):
   `src/score.js` renders it as a Packa intranet page (intranet.packacorp.local) in Frank's IE (`src/apps/shell.js`), data from `api/scores.js`; the board is updated server-side on every save. Tests: `node test/score_test.js`, `python3 test/score_play.py`.
 - Packa's ERP is ShowMe ERP Classic (`src/apps/erp.js`): transactions only, and it must never show a puzzle number

@@ -147,6 +147,9 @@ async function updateBoard(id, prevState, state) {
     const prev = RULES.calc(prevState);
     if (prev.score === next.score && prev.solved === next.solved && prev.hints === next.hints && prev.wrong === next.wrong && prev.bonus === next.bonus && gameOf(prevState) === gameOf(state)) return;
   }
+  const user = JSON.parse((await redis('GET', K.user(id))) || '{}');
+  // hidden by an admin (tools/board_admin.js): kept off the board, whatever they play
+  if (user.hidden) { await redis('ZREM', K.board, id); await redis('HDEL', K.boardInfo, id); return; }
   const raw = await redis('HGET', K.boardInfo, id);
   const cur = raw ? JSON.parse(raw) : null;
   if (cur && cur.finished && !sameGame(cur, next, state)) return;
@@ -154,7 +157,6 @@ async function updateBoard(id, prevState, state) {
     if (cur) { await redis('ZREM', K.board, id); await redis('HDEL', K.boardInfo, id); }
     return;
   }
-  const user = JSON.parse((await redis('GET', K.user(id))) || '{}');
   const entry = { name: user.name || id, score: next.score, bonus: next.bonus, solved: next.solved, hints: next.hints, wrong: next.wrong, finished: next.finished, timeMs: next.timeMs, game: next.finished ? gameOf(state) : 0, at: Date.now() };
   await redis('HSET', K.boardInfo, id, JSON.stringify(entry));
   await redis('ZADD', K.board, RULES.rankValue(next), id);

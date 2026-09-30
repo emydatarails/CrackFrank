@@ -13,7 +13,8 @@ module.exports = L.handler(['PUT'], async (req, res, body) => {
   const cur = await L.loadSave(id);
   if ((+body.rev || 0) < cur.rev) return L.send(res, 409, { error: 'conflict', rev: cur.rev });
   const rev = cur.rev + 1;
-  const json = JSON.stringify({ state: st, rev, updatedAt: Date.now() });
+  // ver = the game build that wrote it (FR.version, build.py), to match a player's report to a release
+  const json = JSON.stringify({ state: st, rev, updatedAt: Date.now(), ver: String(body.ver || '').slice(0, 60) });
   if (json.length > L.MAX_SAVE) return L.send(res, 413, { error: 'too-large' });
   await L.redis('SET', L.K.save(id), json);
   await L.updateBoard(id, cur.state, st);

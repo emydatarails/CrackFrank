@@ -23,7 +23,7 @@ player accounts (`/api/*`, see below).
 | `src/apps/paint.js`, `src/apps/solitaire.js` | Paint (XP mspaint, opens on Frank's `kristians_by_frank.bmp`) and Solitaire (Klondike; the face cards are MEWC competitors). On the desktop and in the Start menu. |
 | `src/apps/xp_*.js`, `src/apps/xp_extras.css` | The extras (see "Extras" below): `xp_0base.js` (shared helpers), `xp_bsod.js` (Blue Screen after 4 wrong answers in a row), `xp_norton.js` (the Norton AntiVirus popup), `xp_eggs.js` (Frank's Easter eggs), `xp_bonus.js` (bonus requests). |
 | `src/mobile.css` | Phones and small tablets only (see "Phones" below). |
-| `api/` | Vercel functions for player accounts and the scoreboard: `register`, `login`, `logout`, `me`, `save`, `scores` (shared code in `_lib.js`). No npm dependencies. |
+| `api/` | Vercel functions for player accounts and the scoreboard: `register`, `login`, `logout`, `me`, `save`, `scores` (shared code in `_lib.js`, the player-name check in `_names.js`). No npm dependencies. |
 | `build.py` | Concatenates `src/` into `dist/index.html` and copies `public/` next to it. Python 3, standard library only. |
 | `config.json` | Site links, end-screen CTA and share-card metadata, injected at build time. |
 | `public/` | Static files copied into the build (`og-image.png` share card). |
@@ -31,7 +31,8 @@ player accounts (`/api/*`, see below).
 | `vercel.json` | Vercel build settings (build command, `dist/` output, cache headers). |
 | `.github/workflows/ci.yml` | Builds and runs the spreadsheet-engine tests on every push and PR. |
 | `test/` | `excel_engine_test.js` (node, no deps), `play.py` (full Playwright playthrough; the tests can't reach the live packacorp.com, so `site_route.py` serves the copies in `test/site/`: the pages, a stand-in stylesheet and script, the real logo and stand-in photos), `account_api_test.js` + `account_play.py` (player accounts), `persist_play.py` (spreadsheet edits saved with the game), `local_server.js` + `fake_redis.js` (runs the game and `api/` locally with an in-memory database). |
-| `tools/` | `make_sounds.py` + the Windows XP sound pack, to regenerate `src/sounds.js`. |
+| `tools/` | `make_sounds.py` + the Windows XP sound pack, to regenerate `src/sounds.js`; `board_admin.js` (hide a player from the live leaderboard, see below). |
+| `VERSION` | The game's version number (see "Versions" below). |
 | `docs/` | `SPEC.md` (the design spec; later sections win), `API.md` (the `window.FR` API every app uses), `CANON_DECISIONS.md` (numbers and story facts that must stay consistent), `PACKA_SITE_GAME_CLUES.md` (what must exist on packacorp.com), `PLAYTEST_FPA.md`. |
 
 ## Build and run locally
@@ -101,6 +102,10 @@ How it works:
 - Sign-up is limited to 10 per IP per hour; sign-in to 10 tries per player name and 30 per IP per 15 minutes.
 - There is no password reset (no email is collected). Player names are 3–20 letters, numbers, `.`, `-` or `_`,
   unique regardless of case.
+- Player names are public (the leaderboard), so sign-up refuses rude and reserved names (`api/_names.js`): it undoes
+  digits for letters, separators and repeated letters first (`5h1t`, `s.h.i.t`, `shiiit`). Words that hide inside real
+  names (Dickens, Hancock, analyst, Sussex) are only refused as a whole word of the name; reserved names (`admin`,
+  `packa`, `datarails` …) look like staff. Names registered before the check aren't touched: hide them (below).
 - Redis keys: `fc:user:<name>`, `fc:save:<name>`, `fc:sess:<token hash>`, `fc:rl:*` (rate limits, expire on their own).
 
 Run it locally without Vercel or a database:
@@ -149,6 +154,15 @@ the numbers in `src/score_rules.js` only (`BONUS` is the bonus table): the game 
   sends. The save itself comes from the browser, so a determined player could still forge one; this is a campaign
   game, not a tournament.
 - Redis keys: `fc:board` (sorted set) and `fc:board:info` (hash). To reset the board, delete both.
+- **Hiding a player** (a rude name, a forged save): `tools/board_admin.js` talks to the live database.
+  ```bash
+  vercel env pull .env.local                                   # once: the site's KV_REST_API_URL / KV_REST_API_TOKEN (git-ignored)
+  node --env-file=.env.local tools/board_admin.js list         # the top 50
+  node --env-file=.env.local tools/board_admin.js hide <name>  # off the board and kept off; the account and save stay
+  node --env-file=.env.local tools/board_admin.js unhide <name>
+  node --env-file=.env.local tools/board_admin.js hidden       # who is hidden
+  ```
+  A hidden player is marked `hidden` in `fc:user:<name>`; `updateBoard` keeps them off whatever they play.
 
 ### The in-game browser and packacorp.com
 
@@ -186,6 +200,15 @@ rotation. Desktop browsers never match it and are unchanged. On a phone:
 - tap targets, text and inputs are bigger (inputs are 16px, so iOS doesn't zoom in); landscape gets slimmer toolbars.
 
 All mobile CSS is in `src/mobile.css`, inside that media query; mobile JS only runs when `FR.mobile` is set.
+
+### Versions
+
+`VERSION` holds the game's version (`1.0.0`); bump it for each release. The build stamps it into the game as
+`FR.version`: on Vercel with the commit and date ("1.0.0 (build 3f9a2c1, Oct 1 2026)"), in a local build (and the
+committed `dist/index.html`) as "1.0.0 (dev build)", so the committed copy doesn't change on every commit. Players see
+it in **Start › Help and Support** (last line) and **About Windows** (e.g. My Computer › Help); it is also printed in
+the browser console and stored with each cloud save (`ver` in `fc:save:<name>`), so a bug report can be matched to a
+release.
 
 ## Tests
 

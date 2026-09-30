@@ -43,7 +43,7 @@
 
   const medal = r => r <= 3 ? ` st-m${r}` : '';
   const row = (e, me) => `<tr class="${me ? 'st-me' : ''}"><td class="st-rank${medal(e.rank)}"><span>${e.rank}</span></td>
-    <td class="st-name">${esc(e.name)}${me ? ' <i>(you)</i>' : ''}</td><td class="st-score">${fmt(e.score)}</td><td class="st-bonus">${e.bonus ? '+' + fmt(e.bonus) : '&mdash;'}</td>
+    <td class="st-name">${esc(e.name)}${me ? ' <i>(you)</i>' : ''}</td><td class="st-score">${fmt(e.score)}${e.bonus ? `<span class="st-pbonus">incl. +${fmt(e.bonus)}</span>` : ''}</td><td class="st-bonus">${e.bonus ? '+' + fmt(e.bonus) : '&mdash;'}</td>
     <td>${e.finished ? '<span class="st-done">Board Pack sent</span>' : `At Frank's desk &middot; ${e.solved}/${R.ITEMS.length}`}</td>
     <td>${e.hints}</td><td>${e.wrong}</td><td>${esc(dur(e.timeMs))}</td></tr>`;
 

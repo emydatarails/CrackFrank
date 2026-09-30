@@ -386,7 +386,10 @@
   .st-crumb { padding: 5px 10px; overflow-wrap: anywhere; }
   .st-body { padding: 10px 10px 30px; }
   .st-body h1 { font-size: 19px; overflow-wrap: anywhere; }
-  .st-t td:nth-child(4) { white-space: normal; }
+  .st-t td:nth-child(5) { white-space: normal; }   /* Status (column 5 since the Bonus column) */
+  /* no room for a Bonus column on a phone: Points already includes it, shown as "incl. +N" under the points */
+  .st-t th:nth-child(4), .st-t td:nth-child(4) { display: none; }
+  .st-t .st-pbonus { display: block; font: 10px Tahoma, sans-serif; color: #1d6b3a; }
 
   /* ---------- ending ---------- */
   /* (Q2) the bottom strip, where the taskbar was, stays empty: a stray tap there never lands on a button */
@@ -488,6 +491,12 @@
   html.fr-m .fr-start-l .fr-sm-item .fr-ico { width: 26px; height: 26px; }
   html.fr-m .fr-start-foot { padding-top: 2px; padding-bottom: 2px; }
 }
+/* even shorter (iPhone SE, 568 px) with Paint and Solitaire in the menu: no grey subtitles, slightly smaller icons */
+@media (max-height: 600px) {
+  html.fr-m .fr-start-l .fr-sm-item small { display: none; }
+  html.fr-m .fr-start-l .fr-sm-item .fr-ico { width: 22px; height: 22px; }
+  html.fr-m .fr-sm-item { padding-top: 3px; padding-bottom: 3px; }
+}
 /* phones: the grid a little bigger, so a finger hits the right cell (Excel measures its cells from the DOM, so the
    zoomed grid stays consistent: selection box, notes, scrolling) */
 @media (max-width: 760px), (max-height: 500px) {
@@ -535,7 +544,7 @@
 }
 /* (R3b S12) 320-360 px: the leaderboard keeps rank, player, points and status (hints, wrong, time are on the checklist) */
 @media (max-width: 360px) {
-  html.fr-m .st-t th:nth-child(6), html.fr-m .st-t td:nth-child(6) { display: none; }
+  html.fr-m .st-t th:nth-child(7), html.fr-m .st-t td:nth-child(7) { display: none; }   /* Wrong */
   html.fr-m .st-t td.st-name { min-width: 0; }
   html.fr-m .st-t td.st-score { font-size: 12px; }
   html.fr-m .st-top img { height: 28px; }

@@ -733,7 +733,7 @@ def r3b_checks(p, b, devname):
       top: [{ rank: 1, name: 'Kristians_Busars_Fan_Club_Riga_2026', score: 10000, finished: true, solved: 10, hints: 0, wrong: 0, timeMs: 1500000 }, { rank: 2, name: 'fpaemy3', score: 10000, finished: true, solved: 10, hints: 0, wrong: 0, timeMs: 1740000 },
         { rank: 3, name: 'diane.k', score: 6000, finished: false, solved: 6, hints: 1, wrong: 2, timeMs: 1260000 }] }); FR.score.open(); }"""); pg.wait_for_timeout(1500)
     s12 = pg.evaluate("""() => { const p = document.querySelector('.fr-win:not(.fr-inactive) .ie-page'), t = p.querySelector('.st-t'); if (!t) return null;
-      const r = t.getBoundingClientRect(), pr = p.getBoundingClientRect(), wrong = t.querySelector('th:nth-child(6)');
+      const r = t.getBoundingClientRect(), pr = p.getBoundingClientRect(), wrong = t.querySelector('th:nth-child(7)');   /* Wrong (the Bonus column is 4, hidden on phones) */
       return [p.scrollWidth <= p.clientWidth + 1, r.right <= pr.right + 1 && r.left >= pr.left - 1, getComputedStyle(wrong).display]; }""")
     ok(bool(s12) and s12[0] and s12[1] and (s12[2] == 'none' or not narrow(pg)), f'R3b S12: leaderboard fits the width, no sideways swipe (≤ 360 px: fewer columns) {s12}')
     pg.screenshot(path=f'{OUT}/mobile_{PFX[0]}leaderboard.png')

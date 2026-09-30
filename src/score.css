@@ -25,6 +25,7 @@
 .st-t td.st-score { font: bold 13px Verdana, sans-serif; text-align: right; }
 .st-t th:nth-child(3) { text-align: right; }
 .st-t td.st-bonus { text-align: right; color: #1d6b3a; font-weight: bold; }
+.st-pbonus { display: none; }   /* phones only (src/mobile.css), where the Bonus column is hidden */
 .st-t th:nth-child(4) { text-align: right; }
 .st-rank span { display: inline-block; min-width: 20px; text-align: center; font-weight: bold; color: #555; }
 .st-m1 span, .st-m2 span, .st-m3 span { border-radius: 50%; width: 22px; height: 22px; line-height: 22px; color: #fff; text-shadow: 0 1px 1px rgba(0,0,0,.4); }

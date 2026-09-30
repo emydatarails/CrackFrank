@@ -120,10 +120,10 @@ The local server serves `dist/` fresh on every request and reloads `api/*.js` an
 | Each wrong guess (password boxes, checklist answers) | −50 |
 | Hints | first 10 free, then −100 each (a hint asks before it costs) |
 | Each bonus request answered (9, optional, see "Extras") | +100 to +250, on top |
-| Every Easter egg found (15) | +150, on top |
+| Each Easter egg found (15 hidden, see "Easter eggs") | +10, on top (+150 for all 15) |
 
 Score = max(0, riddles − wrong guesses − paid hints) + bonus: the main score never goes below 0, and penalties never
-eat into bonus points. A perfect game is 10,000, or 11,450 with every bonus. Wrong bonus answers cost nothing. Change
+eat into bonus points. A perfect game is 10,000, or 11,450 with every bonus request and every egg. Wrong bonus answers cost nothing. Change
 the numbers in `src/score_rules.js` only (`BONUS` is the bonus table): the game and the server both load that file.
 
 - The score shows in the checklist footer (with the free hints left and, once there is any, "(+N bonus)") and on the
@@ -136,8 +136,8 @@ the numbers in `src/score_rules.js` only (`BONUS` is the bonus table): the game 
   player's row is highlighted, and shown under the list if they're outside the top 50. Without the account server the
   shortcut is hidden and the page says the intranet is offline.
 - **One score everywhere**: the checklist footer, the ending screen and the leaderboard always show the same number
-  (all three use `src/score_rules.js`). The ending adds how it's made up ("10 × 1,000 − 4 wrong × 50 + 1,150 bonus =
-  10,950") and the leaderboard page opens with a "How points work" box; both are written from the rules file, never
+  (all three use `src/score_rules.js`). The ending adds how it's made up ("10 × 1,000 − 4 wrong × 50 + 1,300 bonus +
+  4 eggs × 10 = 11,140") and the leaderboard page opens with a "How points work" box; both are written from the rules file, never
   typed in twice. A wrong answer's message says what it cost ("(−50 points)"); an answer that isn't a number where a
   number is asked ("banana") gets "That's not a number" and costs nothing.
 - Only signed-in players are on the board, under their player name. The board follows a player's game, and their
@@ -236,8 +236,10 @@ python3 test/features_play.py            # Blue Screen, Norton, bonus requests, 
 
 ## Easter eggs (spoilers)
 
-Fifteen of Frank's private secrets (`src/apps/xp_eggs.js`). Each shows a small "Easter egg found (n/15)" note (it never
-takes a tap); finding all 15 is worth +150. Found eggs are in `FR.state.eggs`. None of them gives a puzzle answer.
+Fifteen of Frank's private secrets (`src/apps/xp_eggs.js`). Each shows a small "Easter egg found (n/15) · +10 points"
+note (it never takes a tap) and is worth +10 as soon as it's found (+150 for all 15; the ids are also listed in
+`src/score_rules.js`, `EGGS`). The count so far is on the leaderboard ("Your Board Pack right now") and in How to play.
+Found eggs are in `FR.state.eggs`. None of them gives a puzzle answer.
 
 | # | Egg | Where / how |
 |---|---|---|

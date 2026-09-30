@@ -29,9 +29,24 @@ ok(R.calc(st(3, {}, 0, { bonus: { tom_comm: true, mum_fx: { solvedAt: 0 }, dale_
 ok(R.calc(st(3, {}, 0, { bonus: [1, 2] })).bonus === 0 && R.calc(st(3, {}, 0, { bonus: 'x' })).bonus === 0, 'a bonus that is not an object counts as zero');
 ok(R.calc(st(1, {}, 1000, { bonus: B('vending_ci') })).score === R.BONUS.vending_ci, 'penalties floor the main score at 0; bonus is added after the floor');
 const allB = Object.fromEntries(Object.keys(R.BONUS).map(id => [id, { solvedAt: 5 }]));
-const perfect = R.calc(st(10, {}, 0, { bonus: allB }));
+const allEggs = Object.fromEntries(R.EGGS.map((id, i) => [id, 100 + i]));
+const perfect = R.calc(st(10, {}, 0, { bonus: allB, eggs: allEggs }));
 ok(perfect.score === 10000 + R.BONUS_MAX && perfect.score > 10000 && perfect.bonusDone === perfect.bonusTotal, `a perfect game with every bonus = 10,000 + ${R.BONUS_MAX} = ${perfect.score}`);
 ok(Object.values(R.BONUS).every(v => v >= 100 && v <= 300), 'every bonus is worth +100 to +300');
+// (round 5, P3) Easter eggs: +PER_EGG each as it's found (was 150 for all 15 or nothing); the max is unchanged
+ok(R.PER_EGG === 10 && R.EGGS.length === 15 && R.EGGS_MAX === 150 && R.REQUESTS_MAX === 1300 && R.BONUS_MAX === 1450, `eggs: +${R.PER_EGG} each × ${R.EGGS.length} = ${R.EGGS_MAX}; requests ${R.REQUESTS_MAX}; bonus max ${R.BONUS_MAX}`);
+const e4 = R.calc(st(10, {}, 4, { eggs: { resign: 1, diary: 2, xl_hidden: 3, calc0003: 4 } }));
+ok(e4.eggs === 4 && e4.eggPts === 40 && e4.bonus === 40 && e4.score === 9840, `4 eggs found = +40 (${e4.score})`);
+ok(R.calc(st(1, {}, 0, { eggs: { bogus: 5, __proto__x: 5, diary: 0, resign: 'x', clock: -3 } })).eggs === 0, 'unknown egg ids, and eggs without a time, count as zero');
+ok(R.calc(st(1, {}, 0, { eggs: [1, 2] })).eggs === 0 && R.calc(st(1, {}, 0, { eggs: 'x' })).eggs === 0, 'eggs that are not an object count as zero');
+ok(R.calc(st(1, {}, 0, { bonus: { eggs: { solvedAt: 5 } }, eggs: allEggs })).bonus === 150, "an old save's all-eggs bonus (bonus.eggs) isn't counted twice: the 15 eggs are +150");
+ok(R.calc(st(1, {}, 1000, { eggs: { diary: 1 } })).score === 10, 'egg points are added after the floor too');
+{ // the same 15 ids as the game's own list (src/apps/xp_eggs.js)
+  const src = require('fs').readFileSync(require('path').join(__dirname, '..', 'src', 'apps', 'xp_eggs.js'), 'utf8');
+  const block = src.slice(src.indexOf('const EGGS = ['), src.indexOf('];', src.indexOf('const EGGS = [')));
+  const ids = [...block.matchAll(/\[\s*'([a-z0-9_]+)'/g)].map(m => m[1]);
+  ok(ids.length === 15 && ids.join() === R.EGGS.join(), `score_rules EGGS = xp_eggs.js EGGS (${ids.length} ids)`);
+}
 ok(R.rankValue({ score: 10100, timeMs: 9e12 }) > R.rankValue({ score: 10000, timeMs: 0 }), 'bonus points count for the rank');
 ok(R.rankValue({ score: 5000, timeMs: 9e12 }) > R.rankValue({ score: 4950, timeMs: 0 }), 'more points always beats time');
 
@@ -102,14 +117,17 @@ ok(R.rankValue({ score: 5000, timeMs: 9e12 }) > R.rankValue({ score: 4950, timeM
   r = await d('scores');
   ok(game.score === 10950 && r.data.me.score === game.score && r.data.me.bonus === 1150, `the round-4 player's game: the board shows what the game shows (${r.data.me.score} = ${game.score}, incl. +${r.data.me.bonus})`);
   ok(r.data.me.game === 777 && r.data.me.finished, 'the entry knows which game it is (finishedAt)');
-  const withEgg = { ...b8, tom_comm: { solvedAt: 9 }, eggs: { solvedAt: 10 } };
-  await d('save', 'PUT', { state: fin({ bonus: withEgg }), rev: 1 });
-  r = await d('scores'); ok(r.data.me.score === R.calc(fin({ bonus: withEgg })).score && r.data.me.score === 10950 + R.BONUS.tom_comm + R.BONUS.eggs, `a bonus request and the Easter eggs after the ending still count: ${r.data.me.score}`);
-  await d('save', 'PUT', { state: fin({ bonus: withEgg, wrong: 5 }), rev: 2 });
-  r = await d('scores'); ok(r.data.me.score === R.calc(fin({ bonus: withEgg, wrong: 5 })).score, 'a wrong guess after the ending (same game) shows on the board too: the numbers never drift apart');
+  const withEgg = { ...b8, tom_comm: { solvedAt: 9 } };
+  await d('save', 'PUT', { state: fin({ bonus: withEgg, eggs: { diary: 11, resign: 12, calc0003: 13 } }), rev: 1 });
+  r = await d('scores'); ok(r.data.me.score === R.calc(fin({ bonus: withEgg, eggs: { diary: 11, resign: 12, calc0003: 13 } })).score && r.data.me.score === 10950 + R.BONUS.tom_comm + 3 * R.PER_EGG, `a bonus request and 3 Easter eggs after the ending still count: ${r.data.me.score}`);
+  ok(r.data.rules.perEgg === R.PER_EGG && r.data.rules.eggs === 15 && r.data.rules.bonusMax === 1450, '/api/scores sends the egg rule');
+  await d('save', 'PUT', { state: fin({ bonus: withEgg, eggs: allEggs }), rev: 2 });
+  r = await d('scores'); ok(r.data.me.score === 10950 + R.BONUS.tom_comm + 150, `all 15 eggs: +150 on the board (${r.data.me.score})`);
+  await d('save', 'PUT', { state: fin({ bonus: withEgg, eggs: allEggs, wrong: 5 }), rev: 3 });
+  r = await d('scores'); ok(r.data.me.score === R.calc(fin({ bonus: withEgg, eggs: allEggs, wrong: 5 })).score, 'a wrong guess after the ending (same game) shows on the board too: the numbers never drift apart');
   const locked = r.data.me.score;
-  await d('save', 'PUT', { state: st(0), rev: 3 });
-  await d('save', 'PUT', { state: st(10, {}, 0, { finishedAt: 888, finishPlayMs: 60000, bonus: allB }), rev: 4 });
+  await d('save', 'PUT', { state: st(0), rev: 4 });
+  await d('save', 'PUT', { state: st(10, {}, 0, { finishedAt: 888, finishPlayMs: 60000, bonus: allB }), rev: 5 });
   r = await d('scores'); ok(r.data.me.score === locked && r.data.me.game === 777, 'Start over + a perfect replay: the first finished game stays on the board');
 
   // an entry locked before entries remembered their game (no "game" field) follows the same game only

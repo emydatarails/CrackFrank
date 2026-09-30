@@ -16,21 +16,13 @@ from playwright.sync_api import sync_playwright
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.environ.get('OUT', os.path.join(ROOT, 'test', 'out'))
 URL = 'file://' + ROOT + '/dist/index.html'
-PAGES = {'/': 'home.html', '/index.html': 'home.html'}
+sys.path.insert(0, os.path.join(ROOT, 'test'))
+from site_route import site  # packacorp.com: the local copies in test/site/ with their css + images (round 5, P1)
 fails, logs, n = [0], [], [0]
 PFX = ['']
 FILL = [False]   # Pixel: the EBITDA row by "Fill…"; iPhone: cell by cell
 DEVICES = sys.argv[1:] or ['iPhone 13', 'Pixel 7', 'iPhone SE']   # the whole game on each (iPhone SE: 320x568, the smallest)
 TOP = '.fr-win:not(.fr-inactive):not(.fr-closing)'
-
-
-def site(route):
-    path = re.sub(r'^https?://[^/]+', '', route.request.url).split('?')[0].split('#')[0] or '/'
-    f = os.path.join(ROOT, 'test', 'site', PAGES.get(path, path.lstrip('/')))
-    if os.path.isfile(f) and f.endswith('.html'):
-        route.fulfill(status=200, content_type='text/html', body=open(f, encoding='utf-8').read())
-    else:
-        route.fulfill(status=404, content_type='text/html', body='<h1>404</h1>')
 
 
 def ok(cond, msg):
@@ -229,7 +221,7 @@ def playthrough(p, b, devname):
     ctx = b.new_context(**dev)
     ctx.route(re.compile(r'https?://(www\.)?packacorp\.com/.*'), site)
     pg = ctx.new_page()
-    pg.on('console', lambda m: logs.append(m.type + ': ' + m.text) if m.type in ('error', 'warning') and '404' not in m.text else None)
+    pg.on('console', lambda m: logs.append(m.type + ': ' + m.text) if m.type in ('error', 'warning') else None)
     pg.on('pageerror', lambda e: logs.append('PAGEERROR ' + str(e)))
     pg.goto(URL); pg.wait_for_timeout(700)
     ok(pg.evaluate('() => FR.mobile === true && document.documentElement.classList.contains("fr-m")'), 'phone detected (FR.mobile, html.fr-m)')
@@ -621,7 +613,7 @@ def r3b_checks(p, b, devname):
     print('== round 3b checks on', devname, flush=True)
     ctx = b.new_context(**dev); ctx.route(re.compile(r'https?://(www\.)?packacorp\.com/.*'), site)
     pg = ctx.new_page()
-    pg.on('console', lambda m: logs.append(m.type + ': ' + m.text) if m.type in ('error', 'warning') and '404' not in m.text else None)
+    pg.on('console', lambda m: logs.append(m.type + ': ' + m.text) if m.type in ('error', 'warning') else None)
     pg.on('pageerror', lambda e: logs.append('PAGEERROR ' + str(e)))
     pg.goto(URL + '?dev=1&solve=login'); pg.wait_for_selector('.fr-desktop'); pg.wait_for_timeout(900)
     pg.evaluate(MUTE)
@@ -796,7 +788,7 @@ def r4_checks(p, b, devname):
     print('== round 4 checks on', devname, flush=True)
     ctx = b.new_context(**dev); ctx.route(re.compile(r'https?://(www\.)?packacorp\.com/.*'), site)
     pg = ctx.new_page()
-    pg.on('console', lambda m: logs.append(m.type + ': ' + m.text) if m.type in ('error', 'warning') and '404' not in m.text else None)
+    pg.on('console', lambda m: logs.append(m.type + ': ' + m.text) if m.type in ('error', 'warning') else None)
     pg.on('pageerror', lambda e: logs.append('PAGEERROR ' + str(e)))
     pg.goto(URL + '?dev=1&solve=ebitda'); pg.wait_for_selector('.fr-desktop'); pg.wait_for_timeout(900)
     pg.evaluate(MUTE)

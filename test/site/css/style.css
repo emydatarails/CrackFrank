@@ -1,0 +1,61 @@
+/* Test stand-in for www.packacorp.com/css/style.css. The tests route packacorp.com to these local copies
+   (test/site_route.py); the real stylesheet lives on the live site. Close enough to look like the real thing. */
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.55;color:#2b2b2b;background:#fff}
+a{color:#a33a1e}
+img{max-width:100%}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+.topbar{background:#2b2b2b;color:#ddd;font-size:13px}
+.topbar .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px 16px;padding-top:6px;padding-bottom:6px}
+.topbar a{color:#fff;margin-left:14px;text-decoration:none}
+.site-header{border-bottom:1px solid #e3ddd5}
+.site-header .wrap{display:flex;align-items:center;justify-content:space-between;padding-top:14px;padding-bottom:14px}
+.logo{display:flex;align-items:center;gap:12px;text-decoration:none;color:#2b2b2b}
+.logo-mark{width:52px;height:56px}
+.logo-text{font-weight:bold;font-size:22px;letter-spacing:1px;display:flex;flex-direction:column;line-height:1.1}
+.tagline{font-weight:normal;font-size:13px;letter-spacing:0;color:#777;margin-top:3px}
+.nav-toggle{display:none;background:#a33a1e;color:#fff;border:0;padding:8px 14px;font-weight:bold;border-radius:3px}
+.main-nav{background:#a33a1e}
+.main-nav ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap}
+.main-nav a{display:block;color:#fff;text-decoration:none;padding:12px 16px;font-weight:bold;font-size:14px}
+.main-nav a.active,.main-nav a:hover{background:#7f2c16}
+section{padding:44px 0}
+section.alt{background:#f6f2ec}
+.hero{background:#f6f2ec}
+.hero .wrap{display:flex;gap:36px;align-items:center}
+.hero-text,.hero-image{flex:1}
+.hero-badge{display:inline-block;background:#a33a1e;color:#fff;font-size:12px;font-weight:bold;text-transform:uppercase;padding:4px 10px;border-radius:2px}
+h1{font-size:38px;line-height:1.2;margin:.4em 0}
+h2,.section-title{font-size:28px;margin:0 0 .6em}
+.page-header{background:#2b2b2b;color:#fff;padding:34px 0}
+.page-header h1{margin:0}
+.breadcrumb{font-size:13px;color:#ccc}.breadcrumb a{color:#fff}
+.btn{display:inline-block;background:#a33a1e;color:#fff;text-decoration:none;font-weight:bold;padding:11px 22px;border-radius:3px;border:2px solid #a33a1e}
+.btn-outline{background:transparent;color:#a33a1e}
+.photo-frame{display:block;width:100%;border:6px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,.2)}
+.stats{background:#a33a1e;color:#fff;padding:28px 0}
+.stats .grid-3>div{text-align:center}
+.num{display:block;font-size:34px;font-weight:bold}.label{font-size:14px}
+.grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:24px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:center}
+.card{background:#fff;border:1px solid #e3ddd5;border-top:4px solid #a33a1e;padding:20px}
+.testimonial{margin:0;background:#fff;border-left:4px solid #a33a1e;padding:16px;font-style:italic}
+.testimonial cite{display:block;margin-top:10px;font-style:normal;font-size:13px;color:#777}
+.timeline{border-left:3px solid #a33a1e;padding-left:18px}.timeline-item{margin-bottom:14px}.year{font-weight:bold;color:#a33a1e;margin-right:8px}
+.spec-table{border-collapse:collapse;width:100%}.spec-table th,.spec-table td{border:1px solid #e3ddd5;padding:8px;text-align:left}.spec-table th{background:#f6f2ec}
+.notice-box{background:#fff8e1;border:1px solid #e8c56a;padding:14px}
+.job-listing{border:1px solid #e3ddd5;padding:16px;margin-bottom:14px}
+.quote-form input,.quote-form textarea,.quote-form select{width:100%;padding:8px;border:1px solid #ccc;margin-bottom:10px;font:inherit}
+.required{color:#a33a1e}.form-error{color:#b00020}
+.site-footer{background:#2b2b2b;color:#ccc;padding:36px 0 16px;font-size:14px}
+.site-footer a{color:#fff;text-decoration:none}.site-footer ul{list-style:none;padding:0}
+.site-footer h4{color:#fff}.footer-logo{width:44px}
+.footer-bottom{border-top:1px solid #444;margin-top:20px;padding-top:12px;text-align:center;font-size:12px}
+@media (max-width:760px){
+  h1{font-size:28px}
+  .hero .wrap,.two-col{display:block}
+  .nav-toggle{display:block}
+  .main-nav ul{display:none;flex-direction:column}
+  .main-nav ul.open{display:flex}
+  .logo-text{font-size:17px}
+}

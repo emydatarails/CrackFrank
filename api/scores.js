@@ -17,5 +17,5 @@ module.exports = L.handler(['GET'], async (req, res) => {
     const rank = await L.redis('ZREVRANK', L.K.board, id), raw = await L.redis('HGET', L.K.boardInfo, id);
     if (rank !== null && raw) { const e = JSON.parse(raw); me = pub(e, rank + 1); me.inTop = me.rank <= TOP; me.game = e.game || 0; }
   }
-  L.send(res, 200, { top, me, players, rules: { perSolved: L.RULES.PER_SOLVED, perWrong: L.RULES.PER_WRONG, perHint: L.RULES.PER_HINT, freeHints: L.RULES.FREE_HINTS, bonus: L.RULES.BONUS, bonusMax: L.RULES.BONUS_MAX } });
+  L.send(res, 200, { top, me, players, rules: { perSolved: L.RULES.PER_SOLVED, perWrong: L.RULES.PER_WRONG, perHint: L.RULES.PER_HINT, freeHints: L.RULES.FREE_HINTS, bonus: L.RULES.BONUS, perEgg: L.RULES.PER_EGG, eggs: L.RULES.EGGS.length, bonusMax: L.RULES.BONUS_MAX } });
 });

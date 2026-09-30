@@ -1,7 +1,7 @@
 /* FRANK'S COMPUTER — Frank's private Easter eggs. Fifteen harmless, in-canon secrets hidden around his computer
    (none of them gives a puzzle away). Found eggs live in FR.state.eggs ({ id: foundAtMs }); each one shows a small
-   "Easter egg found (n/15)" note that never takes a tap (pointer-events: none), and finding all of them is worth the
-   'eggs' bonus in src/score_rules.js. The list, with where to find each one, is in README.md ("Easter eggs").  Prefix: .eg- */
+   "Easter egg found (n/15) · +10 points" note that never takes a tap (pointer-events: none); each egg is worth PER_EGG
+   in src/score_rules.js (whose EGGS list must match this one). The list, with where to find each one, is in README.md ("Easter eggs").  Prefix: .eg- */
 (() => {
   const $ = FR.$, esc = FR.esc, T = FR.data.texts = FR.data.texts || {};
   const EGGS = [
@@ -30,8 +30,9 @@
   let toastT = 0;
   function toast(id, n) {
     document.querySelectorAll('.eg-toast').forEach(t => t.remove());
-    const t = $(`<div class="eg-toast" role="status">${EGG_ICO}<span><b>Easter egg found (${n}/${EGGS.length})</b><i></i></span></div>`);
-    t.querySelector('i').textContent = NAME[id];
+    const pe = FR.scoreRules ? FR.scoreRules.PER_EGG : 0;
+    const t = $(`<div class="eg-toast" role="status">${EGG_ICO}<span><b>Easter egg found (${n}/${EGGS.length})${pe ? ` · +${pe} points` : ''}</b><i></i></span></div>`);
+    t.querySelector('i').textContent = n === EGGS.length ? `${NAME[id]}. That's all of them!` : NAME[id];
     document.body.appendChild(t);
     clearTimeout(toastT); toastT = setTimeout(() => { t.classList.add('eg-out'); setTimeout(() => t.remove(), 500); }, n === EGGS.length ? 6000 : 4200);
   }
@@ -43,7 +44,7 @@
     FR.save();
     toast(id, n);
     FR.bus.emit('egg', { id, n, total: EGGS.length });
-    if (n === EGGS.length && FR.bonus && FR.bonus.award) setTimeout(() => FR.bonus.award('eggs', 'Every Easter egg on Frank\'s computer'), 1800);
+    if (FR.checklistRender) FR.checklistRender();   // the footer's score and egg count
     return true;
   }
   FR.eggs = { list: EGGS.map(([id, name]) => ({ id, name })), find, count, total: EGGS.length, has: id => !!got()[id] };

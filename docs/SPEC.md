@@ -159,7 +159,7 @@ New Frank-flavour nodes (fs.js): desktop folder 'fanclub' "Kristians Fan Club" (
 # v7 — extras (Sep 29). Blue Screen after 4 wrong answers in a row (not the log-on riddle; cosmetic, 5 s, input blocked);
 Norton AntiVirus 2003 popup ~3 min into play, then every 8–15 min of active play (never over dialogs, typing, the Blue
 Screen, screensaver or ending; status window with "Scan Frank's inbox"); 15 Easter eggs (FR.state.eggs, "Easter egg found
-(n/15)", +150 for all); 9 optional bonus requests by e-mail from people who don't know Frank is missing (answer box in the
+(n/15)"; v8 (round 5): +10 each as found, 150 for all, points in src/score_rules.js PER_EGG/EGGS); 9 optional bonus requests by e-mail from people who don't know Frank is missing (answer box in the
 message or a reply; wrong answers cost nothing; +100…+250 each on top of the score, counted for the leaderboard; points in
 src/score_rules.js BONUS); Paint and Solitaire on the desktop and in the Start menu (Solitaire is no longer "uninstalled").
 Details and spoilers: README ("Extras", "Easter eggs"); canon: docs/CANON_DECISIONS.md.

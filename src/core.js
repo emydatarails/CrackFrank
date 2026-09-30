@@ -197,6 +197,7 @@ FR.apps = FR.apps || {};
   let z = 100, wid = 0, dn = 0;
   const wins = new Map();
   const menuClosers = new Set();
+  let mshowOff = null;   // (R5 P6) the phone "Menu" button's tap-elsewhere listener (one for all windows)
   const topWin = (except) => [...wins.values()].filter(v => !v.min && v !== except && !v.el.classList.contains('fr-dialog')).sort((a, b) => (+b.el.style.zIndex || 0) - (+a.el.style.zIndex || 0))[0];
   let layer, taskbarList;
   /* phones: the taskbar's window buttons become one "switcher" button (active window's full title + how many are
@@ -394,6 +395,17 @@ FR.apps = FR.apps || {};
         document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up); e.preventDefault(); e.stopPropagation();
       });
       if (o.menu) FR.wm.menubar(el.querySelector('.fr-menubar'), o.menu, w);
+      // (R5 P6) phones held sideways hide some menu bars (IE, Outlook, Excel, Calculator: mobile.css) for room: a small
+      // "Menu" button in the title bar (shown only then) brings the menu bar back until a command is picked
+      if (o.menu && FR.mobile) {
+        const mb = $('<button class="fr-mbtn" aria-label="Show the menu bar">Menu</button>');
+        mb.onclick = e => { e.stopPropagation(); FR.sound.play('click'); if (el.classList.toggle('fr-mshow')) FR.wm.closeMenus(); };
+        bar.insertBefore(mb, bar.querySelector('.title-bar-controls'));
+        if (!mshowOff) {   // (once) a tap anywhere else, not on a menu bar, its drop-downs or the button, puts it away again
+          mshowOff = e => { if (!e.target.closest || !e.target.closest('.fr-menubar, .fr-menu-drop, .fr-mbtn')) document.querySelectorAll('.fr-mshow').forEach(x => x.classList.remove('fr-mshow')); };
+          document.addEventListener('mousedown', mshowOff, true);
+        }
+      }
       if (!isDlg && (o.maximized || FR.mobile || window.innerWidth < 700 || ((o.className || '').includes('xl-win') && window.innerWidth < 1300))) w.maximize(FR.mobile);
       el.classList.add('fr-opening'); setTimeout(() => el.classList.remove('fr-opening'), 200);
       el._frShown = Date.now(); el._frGuard = isDlg ? 500 : 250;
@@ -412,7 +424,7 @@ FR.apps = FR.apps || {};
             if (it.sep) { d.appendChild($('<div class="fr-menu-sep"></div>')); return; }
             const r = $(`<div class="fr-menu-item ${it.disabled ? 'disabled' : ''}"><span class="fr-menu-check">${it.checked ? '&#10003;' : ''}</span><span></span><span class="fr-menu-key">${it.key || ''}</span></div>`);
             r.children[1].textContent = it.label;
-            r.onclick = e => { e.stopPropagation(); if (it.disabled) return; closeAll(); it.action && it.action(w); };
+            r.onclick = e => { e.stopPropagation(); if (it.disabled) return; closeAll(); if (w && w.el) w.el.classList.remove('fr-mshow'); it.action && it.action(w); };
             d.appendChild(r);
           });
           d.style.left = b.offsetLeft + 'px'; bar.appendChild(d);

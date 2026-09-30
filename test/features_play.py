@@ -313,7 +313,8 @@ with sync_playwright() as p:
         pg.wait_for_timeout(250)
         n = st(pg, 'FR.eggs.count()')
         t = egg_toast(pg)
-        good = n == found[0] + 1 and st(pg, f"FR.eggs.has('{eid}')") and f'({n}/{total})' in t
+        pts = st(pg, 'FR.score.now().eggPts')
+        good = n == found[0] + 1 and st(pg, f"FR.eggs.has('{eid}')") and f'({n}/{total})' in t and '+10 points' in t and pts == 10 * n
         if good: found[0] = n
         ok(good, f'egg {n}/{total}: {what} → "{t}"')
 
@@ -375,7 +376,8 @@ with sync_playwright() as p:
     ok('Riga time' in dlg_text(pg), 'double-click the clock: Date and Time Properties, "Riga time"'); egg('the clock', 'clock'); closeall(pg)
     pg.wait_for_timeout(2400)
     ok(found[0] == 15 and 'Easter egg found (15/15)' in egg_toast(pg) or found[0] == 15, 'all 15 found')
-    ok(st(pg, "!!(FR.state.bonus && FR.state.bonus.eggs)") and st(pg, 'FR.score.now().bonus') == sc_before + st(pg, 'FR.scoreRules.BONUS.eggs'), f'every egg found: +{st(pg, "FR.scoreRules.BONUS.eggs")} bonus')
+    ok(st(pg, 'FR.score.now().bonus') == sc_before + st(pg, 'FR.scoreRules.PER_EGG') and st(pg, 'FR.score.now().eggPts') == 150 and not st(pg, "!!(FR.state.bonus && FR.state.bonus.eggs)"), 'the last egg: +10 like every other one; all 15 = +150 in the bonus (no separate all-eggs award)')
+    ok('15 of 15 Easter eggs' in st(pg, 'FR.score.found()') and '+10 for each one you find' in st(pg, 'FR.score.rulesLine()') and '15 eggs × 10' in st(pg, 'FR.score.breakdown()'), 'egg progress and the egg rule are in words: ' + st(pg, 'FR.score.breakdown()'))
     pg.reload(); pg.wait_for_selector('.fr-desktop'); pg.wait_for_timeout(600)
     ok(st(pg, 'FR.eggs.count()') == 15, 'found eggs are saved (FR.state.eggs, after a reload)')
     egg_texts.append('\n'.join(st(pg, "Object.keys(FR.data.texts).filter(k => /^egg_/.test(k)).map(k => FR.data.texts[k])")))

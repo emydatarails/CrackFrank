@@ -276,7 +276,9 @@
     const clock = el.querySelector('.fr-clock');
     const tick = () => { const d = FR.clock.now(); clock.textContent = FR.clock.fmt(d, 'time'); clock.title = FR.clock.fmt(d, 'long'); };
     tick(); setInterval(tick, 5000);
-    el.querySelector('.fr-pack').onclick = () => { if (FR.puzzle.isSolved('frank') && !document.querySelector('.fr-end')) ending(); else openChecklist(); };
+    // (R5 P5) the tray's checklist button always opens the checklist (it used to bring the ending back once the game was
+    // done); the ending is a link at the top of the finished checklist, and in the Start menu
+    el.querySelector('.fr-pack').onclick = () => openChecklist();
     const vol = el.querySelectorAll('.fr-tray > .fr-ico')[0];
     vol.title = 'Volume'; vol.style.opacity = FR.sound.muted ? .45 : 1;
     vol.onclick = () => { FR.sound.muted = !FR.sound.muted; FR.state.flags.muted = FR.sound.muted; FR.save(); vol.style.opacity = FR.sound.muted ? .45 : 1; FR.balloon('Volume', FR.sound.muted ? 'Sounds are muted.' : 'Sounds are on.'); };
@@ -460,7 +462,7 @@
       <h3>How to play</h3><p>Open <b>Board Pack — TO DO</b> (desktop or the clipboard in the tray) to see where you stand. Items unlock one by one. The orange dots show how hard each one is. Each one has <b>Look in</b> shortcuts that open the right folder, email or web page. Some items tick themselves when you crack something in Excel or Outlook; others ask you to pick or type an answer.</p>
       ${FR.mobile ? `<p>Tap to open files and folders. Long-press a file (on the desktop too) for Properties. In Excel, tap a cell, then tap it again (or tap the formula bar) to type; Enter or ✓ puts it in. A cell with a red triangle has a note: tap it to read it. Switch windows with the buttons on the taskbar.</p>` : `<p>Double-click to open files and folders. Right-click files (on the desktop too) for Properties. Excel works like Excel: type formulas, and select cells to see their Sum in the status bar.</p>`}
       <h3>Where are the clues?</h3><p>In Frank's email, his Excel files, his folders (some are hidden), his Recycle Bin, and on <a href="${CONFIG.siteUrl}" target="_blank" rel="noopener">www.packacorp.com</a> — the company website. Keep it open in another tab.</p>
-      <h3>Stuck?</h3><p>Emily from finance installed a Datarails FinanceOS trial on Frank's machine (day 13 of 14). Every checklist item has an <b>Ask FinanceOS</b> button with three hints, from a gentle nudge to the full answer.</p><h3>Score</h3><p>${esc(FR.score.rulesLine())}.${FR.score.available() ? ' Signed-in players are ranked on <b>Board Pack Rescue - Who Covered for Frank?</b> on Packa\'s intranet (the shortcut on the desktop);  ' + esc(FR.score.boardRule) : ''}</p>
+      <h3>Stuck?</h3><p>Emily from finance installed a Datarails FinanceOS trial on Frank's machine (day 13 of 14). Every checklist item has an <b>Ask FinanceOS</b> button with three hints, from a gentle nudge to the full answer.</p><h3>Score</h3><p>${esc(FR.score.rulesLine())}. Found so far: ${esc(FR.score.found())}.${FR.score.available() ? ' Signed-in players are ranked on <b>Board Pack Rescue - Who Covered for Frank?</b> on Packa\'s intranet (the shortcut on the desktop);  ' + esc(FR.score.boardRule) : ''}</p>
       <h3>Progress</h3><p>Your progress saves in this browser. Log off and come back any time.</p></div>` });
   }
 
@@ -496,10 +498,12 @@
     const oldInp = wrap.querySelector('.ck-item.open .ck-ans input');
     const keep = oldInp && oldInp.value ? { id: FR.puzzle.current(), v: oldInp.value, f: document.activeElement === oldInp } : null;
     wrap.innerHTML = `<div class="ck-head">${FR.icon('checklist', 34)}<div><h2>BOARD PACK — due Tue 9:00 AM</h2><p>Frank's to-do list. Get all ten done and Packa survives.</p></div></div>
-      <div class="ck-prog"><progress max="${ITEMS.length}" value="${done}"></progress><b>${done} of ${ITEMS.length} done</b></div>
+      <div class="ck-prog"><progress max="${ITEMS.length}" value="${done}"></progress><b>${done} of ${ITEMS.length} done</b>${FR.puzzle.isSolved('frank') ? '<a href="#" class="ck-endlink">See how it ended &#9656;</a>' : ''}</div>
       <div class="ck-list"></div>
-      <div class="ck-foot"><span class="ck-meta">${FR.score.available() ? '<a href="#" class="ck-score">' : '<b class="ck-score">'}Score: ${FR.score.fmt(sc.score)}${sc.bonus ? ` <span class="ck-bonus" title="Bonus requests and Easter eggs, included in the score">(+${FR.score.fmt(sc.bonus)} bonus)</span>` : ''}${FR.score.available() ? '</a>' : '</b>'} · ${sc.freeLeft ? `Free hints left: ${sc.freeLeft}` : `Hints: −${FR.score.rules.PER_HINT} each`} · Time: <span class="ck-time">${FR.clock.dur(FR.clock.playMs())}</span></span><button class="ck-help">How to play</button></div>`;
+      <div class="ck-foot"><span class="ck-meta">${FR.score.available() ? '<a href="#" class="ck-score">' : '<b class="ck-score">'}Score: ${FR.score.fmt(sc.score)}${sc.bonus ? ` <span class="ck-bonus" title="Bonus requests and Easter eggs, included in the score: ${esc(FR.score.found(sc))}">(+${FR.score.fmt(sc.bonus)} bonus)</span>` : ''}${FR.score.available() ? '</a>' : '</b>'} · ${sc.freeLeft ? `Free hints left: ${sc.freeLeft}` : `Hints: −${FR.score.rules.PER_HINT} each`} · Time: <span class="ck-time">${FR.clock.dur(FR.clock.playMs())}</span></span><button class="ck-help">How to play</button></div>`;
     wrap.querySelector('.ck-help').onclick = openHelp;
+    const endLink = wrap.querySelector('.ck-endlink');
+    if (endLink) endLink.onclick = e => { e.preventDefault(); FR.sound.play('click'); ending(); };
     const scoreLink = wrap.querySelector('a.ck-score');
     if (scoreLink) scoreLink.onclick = e => { e.preventDefault(); FR.score.open(); };
     const list = wrap.querySelector('.ck-list');

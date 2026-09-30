@@ -199,6 +199,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
 .ck-prog { flex: none; padding: 7px 12px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #e5e2d4; background: #f8f7f1; }
 .ck-prog progress { flex: 1; height: 14px; }
 .ck-prog b { white-space: nowrap; }
+.ck-endlink { white-space: nowrap; font-weight: bold; color: #0b5bd3; }
 .ck-list { flex: 1; overflow: auto; padding: 6px 8px 12px; }
 .ck-item { display: grid; grid-template-columns: 22px 1fr; gap: 8px; padding: 8px 6px; border-bottom: 1px dashed #dedbcb; }
 .ck-item:last-child { border-bottom: 0; }
@@ -1503,7 +1504,7 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
    Direction: the XP look stays; windows fill the screen above a taller taskbar; tap targets ~32-44px; text a notch
    bigger where people read; inputs 16px so iOS doesn't zoom in when they get focus. */
 /* phone-only elements (made only when FR.mobile is on, so this rule never meets a desktop element) */
-.fr-switch, .fr-swlist { display: none; }
+.fr-switch, .fr-swlist, .fr-mbtn { display: none; }
 
 @media (max-width: 760px), (pointer: coarse) and (max-width: 1100px) {
   #fr-root { -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
@@ -1709,7 +1710,13 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   .xl-fbtn { width: 40px; height: 36px; font-size: 21px; }
   .xl-fx { font-size: 17px; }
   #fr-root .xl-app input.xl-fin { height: 36px !important; font-size: 16px !important; }
+  /* (R5 P2) the workbook you're typing into, named under the formula bar in a colour of its own */
+  .xl-fname { flex: 0 0 auto; display: flex; align-items: center; gap: 6px; height: 22px; padding: 0 8px; background: var(--xl-fc, #1d5a2e); color: #fff; font: bold 13px Tahoma, sans-serif; white-space: nowrap; overflow: hidden; }
+  .xl-fname b { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .xl-fname .fr-ico { flex: 0 0 auto; background: #fff; border-radius: 2px; }
+  #fr-root .xl-app input.xl-fin::placeholder { color: #8a8a8a; font-style: italic; font-size: 13px; }
   .xl-tabbar { height: 34px; }
+  .ck-endlink { padding: 8px 2px; }   /* (R5 P5) the finished checklist's way back to the ending */
   .xl-tabnav { display: none; }
   .xl-tabs { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; flex: 1 1 auto; padding-right: 8px; }
   .xl-tabs::-webkit-scrollbar { display: none; }
@@ -1905,6 +1912,7 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
 /* phones held sideways: little height, so the chrome gets slimmer */
 @media (max-height: 500px) {
   html.fr-m .xl-dock, html.fr-m .xl-status { display: none; }
+  html.fr-m .xl-fname { height: 18px; font-size: 12px; }
   html.fr-m .fr-login-top, html.fr-m .fr-login-bot { min-height: 0; height: 44px; }
   html.fr-m .fr-login-mid { flex-direction: row; align-items: flex-start; gap: 14px; padding: 10px 14px; }
   html.fr-m .fr-login-left { width: 36%; }
@@ -1964,6 +1972,10 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   html.fr-m .ca-win > .fr-menubar { display: none; }
   /* Excel sideways: no menu bar, slimmer title bar, formula bar, tabs and taskbar (about 13 rows instead of 8) */
   html.fr-m .xl-win .fr-menubar { display: none; }
+  /* (R5 P6) where sideways hides the menu bar, a "Menu" button in the title bar brings it back (until a command is picked) */
+  html.fr-m #fr-root :is(.ie-win, .oe-win, .ca-win, .xl-win) > .title-bar > .fr-mbtn { display: block; flex: none; margin: 0 4px 0 auto; min-width: 0; min-height: 26px; padding: 0 12px; border: 1px solid rgba(255, 255, 255, .75); border-radius: 3px; background: rgba(255, 255, 255, .18); box-shadow: none; color: #fff; font: bold 13px Tahoma, sans-serif; text-shadow: none; }
+  html.fr-m #fr-root .fr-mshow > .title-bar > .fr-mbtn { background: #fff; color: #0a246a; }
+  html.fr-m #fr-root :is(.ie-win, .oe-win, .ca-win, .xl-win).fr-mshow > .fr-menubar { display: flex; }
   html.fr-m #fr-root .fr-win .title-bar { min-height: 28px; padding: 1px 4px; }
   html.fr-m #fr-root .fr-win .title-bar-controls button { min-width: 26px; min-height: 26px; }
   html.fr-m .xl-fbar { padding: 2px 3px; }
@@ -2317,6 +2329,7 @@ FR.apps = FR.apps || {};
   let z = 100, wid = 0, dn = 0;
   const wins = new Map();
   const menuClosers = new Set();
+  let mshowOff = null;   // (R5 P6) the phone "Menu" button's tap-elsewhere listener (one for all windows)
   const topWin = (except) => [...wins.values()].filter(v => !v.min && v !== except && !v.el.classList.contains('fr-dialog')).sort((a, b) => (+b.el.style.zIndex || 0) - (+a.el.style.zIndex || 0))[0];
   let layer, taskbarList;
   /* phones: the taskbar's window buttons become one "switcher" button (active window's full title + how many are
@@ -2514,6 +2527,17 @@ FR.apps = FR.apps || {};
         document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up); e.preventDefault(); e.stopPropagation();
       });
       if (o.menu) FR.wm.menubar(el.querySelector('.fr-menubar'), o.menu, w);
+      // (R5 P6) phones held sideways hide some menu bars (IE, Outlook, Excel, Calculator: mobile.css) for room: a small
+      // "Menu" button in the title bar (shown only then) brings the menu bar back until a command is picked
+      if (o.menu && FR.mobile) {
+        const mb = $('<button class="fr-mbtn" aria-label="Show the menu bar">Menu</button>');
+        mb.onclick = e => { e.stopPropagation(); FR.sound.play('click'); if (el.classList.toggle('fr-mshow')) FR.wm.closeMenus(); };
+        bar.insertBefore(mb, bar.querySelector('.title-bar-controls'));
+        if (!mshowOff) {   // (once) a tap anywhere else, not on a menu bar, its drop-downs or the button, puts it away again
+          mshowOff = e => { if (!e.target.closest || !e.target.closest('.fr-menubar, .fr-menu-drop, .fr-mbtn')) document.querySelectorAll('.fr-mshow').forEach(x => x.classList.remove('fr-mshow')); };
+          document.addEventListener('mousedown', mshowOff, true);
+        }
+      }
       if (!isDlg && (o.maximized || FR.mobile || window.innerWidth < 700 || ((o.className || '').includes('xl-win') && window.innerWidth < 1300))) w.maximize(FR.mobile);
       el.classList.add('fr-opening'); setTimeout(() => el.classList.remove('fr-opening'), 200);
       el._frShown = Date.now(); el._frGuard = isDlg ? 500 : 250;
@@ -2532,7 +2556,7 @@ FR.apps = FR.apps || {};
             if (it.sep) { d.appendChild($('<div class="fr-menu-sep"></div>')); return; }
             const r = $(`<div class="fr-menu-item ${it.disabled ? 'disabled' : ''}"><span class="fr-menu-check">${it.checked ? '&#10003;' : ''}</span><span></span><span class="fr-menu-key">${it.key || ''}</span></div>`);
             r.children[1].textContent = it.label;
-            r.onclick = e => { e.stopPropagation(); if (it.disabled) return; closeAll(); it.action && it.action(w); };
+            r.onclick = e => { e.stopPropagation(); if (it.disabled) return; closeAll(); if (w && w.el) w.el.classList.remove('fr-mshow'); it.action && it.action(w); };
             d.appendChild(r);
           });
           d.style.left = b.offsetLeft + 'px'; bar.appendChild(d);
@@ -3415,7 +3439,7 @@ FR.apps = FR.apps || {};
     FREE_HINTS: 10,        // every player gets this many hints at no cost
     MAX_HINTS_PER_ITEM: 3,
     // Optional bonus requests (src/apps/xp_bonus.js: e-mails from people who don't know Frank is missing) and the
-    // Easter-egg hunt (src/apps/xp_eggs.js; 'eggs' = every egg found). These points ADD ON TOP of the main score and
+    // Easter-egg hunt (src/apps/xp_eggs.js: PER_EGG for each egg found). These points ADD ON TOP of the main score and
     // count for the leaderboard, so a perfect game can pass 10,000. A wrong bonus answer costs nothing.
     BONUS: {
       tom_comm: 150,        // Tom Bracken: a tiered sales commission
@@ -3427,8 +3451,12 @@ FR.apps = FR.apps || {};
       brenda_disc: 100,     // a customer's AP clerk: 2/10 net 30
       vending_ci: 250,      // the vending man: compound interest
       it_audit: 100,        // IT's audit script: read a file size off Properties
-      eggs: 150,            // every Easter egg found
     },
+    // (round 5) every Easter egg is worth points as it's found (it used to be 150 for all 15 or nothing). The ids are
+    // the eggs of src/apps/xp_eggs.js (the same list, checked by test/score_test.js); a save's other keys don't count.
+    PER_EGG: 10,
+    EGGS: ['karaoke', 'diary', 'resign', 'portrait', 'run_frank', 'run_vegas', 'run_xlookup', 'xl_kristians', 'xl_hidden',
+      'tray_k5', 'saver', 'sol212', 'calc0003', 'ie_karaoke', 'clock'],
   };
 
   // state = FR.state (or a saved copy of it). Never trusts the shape: anything odd counts as zero.
@@ -3449,15 +3477,21 @@ FR.apps = FR.apps || {};
       const b = Object.prototype.hasOwnProperty.call(bonusMap, id) ? bonusMap[id] : null;
       return !!b && typeof b === 'object' && +b.solvedAt > 0;
     });
-    const bonus = bonusIds.reduce((n, id) => n + R.BONUS[id], 0);
+    const eggMap = st.eggs && typeof st.eggs === 'object' && !Array.isArray(st.eggs) ? st.eggs : {};
+    const eggs = R.EGGS.filter(id => Object.prototype.hasOwnProperty.call(eggMap, id) && +eggMap[id] > 0).length;
+    const eggPts = eggs * R.PER_EGG;
+    const requestPts = bonusIds.reduce((n, id) => n + R.BONUS[id], 0);
+    const bonus = requestPts + eggPts;
     const score = main + bonus;
     const finished = solved === R.ITEMS.length;
     const t = +(finished && st.finishPlayMs != null ? st.finishPlayMs : st.playMs);
     const timeMs = t > 0 && isFinite(t) ? Math.floor(t) : 0;
-    return { score, main, bonus, bonusDone: bonusIds.length, bonusTotal: Object.keys(R.BONUS).length, solved, total: R.ITEMS.length, hints, paidHints, freeLeft: Math.max(0, R.FREE_HINTS - hints), wrong, finished, timeMs };
+    return { score, main, bonus, bonusDone: bonusIds.length, bonusTotal: Object.keys(R.BONUS).length, requestPts, eggs, eggsTotal: R.EGGS.length, eggPts, solved, total: R.ITEMS.length, hints, paidHints, freeLeft: Math.max(0, R.FREE_HINTS - hints), wrong, finished, timeMs };
   };
-  // the most bonus a game can collect
-  R.BONUS_MAX = Object.keys(R.BONUS).reduce((n, id) => n + R.BONUS[id], 0);
+  // the most bonus a game can collect: every bonus request, and every egg
+  R.REQUESTS_MAX = Object.keys(R.BONUS).reduce((n, id) => n + R.BONUS[id], 0);
+  R.EGGS_MAX = R.EGGS.length * R.PER_EGG;
+  R.BONUS_MAX = R.REQUESTS_MAX + R.EGGS_MAX;
 
   // sort key for the board: higher score first, then less time at the desk
   R.rankValue = c => c.score * 1e7 + (1e7 - 1 - Math.min(Math.floor(c.timeMs / 1000), 1e7 - 1));
@@ -3501,18 +3535,21 @@ FR.apps = FR.apps || {};
       `Each checklist item done: +${fmt(R.PER_SOLVED)}`,
       `Each wrong answer or wrong password: −${R.PER_WRONG} (an answer that isn't a number where a number is asked doesn't count)`,
       `${R.FREE_HINTS} free hints, then −${R.PER_HINT} per hint`,
-      `Bonus requests and Easter eggs: up to +${fmt(R.BONUS_MAX)} on top, and they count on the leaderboard`,
+      `Bonus requests (up to +${fmt(R.REQUESTS_MAX)}) and Easter eggs (+${R.PER_EGG} for each one you find, ${R.EGGS.length} hidden): up to +${fmt(R.BONUS_MAX)} on top, and they count on the leaderboard`,
     ],
     rulesLine: () => FR.score.rulesList().join(' · '),
+    // (R5 P3) "4 of 15 Easter eggs · 9 of 9 bonus requests": what this game has found so far
+    found: (c = R.calc(FR.state)) => `${c.eggs} of ${c.eggsTotal} Easter eggs · ${c.bonusDone} of ${c.bonusTotal} bonus requests`,
     // which game is on the board (the same wording everywhere)
     boardRule: 'Your first finished Board Pack is your entry. Bonus requests and Easter eggs you finish later in that same game still add to it; a replay after "Start over" doesn\'t change it.',
-    // "10 × 1,000 − 4 wrong × 50 + 1,150 bonus = 10,950": how this game's score adds up
+    // "10 × 1,000 − 4 wrong × 50 + 1,300 bonus + 4 eggs × 10 = 11,140": how this game's score adds up
     breakdown: (c = R.calc(FR.state)) => {
       const parts = [`${c.solved} × ${fmt(R.PER_SOLVED)}`];
       if (c.wrong) parts.push(`− ${c.wrong} wrong × ${R.PER_WRONG}`);
       if (c.paidHints) parts.push(`− ${c.paidHints} paid hint${c.paidHints === 1 ? '' : 's'} × ${R.PER_HINT}`);
       const floored = c.main === 0 && c.solved * R.PER_SOLVED > 0;
-      return `${parts.join(' ')}${floored ? ' (never below 0)' : ''}${c.bonus ? ` + ${fmt(c.bonus)} bonus` : ''} = ${fmt(c.score)}`;
+      const eggs = c.eggs ? ` + ${c.eggs} egg${c.eggs === 1 ? '' : 's'} × ${R.PER_EGG}` : '';
+      return `${parts.join(' ')}${floored ? ' (never below 0)' : ''}${c.requestPts ? ` + ${fmt(c.requestPts)} bonus` : ''}${eggs} = ${fmt(c.score)}`;
     },
   };
 
@@ -3538,7 +3575,7 @@ FR.apps = FR.apps || {};
   // fill an IE page element; isCurrent() is false once the player has navigated away (the answer arrives late)
   function render(page, isCurrent = () => true) {
     const c = FR.score.now();
-    const mine = c.solved ? `<div class="st-mine"><b>Your Board Pack right now:</b> ${fmt(c.score)} points${c.bonus ? ` (incl. +${fmt(c.bonus)} bonus)` : ''} &middot; ${esc(FR.score.breakdown(c))} &middot; ${c.solved}/${c.total} done &middot; ${c.hints} hint${c.hints === 1 ? '' : 's'} (${c.freeLeft} free left) &middot; ${c.wrong} wrong</div>` : '';
+    const mine = c.solved ? `<div class="st-mine"><b>Your Board Pack right now:</b> ${fmt(c.score)} points${c.bonus ? ` (incl. +${fmt(c.bonus)} bonus)` : ''} &middot; ${esc(FR.score.breakdown(c))} &middot; ${c.solved}/${c.total} done &middot; ${c.hints} hint${c.hints === 1 ? '' : 's'} (${c.freeLeft} free left) &middot; ${c.wrong} wrong &middot; ${esc(FR.score.found(c))}</div>` : '';
     if (!FR.score.available()) {
       page.innerHTML = shell(`${mine}<div class="st-msg">The intranet is offline. (The server is also in Vegas.)<br><small>The leaderboard is in the online game, for players with a player account.</small></div>`);
       return;
@@ -5441,7 +5478,9 @@ FR.data.logo = {"mark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"380
           { label: 'Properties', action: propsMsg }, { sep: 1 }, { label: 'Exit', action: () => win.close() }] },
         { label: 'Edit', items: () => [{ label: 'Undo Typing', key: 'Ctrl+Z', disabled: !st.undo.length, action: undo }, { label: 'Redo', key: 'Ctrl+Y', disabled: !st.redo.length, action: redo }, { sep: 1 },
           { label: 'Cut', key: 'Ctrl+X', action: () => copySel(true) }, { label: 'Copy', key: 'Ctrl+C', action: () => copySel(false) }, { label: 'Paste', key: 'Ctrl+V', disabled: !st.clip, action: pasteClip }, { sep: 1 },
-          { label: 'Clear Contents', key: 'Del', action: clearSel }, dis('Delete...'), dis('Delete Sheet'), dis('Move or Copy Sheet...'), { sep: 1 }, dis('Find...'), dis('Replace...'), { label: 'Go To...', key: 'Ctrl+G', action: () => { nbin.focus(); nbin.select(); } }] },
+          { label: 'Clear Contents', key: 'Del', action: clearSel }, dis('Delete...'), dis('Delete Sheet'), dis('Move or Copy Sheet...'), { sep: 1 }, dis('Find...'), dis('Replace...'), { label: 'Go To...', key: 'Ctrl+G', action: () => { nbin.focus(); nbin.select(); } },
+          // (R5 P4) a phone keyboard has no Ctrl or End: the same jump as Ctrl+End, from the menu
+          ...(FR.mobile ? [{ label: 'Go To Last Cell', key: 'Ctrl+End', action: () => goLastCell(false) }] : [])] },
         { label: 'View', items: () => [{ label: 'Normal', checked: true }, dis('Page Break Preview'), { sep: 1 }, dis('Task Pane'), dis('Toolbars'), { label: 'Formula Bar', checked: st.fbar, action: () => { st.fbar = !st.fbar; q('.xl-fbar').style.display = st.fbar ? '' : 'none'; } },
           { label: 'Status Bar', checked: q('.xl-status').style.display !== 'none', action: () => { const s = q('.xl-status'); s.style.display = s.style.display === 'none' ? '' : 'none'; } }, { sep: 1 },
           { label: 'Comments', checked: st.showCm, action: () => { st.showCm = !st.showCm; renderObjs(); } }, { sep: 1 }, dis('Full Screen'), FR.mobile ? { label: 'Zoom: Fit to Width', checked: !!st.fit, action: () => setFit(!st.fit) } : dis('Zoom...')] },
@@ -6058,6 +6097,15 @@ FR.data.logo = {"mark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"380
     let finSelAll = false;   // (S6, below)
     const editInBar = () => { if (st.edit) return; fin.focus(); finSelAll = false; try { fin.setSelectionRange(0, fin.value.length); } catch (x) {} };
     if (FR.mobile) {
+      // (R5 P2) every workbook is full-screen on a phone and the title bar is cut short: a strip under the formula bar
+      // names the workbook you're typing into, in a colour of its own (the same file always gets the same colour),
+      // and the empty formula bar says it too
+      let hue = 0; for (const ch of book.name) hue = (hue * 31 + ch.charCodeAt(0)) % 360;
+      const fn = $(`<div class="xl-fname" style="--xl-fc:hsl(${hue},50%,28%)">${FR.icon('excel', 14)}<b></b></div>`);
+      fn.querySelector('b').textContent = book.name;
+      fn.title = book.name;
+      q('.xl-fbar').after(fn);
+      fin.placeholder = 'Typing into ' + book.name;
       const zb = $('<button class="xl-zoomb" aria-label="Fit the sheet to the screen width">Fit</button>');
       zb.onclick = e => { e.stopPropagation(); setFit(!st.fit); };
       // no fill handle to drag on a phone: "Fill…" copies the current cell right or down to a cell you name
@@ -6076,6 +6124,12 @@ FR.data.logo = {"mark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"380
         if (st.tapAgain && !st.edit) editInBar();
         st.tapAgain = false; st.lastTap = { si: st.si, r: p.r, c: p.c };
       });
+    }
+    // Ctrl+End: the last row and the last column that have anything in them
+    function goLastCell(ext) {
+      let mr = 0, mc = 0;
+      for (const key in sh().cells) { if (!sh().cells[key].raw) continue; const [r, c] = key.split(',').map(Number); if (r > mr) mr = r; if (c > mc) mc = c; }
+      select(mr, mc, ext);
     }
     function tapNote(td) {
       cmtip.innerHTML = ''; tipCell = null;
@@ -6146,7 +6200,7 @@ FR.data.logo = {"mark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"380
       if (k === 'Tab') { e.preventDefault(); select(st.ar, st.ac + (e.shiftKey ? -1 : 1)); return; }
       if (k === 'PageDown' || k === 'PageUp') { e.preventDefault(); const n = Math.max(1, Math.floor(scroll.clientHeight / DEFH) - 2) * (k === 'PageDown' ? 1 : -1); scroll.scrollTop += n * DEFH; select(st.ar + n, st.ac); return; }
       if (k === 'Home') { e.preventDefault(); select(ctrl ? 0 : st.ar, 0); return; }
-      if (k === 'End') { e.preventDefault(); if (ctrl) { let mr = 0, mc = 0; for (const key in sh().cells) { if (!sh().cells[key].raw) continue; const [r, c] = key.split(',').map(Number); if (r > mr) mr = r; if (c > mc) mc = c; } select(mr, mc, e.shiftKey); } else { let c = NC - 1; while (c > 0 && book.raw(st.si, st.ar, c) === '') c--; select(st.ar, c, e.shiftKey); } return; }
+      if (k === 'End') { e.preventDefault(); if (ctrl) goLastCell(e.shiftKey); else { let c = NC - 1; while (c > 0 && book.raw(st.si, st.ar, c) === '') c--; select(st.ar, c, e.shiftKey); } return; }
       if (k === 'F2') { e.preventDefault(); startEdit('edit', fbarText(st.ar, st.ac)); return; }
       if (k === 'Delete') { e.preventDefault(); clearSel(); return; }
       if (k === 'Backspace') { e.preventDefault(); startEdit('enter', ''); return; }
@@ -12822,8 +12876,8 @@ P.S. Somebody keeps buying all the Funyuns at 2 AM.`,
 ;
 /* FRANK'S COMPUTER — Frank's private Easter eggs. Fifteen harmless, in-canon secrets hidden around his computer
    (none of them gives a puzzle away). Found eggs live in FR.state.eggs ({ id: foundAtMs }); each one shows a small
-   "Easter egg found (n/15)" note that never takes a tap (pointer-events: none), and finding all of them is worth the
-   'eggs' bonus in src/score_rules.js. The list, with where to find each one, is in README.md ("Easter eggs").  Prefix: .eg- */
+   "Easter egg found (n/15) · +10 points" note that never takes a tap (pointer-events: none); each egg is worth PER_EGG
+   in src/score_rules.js (whose EGGS list must match this one). The list, with where to find each one, is in README.md ("Easter eggs").  Prefix: .eg- */
 (() => {
   const $ = FR.$, esc = FR.esc, T = FR.data.texts = FR.data.texts || {};
   const EGGS = [
@@ -12852,8 +12906,9 @@ P.S. Somebody keeps buying all the Funyuns at 2 AM.`,
   let toastT = 0;
   function toast(id, n) {
     document.querySelectorAll('.eg-toast').forEach(t => t.remove());
-    const t = $(`<div class="eg-toast" role="status">${EGG_ICO}<span><b>Easter egg found (${n}/${EGGS.length})</b><i></i></span></div>`);
-    t.querySelector('i').textContent = NAME[id];
+    const pe = FR.scoreRules ? FR.scoreRules.PER_EGG : 0;
+    const t = $(`<div class="eg-toast" role="status">${EGG_ICO}<span><b>Easter egg found (${n}/${EGGS.length})${pe ? ` · +${pe} points` : ''}</b><i></i></span></div>`);
+    t.querySelector('i').textContent = n === EGGS.length ? `${NAME[id]}. That's all of them!` : NAME[id];
     document.body.appendChild(t);
     clearTimeout(toastT); toastT = setTimeout(() => { t.classList.add('eg-out'); setTimeout(() => t.remove(), 500); }, n === EGGS.length ? 6000 : 4200);
   }
@@ -12865,7 +12920,7 @@ P.S. Somebody keeps buying all the Funyuns at 2 AM.`,
     FR.save();
     toast(id, n);
     FR.bus.emit('egg', { id, n, total: EGGS.length });
-    if (n === EGGS.length && FR.bonus && FR.bonus.award) setTimeout(() => FR.bonus.award('eggs', 'Every Easter egg on Frank\'s computer'), 1800);
+    if (FR.checklistRender) FR.checklistRender();   // the footer's score and egg count
     return true;
   }
   FR.eggs = { list: EGGS.map(([id, name]) => ({ id, name })), find, count, total: EGGS.length, has: id => !!got()[id] };
@@ -13490,7 +13545,9 @@ I'm taking Thursday off.
     const clock = el.querySelector('.fr-clock');
     const tick = () => { const d = FR.clock.now(); clock.textContent = FR.clock.fmt(d, 'time'); clock.title = FR.clock.fmt(d, 'long'); };
     tick(); setInterval(tick, 5000);
-    el.querySelector('.fr-pack').onclick = () => { if (FR.puzzle.isSolved('frank') && !document.querySelector('.fr-end')) ending(); else openChecklist(); };
+    // (R5 P5) the tray's checklist button always opens the checklist (it used to bring the ending back once the game was
+    // done); the ending is a link at the top of the finished checklist, and in the Start menu
+    el.querySelector('.fr-pack').onclick = () => openChecklist();
     const vol = el.querySelectorAll('.fr-tray > .fr-ico')[0];
     vol.title = 'Volume'; vol.style.opacity = FR.sound.muted ? .45 : 1;
     vol.onclick = () => { FR.sound.muted = !FR.sound.muted; FR.state.flags.muted = FR.sound.muted; FR.save(); vol.style.opacity = FR.sound.muted ? .45 : 1; FR.balloon('Volume', FR.sound.muted ? 'Sounds are muted.' : 'Sounds are on.'); };
@@ -13674,7 +13731,7 @@ I'm taking Thursday off.
       <h3>How to play</h3><p>Open <b>Board Pack — TO DO</b> (desktop or the clipboard in the tray) to see where you stand. Items unlock one by one. The orange dots show how hard each one is. Each one has <b>Look in</b> shortcuts that open the right folder, email or web page. Some items tick themselves when you crack something in Excel or Outlook; others ask you to pick or type an answer.</p>
       ${FR.mobile ? `<p>Tap to open files and folders. Long-press a file (on the desktop too) for Properties. In Excel, tap a cell, then tap it again (or tap the formula bar) to type; Enter or ✓ puts it in. A cell with a red triangle has a note: tap it to read it. Switch windows with the buttons on the taskbar.</p>` : `<p>Double-click to open files and folders. Right-click files (on the desktop too) for Properties. Excel works like Excel: type formulas, and select cells to see their Sum in the status bar.</p>`}
       <h3>Where are the clues?</h3><p>In Frank's email, his Excel files, his folders (some are hidden), his Recycle Bin, and on <a href="${CONFIG.siteUrl}" target="_blank" rel="noopener">www.packacorp.com</a> — the company website. Keep it open in another tab.</p>
-      <h3>Stuck?</h3><p>Emily from finance installed a Datarails FinanceOS trial on Frank's machine (day 13 of 14). Every checklist item has an <b>Ask FinanceOS</b> button with three hints, from a gentle nudge to the full answer.</p><h3>Score</h3><p>${esc(FR.score.rulesLine())}.${FR.score.available() ? ' Signed-in players are ranked on <b>Board Pack Rescue - Who Covered for Frank?</b> on Packa\'s intranet (the shortcut on the desktop);  ' + esc(FR.score.boardRule) : ''}</p>
+      <h3>Stuck?</h3><p>Emily from finance installed a Datarails FinanceOS trial on Frank's machine (day 13 of 14). Every checklist item has an <b>Ask FinanceOS</b> button with three hints, from a gentle nudge to the full answer.</p><h3>Score</h3><p>${esc(FR.score.rulesLine())}. Found so far: ${esc(FR.score.found())}.${FR.score.available() ? ' Signed-in players are ranked on <b>Board Pack Rescue - Who Covered for Frank?</b> on Packa\'s intranet (the shortcut on the desktop);  ' + esc(FR.score.boardRule) : ''}</p>
       <h3>Progress</h3><p>Your progress saves in this browser. Log off and come back any time.</p></div>` });
   }
 
@@ -13710,10 +13767,12 @@ I'm taking Thursday off.
     const oldInp = wrap.querySelector('.ck-item.open .ck-ans input');
     const keep = oldInp && oldInp.value ? { id: FR.puzzle.current(), v: oldInp.value, f: document.activeElement === oldInp } : null;
     wrap.innerHTML = `<div class="ck-head">${FR.icon('checklist', 34)}<div><h2>BOARD PACK — due Tue 9:00 AM</h2><p>Frank's to-do list. Get all ten done and Packa survives.</p></div></div>
-      <div class="ck-prog"><progress max="${ITEMS.length}" value="${done}"></progress><b>${done} of ${ITEMS.length} done</b></div>
+      <div class="ck-prog"><progress max="${ITEMS.length}" value="${done}"></progress><b>${done} of ${ITEMS.length} done</b>${FR.puzzle.isSolved('frank') ? '<a href="#" class="ck-endlink">See how it ended &#9656;</a>' : ''}</div>
       <div class="ck-list"></div>
-      <div class="ck-foot"><span class="ck-meta">${FR.score.available() ? '<a href="#" class="ck-score">' : '<b class="ck-score">'}Score: ${FR.score.fmt(sc.score)}${sc.bonus ? ` <span class="ck-bonus" title="Bonus requests and Easter eggs, included in the score">(+${FR.score.fmt(sc.bonus)} bonus)</span>` : ''}${FR.score.available() ? '</a>' : '</b>'} · ${sc.freeLeft ? `Free hints left: ${sc.freeLeft}` : `Hints: −${FR.score.rules.PER_HINT} each`} · Time: <span class="ck-time">${FR.clock.dur(FR.clock.playMs())}</span></span><button class="ck-help">How to play</button></div>`;
+      <div class="ck-foot"><span class="ck-meta">${FR.score.available() ? '<a href="#" class="ck-score">' : '<b class="ck-score">'}Score: ${FR.score.fmt(sc.score)}${sc.bonus ? ` <span class="ck-bonus" title="Bonus requests and Easter eggs, included in the score: ${esc(FR.score.found(sc))}">(+${FR.score.fmt(sc.bonus)} bonus)</span>` : ''}${FR.score.available() ? '</a>' : '</b>'} · ${sc.freeLeft ? `Free hints left: ${sc.freeLeft}` : `Hints: −${FR.score.rules.PER_HINT} each`} · Time: <span class="ck-time">${FR.clock.dur(FR.clock.playMs())}</span></span><button class="ck-help">How to play</button></div>`;
     wrap.querySelector('.ck-help').onclick = openHelp;
+    const endLink = wrap.querySelector('.ck-endlink');
+    if (endLink) endLink.onclick = e => { e.preventDefault(); FR.sound.play('click'); ending(); };
     const scoreLink = wrap.querySelector('a.ck-score');
     if (scoreLink) scoreLink.onclick = e => { e.preventDefault(); FR.score.open(); };
     const list = wrap.querySelector('.ck-list');

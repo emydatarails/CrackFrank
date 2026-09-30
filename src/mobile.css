@@ -4,7 +4,7 @@
    Direction: the XP look stays; windows fill the screen above a taller taskbar; tap targets ~32-44px; text a notch
    bigger where people read; inputs 16px so iOS doesn't zoom in when they get focus. */
 /* phone-only elements (made only when FR.mobile is on, so this rule never meets a desktop element) */
-.fr-switch, .fr-swlist { display: none; }
+.fr-switch, .fr-swlist, .fr-mbtn { display: none; }
 
 @media (max-width: 760px), (pointer: coarse) and (max-width: 1100px) {
   #fr-root { -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
@@ -210,7 +210,13 @@
   .xl-fbtn { width: 40px; height: 36px; font-size: 21px; }
   .xl-fx { font-size: 17px; }
   #fr-root .xl-app input.xl-fin { height: 36px !important; font-size: 16px !important; }
+  /* (R5 P2) the workbook you're typing into, named under the formula bar in a colour of its own */
+  .xl-fname { flex: 0 0 auto; display: flex; align-items: center; gap: 6px; height: 22px; padding: 0 8px; background: var(--xl-fc, #1d5a2e); color: #fff; font: bold 13px Tahoma, sans-serif; white-space: nowrap; overflow: hidden; }
+  .xl-fname b { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .xl-fname .fr-ico { flex: 0 0 auto; background: #fff; border-radius: 2px; }
+  #fr-root .xl-app input.xl-fin::placeholder { color: #8a8a8a; font-style: italic; font-size: 13px; }
   .xl-tabbar { height: 34px; }
+  .ck-endlink { padding: 8px 2px; }   /* (R5 P5) the finished checklist's way back to the ending */
   .xl-tabnav { display: none; }
   .xl-tabs { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; flex: 1 1 auto; padding-right: 8px; }
   .xl-tabs::-webkit-scrollbar { display: none; }
@@ -406,6 +412,7 @@
 /* phones held sideways: little height, so the chrome gets slimmer */
 @media (max-height: 500px) {
   html.fr-m .xl-dock, html.fr-m .xl-status { display: none; }
+  html.fr-m .xl-fname { height: 18px; font-size: 12px; }
   html.fr-m .fr-login-top, html.fr-m .fr-login-bot { min-height: 0; height: 44px; }
   html.fr-m .fr-login-mid { flex-direction: row; align-items: flex-start; gap: 14px; padding: 10px 14px; }
   html.fr-m .fr-login-left { width: 36%; }
@@ -465,6 +472,10 @@
   html.fr-m .ca-win > .fr-menubar { display: none; }
   /* Excel sideways: no menu bar, slimmer title bar, formula bar, tabs and taskbar (about 13 rows instead of 8) */
   html.fr-m .xl-win .fr-menubar { display: none; }
+  /* (R5 P6) where sideways hides the menu bar, a "Menu" button in the title bar brings it back (until a command is picked) */
+  html.fr-m #fr-root :is(.ie-win, .oe-win, .ca-win, .xl-win) > .title-bar > .fr-mbtn { display: block; flex: none; margin: 0 4px 0 auto; min-width: 0; min-height: 26px; padding: 0 12px; border: 1px solid rgba(255, 255, 255, .75); border-radius: 3px; background: rgba(255, 255, 255, .18); box-shadow: none; color: #fff; font: bold 13px Tahoma, sans-serif; text-shadow: none; }
+  html.fr-m #fr-root .fr-mshow > .title-bar > .fr-mbtn { background: #fff; color: #0a246a; }
+  html.fr-m #fr-root :is(.ie-win, .oe-win, .ca-win, .xl-win).fr-mshow > .fr-menubar { display: flex; }
   html.fr-m #fr-root .fr-win .title-bar { min-height: 28px; padding: 1px 4px; }
   html.fr-m #fr-root .fr-win .title-bar-controls button { min-width: 26px; min-height: 26px; }
   html.fr-m .xl-fbar { padding: 2px 3px; }

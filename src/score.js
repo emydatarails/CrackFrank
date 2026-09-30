@@ -32,18 +32,21 @@
       `Each checklist item done: +${fmt(R.PER_SOLVED)}`,
       `Each wrong answer or wrong password: −${R.PER_WRONG} (an answer that isn't a number where a number is asked doesn't count)`,
       `${R.FREE_HINTS} free hints, then −${R.PER_HINT} per hint`,
-      `Bonus requests and Easter eggs: up to +${fmt(R.BONUS_MAX)} on top, and they count on the leaderboard`,
+      `Bonus requests (up to +${fmt(R.REQUESTS_MAX)}) and Easter eggs (+${R.PER_EGG} for each one you find, ${R.EGGS.length} hidden): up to +${fmt(R.BONUS_MAX)} on top, and they count on the leaderboard`,
     ],
     rulesLine: () => FR.score.rulesList().join(' · '),
+    // (R5 P3) "4 of 15 Easter eggs · 9 of 9 bonus requests": what this game has found so far
+    found: (c = R.calc(FR.state)) => `${c.eggs} of ${c.eggsTotal} Easter eggs · ${c.bonusDone} of ${c.bonusTotal} bonus requests`,
     // which game is on the board (the same wording everywhere)
     boardRule: 'Your first finished Board Pack is your entry. Bonus requests and Easter eggs you finish later in that same game still add to it; a replay after "Start over" doesn\'t change it.',
-    // "10 × 1,000 − 4 wrong × 50 + 1,150 bonus = 10,950": how this game's score adds up
+    // "10 × 1,000 − 4 wrong × 50 + 1,300 bonus + 4 eggs × 10 = 11,140": how this game's score adds up
     breakdown: (c = R.calc(FR.state)) => {
       const parts = [`${c.solved} × ${fmt(R.PER_SOLVED)}`];
       if (c.wrong) parts.push(`− ${c.wrong} wrong × ${R.PER_WRONG}`);
       if (c.paidHints) parts.push(`− ${c.paidHints} paid hint${c.paidHints === 1 ? '' : 's'} × ${R.PER_HINT}`);
       const floored = c.main === 0 && c.solved * R.PER_SOLVED > 0;
-      return `${parts.join(' ')}${floored ? ' (never below 0)' : ''}${c.bonus ? ` + ${fmt(c.bonus)} bonus` : ''} = ${fmt(c.score)}`;
+      const eggs = c.eggs ? ` + ${c.eggs} egg${c.eggs === 1 ? '' : 's'} × ${R.PER_EGG}` : '';
+      return `${parts.join(' ')}${floored ? ' (never below 0)' : ''}${c.requestPts ? ` + ${fmt(c.requestPts)} bonus` : ''}${eggs} = ${fmt(c.score)}`;
     },
   };
 
@@ -69,7 +72,7 @@
   // fill an IE page element; isCurrent() is false once the player has navigated away (the answer arrives late)
   function render(page, isCurrent = () => true) {
     const c = FR.score.now();
-    const mine = c.solved ? `<div class="st-mine"><b>Your Board Pack right now:</b> ${fmt(c.score)} points${c.bonus ? ` (incl. +${fmt(c.bonus)} bonus)` : ''} &middot; ${esc(FR.score.breakdown(c))} &middot; ${c.solved}/${c.total} done &middot; ${c.hints} hint${c.hints === 1 ? '' : 's'} (${c.freeLeft} free left) &middot; ${c.wrong} wrong</div>` : '';
+    const mine = c.solved ? `<div class="st-mine"><b>Your Board Pack right now:</b> ${fmt(c.score)} points${c.bonus ? ` (incl. +${fmt(c.bonus)} bonus)` : ''} &middot; ${esc(FR.score.breakdown(c))} &middot; ${c.solved}/${c.total} done &middot; ${c.hints} hint${c.hints === 1 ? '' : 's'} (${c.freeLeft} free left) &middot; ${c.wrong} wrong &middot; ${esc(FR.score.found(c))}</div>` : '';
     if (!FR.score.available()) {
       page.innerHTML = shell(`${mine}<div class="st-msg">The intranet is offline. (The server is also in Vegas.)<br><small>The leaderboard is in the online game, for players with a player account.</small></div>`);
       return;

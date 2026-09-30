@@ -1689,7 +1689,9 @@
           { label: 'Properties', action: propsMsg }, { sep: 1 }, { label: 'Exit', action: () => win.close() }] },
         { label: 'Edit', items: () => [{ label: 'Undo Typing', key: 'Ctrl+Z', disabled: !st.undo.length, action: undo }, { label: 'Redo', key: 'Ctrl+Y', disabled: !st.redo.length, action: redo }, { sep: 1 },
           { label: 'Cut', key: 'Ctrl+X', action: () => copySel(true) }, { label: 'Copy', key: 'Ctrl+C', action: () => copySel(false) }, { label: 'Paste', key: 'Ctrl+V', disabled: !st.clip, action: pasteClip }, { sep: 1 },
-          { label: 'Clear Contents', key: 'Del', action: clearSel }, dis('Delete...'), dis('Delete Sheet'), dis('Move or Copy Sheet...'), { sep: 1 }, dis('Find...'), dis('Replace...'), { label: 'Go To...', key: 'Ctrl+G', action: () => { nbin.focus(); nbin.select(); } }] },
+          { label: 'Clear Contents', key: 'Del', action: clearSel }, dis('Delete...'), dis('Delete Sheet'), dis('Move or Copy Sheet...'), { sep: 1 }, dis('Find...'), dis('Replace...'), { label: 'Go To...', key: 'Ctrl+G', action: () => { nbin.focus(); nbin.select(); } },
+          // (R5 P4) a phone keyboard has no Ctrl or End: the same jump as Ctrl+End, from the menu
+          ...(FR.mobile ? [{ label: 'Go To Last Cell', key: 'Ctrl+End', action: () => goLastCell(false) }] : [])] },
         { label: 'View', items: () => [{ label: 'Normal', checked: true }, dis('Page Break Preview'), { sep: 1 }, dis('Task Pane'), dis('Toolbars'), { label: 'Formula Bar', checked: st.fbar, action: () => { st.fbar = !st.fbar; q('.xl-fbar').style.display = st.fbar ? '' : 'none'; } },
           { label: 'Status Bar', checked: q('.xl-status').style.display !== 'none', action: () => { const s = q('.xl-status'); s.style.display = s.style.display === 'none' ? '' : 'none'; } }, { sep: 1 },
           { label: 'Comments', checked: st.showCm, action: () => { st.showCm = !st.showCm; renderObjs(); } }, { sep: 1 }, dis('Full Screen'), FR.mobile ? { label: 'Zoom: Fit to Width', checked: !!st.fit, action: () => setFit(!st.fit) } : dis('Zoom...')] },
@@ -2306,6 +2308,15 @@
     let finSelAll = false;   // (S6, below)
     const editInBar = () => { if (st.edit) return; fin.focus(); finSelAll = false; try { fin.setSelectionRange(0, fin.value.length); } catch (x) {} };
     if (FR.mobile) {
+      // (R5 P2) every workbook is full-screen on a phone and the title bar is cut short: a strip under the formula bar
+      // names the workbook you're typing into, in a colour of its own (the same file always gets the same colour),
+      // and the empty formula bar says it too
+      let hue = 0; for (const ch of book.name) hue = (hue * 31 + ch.charCodeAt(0)) % 360;
+      const fn = $(`<div class="xl-fname" style="--xl-fc:hsl(${hue},50%,28%)">${FR.icon('excel', 14)}<b></b></div>`);
+      fn.querySelector('b').textContent = book.name;
+      fn.title = book.name;
+      q('.xl-fbar').after(fn);
+      fin.placeholder = 'Typing into ' + book.name;
       const zb = $('<button class="xl-zoomb" aria-label="Fit the sheet to the screen width">Fit</button>');
       zb.onclick = e => { e.stopPropagation(); setFit(!st.fit); };
       // no fill handle to drag on a phone: "Fill…" copies the current cell right or down to a cell you name
@@ -2324,6 +2335,12 @@
         if (st.tapAgain && !st.edit) editInBar();
         st.tapAgain = false; st.lastTap = { si: st.si, r: p.r, c: p.c };
       });
+    }
+    // Ctrl+End: the last row and the last column that have anything in them
+    function goLastCell(ext) {
+      let mr = 0, mc = 0;
+      for (const key in sh().cells) { if (!sh().cells[key].raw) continue; const [r, c] = key.split(',').map(Number); if (r > mr) mr = r; if (c > mc) mc = c; }
+      select(mr, mc, ext);
     }
     function tapNote(td) {
       cmtip.innerHTML = ''; tipCell = null;
@@ -2394,7 +2411,7 @@
       if (k === 'Tab') { e.preventDefault(); select(st.ar, st.ac + (e.shiftKey ? -1 : 1)); return; }
       if (k === 'PageDown' || k === 'PageUp') { e.preventDefault(); const n = Math.max(1, Math.floor(scroll.clientHeight / DEFH) - 2) * (k === 'PageDown' ? 1 : -1); scroll.scrollTop += n * DEFH; select(st.ar + n, st.ac); return; }
       if (k === 'Home') { e.preventDefault(); select(ctrl ? 0 : st.ar, 0); return; }
-      if (k === 'End') { e.preventDefault(); if (ctrl) { let mr = 0, mc = 0; for (const key in sh().cells) { if (!sh().cells[key].raw) continue; const [r, c] = key.split(',').map(Number); if (r > mr) mr = r; if (c > mc) mc = c; } select(mr, mc, e.shiftKey); } else { let c = NC - 1; while (c > 0 && book.raw(st.si, st.ar, c) === '') c--; select(st.ar, c, e.shiftKey); } return; }
+      if (k === 'End') { e.preventDefault(); if (ctrl) goLastCell(e.shiftKey); else { let c = NC - 1; while (c > 0 && book.raw(st.si, st.ar, c) === '') c--; select(st.ar, c, e.shiftKey); } return; }
       if (k === 'F2') { e.preventDefault(); startEdit('edit', fbarText(st.ar, st.ac)); return; }
       if (k === 'Delete') { e.preventDefault(); clearSel(); return; }
       if (k === 'Backspace') { e.preventDefault(); startEdit('enter', ''); return; }

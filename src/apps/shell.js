@@ -1710,7 +1710,7 @@
           <div class="ex-addr-box"><span class="ex-addr-i">${g('ieDoc')}</span><input type="text" spellcheck="false" autocomplete="off"><span class="ex-addr-dd"></span></div>
           <button class="ex-go">${g('go')}<span>Go</span></button>
         </div>
-        <div class="ie-links"><span class="ie-links-l">Links</span><a class="ie-link" data-url="${CLUB}" title="${CLUB}">${ico('star', 16)}<span>Kristians' Cheat Sheet Club</span></a>${LINKS.map(([t, u]) => `<a class="ie-link" data-url="${esc(u)}" title="${esc(u)}">${g('ieDoc')}<span>${esc(t)}</span></a>`).join('')}</div>
+        <div class="ie-links"><span class="ie-links-l">Links</span><a class="ie-link" data-url="${CLUB}" title="${CLUB}">${ico('star', 16)}<span>Kristians' Cheat Sheet Club</span></a>${LINKS.map(([t, u]) => `<a class="ie-link" data-url="${esc(u)}" title="${esc(u)}">${g('ieDoc')}<span>${esc(t)}</span></a>`).join('')}${(FR.ieLinks || []).map(([t, u]) => `<a class="ie-link" data-url="${esc(u)}" title="${esc(u)}">${g('ieDoc')}<span>${esc(t)}</span></a>`).join('')}</div>
       </div>
       <div class="ie-main"><div class="ie-side" hidden></div><div class="ie-page"></div></div>
     </div>`);

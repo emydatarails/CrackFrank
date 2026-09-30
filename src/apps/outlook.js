@@ -1030,7 +1030,8 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
       tb.dataset.wired = '1';
       const rowMsg = e => { const tr = e.target.closest('tr[data-id]'); return tr && byId(tr.dataset.id); };
       let again = null;   // phones: tapping the selected message again opens it in its own window (no double-click)
-      tb.addEventListener('mousedown', e => { const m = rowMsg(e); if (!m) return; e.preventDefault(); again = FR.mobile && V.sel[V.folder] === m.id ? m.id : null; if (V.sel[V.folder] !== m.id) select(m); else V.el.querySelector('.oe-list').focus({ preventScroll: true }); });
+      // (R3b S8) a narrow phone (320-360 px) has room for only a line or two of preview: one tap opens the message
+      tb.addEventListener('mousedown', e => { const m = rowMsg(e); if (!m) return; e.preventDefault(); again = FR.mobile && (V.sel[V.folder] === m.id || innerWidth <= 360) ? m.id : null; if (V.sel[V.folder] !== m.id) select(m); else V.el.querySelector('.oe-list').focus({ preventScroll: true }); });
       tb.addEventListener('click', e => { const m = rowMsg(e); if (FR.mobile && m && again === m.id) openRow(m); again = null; });
       tb.addEventListener('dblclick', e => { if (FR.mobile) return; const m = rowMsg(e); if (m) openRow(m); });
     }
@@ -1131,6 +1132,8 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
         { label: 'Help', items: [{ label: 'About Outlook Express', action: () => FR.dialog({ icon: 'info', title: 'About Outlook Express', message: '<b>Outlook Express 6</b><br>Version 6.00.2900.5512' }) }] },
       ] });
     const tb = el.querySelector('.oe-tb');
+    // (R3b S8) phones: a clear way back to the list, first in the toolbar
+    if (FR.mobile) { const bk = $(`<button class="oe-tbb oe-tbb-back">${FR.icon('back', 20)}<span class="oe-tbl-l">Inbox</span></button>`); bk.onclick = () => w.close(); tb.appendChild(bk); }
     [['reply', 'Reply', () => replyTo(m, false)], ['replyall', 'Reply All', () => replyTo(m, true)], ['forward', 'Forward', () => forward(m)], '|', ['print', 'Print', () => printMsg(m)], ['del', 'Delete', () => { moveToDeleted(m); w.close(); }], '|', ['prev', 'Previous', () => step(-1)], ['next', 'Next', () => step(1)], '|', ['addresses', 'Addresses', addressBook]].forEach(b => {
       if (b === '|') { tb.appendChild($('<span class="oe-tb-sep"></span>')); return; }
       const btn = $(`<button class="oe-tbb">${ico(TI[b[0]], 'oe-tbi')}<span class="oe-tbl-l">${b[1]}</span></button>`); btn.onclick = b[2]; tb.appendChild(btn);
@@ -1224,7 +1227,7 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
     const tb = el.querySelector('.oe-tb');
     [['send', 'Send', () => doSend(), 'oe-tbb-send'], '|', ['cut', 'Cut', () => document.execCommand('cut')], ['copy', 'Copy', () => document.execCommand('copy')], ['paste', 'Paste', () => document.execCommand('paste')], ['undo', 'Undo', () => document.execCommand('undo')], '|', ['check', 'Check', () => checkNames()], ['spell', 'Spelling', spelling], '|', ['attach', 'Attach', () => attachDlg()], ['priority', 'Priority', () => { el.classList.toggle('oe-hipri'); w.setStatus(0, el.classList.contains('oe-hipri') ? 'This message will be sent with High Priority.' : ''); }, 'drop']].forEach(b => {
       if (b === '|') { tb.appendChild($('<span class="oe-tb-sep"></span>')); return; }
-      const btn = $(`<button class="oe-tbb ${b[3] || ''}">${ico(TI[b[0]], 'oe-tbi')}<span class="oe-tbl-l">${b[1]}${b[3] === 'drop' ? ' <i class="oe-dd">&#9662;</i>' : ''}</span></button>`); btn.onclick = b[2]; tb.appendChild(btn);
+      const btn = $(`<button class="oe-tbb ${b[3] || ''}" data-a="${b[0]}">${ico(TI[b[0]], 'oe-tbi')}<span class="oe-tbl-l">${b[1]}${b[3] === 'drop' ? ' <i class="oe-dd">&#9662;</i>' : ''}</span></button>`); btn.onclick = b[2]; tb.appendChild(btn);
     });
     const toDiane = () => parseList($to.value).concat(parseList($cc.value)).some(isDiane);
     const withPack = () => toDiane() && packReady();
@@ -1234,6 +1237,8 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
       el.querySelector('.oe-cr-att').style.display = a.length ? '' : 'none';
       el.querySelector('.oe-packbar').style.display = withPack() ? '' : 'none';
       const c = el.querySelector('.oe-catt'); c.innerHTML = chipsHTML(a); wireChips(c, a);
+      // (R3b S16) phones: the short attachment box scrolls, so its label says how many files there are
+      if (FR.mobile) el.querySelector('.oe-cr-att .oe-cl-s').textContent = a.length > 1 ? `Attach (${a.length} files):` : 'Attach:';
     }
     function pick(input) {
       FR.dialog({ icon: 'user', title: 'Select Recipients', message: 'Type name or select from list:<br><br>' + CONTACT_ORDER.map(k => `<label class="oe-pick"><input type="checkbox" value="${k}"> ${E(P[k].name)} <span>(${E(P[k].email)})</span></label>`).join(''), buttons: ['OK', 'Cancel'], width: 420 }).then(r => {});

@@ -28,7 +28,7 @@ player accounts (`/api/*`, see below).
 | `dist/` | A prebuilt copy of the game (Vercel rebuilds it on every deploy). |
 | `vercel.json` | Vercel build settings (build command, `dist/` output, cache headers). |
 | `.github/workflows/ci.yml` | Builds and runs the spreadsheet-engine tests on every push and PR. |
-| `test/` | `excel_engine_test.js` (node, no deps), `play.py` (full Playwright playthrough; the Packa site pages it needs are in `test/site/`), `account_api_test.js` + `account_play.py` (player accounts), `local_server.js` + `fake_redis.js` (runs the game and `api/` locally with an in-memory database). |
+| `test/` | `excel_engine_test.js` (node, no deps), `play.py` (full Playwright playthrough; the Packa site pages it needs are in `test/site/`), `account_api_test.js` + `account_play.py` (player accounts), `persist_play.py` (spreadsheet edits saved with the game), `local_server.js` + `fake_redis.js` (runs the game and `api/` locally with an in-memory database). |
 | `tools/` | `make_sounds.py` + the Windows XP sound pack, to regenerate `src/sounds.js`. |
 | `docs/` | `SPEC.md` (the design spec; later sections win), `API.md` (the `window.FR` API every app uses), `CANON_DECISIONS.md` (numbers and story facts that must stay consistent), `PACKA_SITE_GAME_CLUES.md` (what must exist on packacorp.com), `PLAYTEST_FPA.md`. |
 
@@ -173,6 +173,7 @@ node test/account_api_test.js            # player-account API against an in-memo
 node test/score_test.js                  # scoring rules + scoreboard API (no dependencies)
 pip install playwright && python3 test/play.py   # full honest playthrough in headless Chromium
 python3 test/account_play.py             # sign up, continue on another computer, guest → player, sign out, conflicts
+python3 test/persist_play.py             # spreadsheet edits: reload, another computer, undo, no second award, start over
 python3 test/erp_play.py                 # ShowMe ERP: every module, exports, no puzzle answers inside
 python3 test/score_play.py               # checklist score, paid hints, desktop shortcut → leaderboard, ending rank
 python3 test/mobile_play.py              # the whole game by touch on an emulated iPhone 13, Pixel 7 and iPhone SE (320x568), plus landscape

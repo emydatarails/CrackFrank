@@ -25,6 +25,9 @@ Test page: `dist/index.html?dev=1` skips intro/login (logged in, all items unloc
 - `FR.sound.play('ding'|'chord'|'error'|'mail'|'tada'|'click'|'unlock')`.
 - `FR.state` (persisted): `{ solved: {id: timestampMs}, flags: {}, hintsUsed: {id: n}, readMail: {} , startedAt }`.
   Paint adds `paint: { files: [{ id, name, w, h, png (PNG data URL), savedAt }] }` (max 8 pictures / 600 KB, validated by `harden` in core.js).
+  Excel adds `xl: { <fileId>: { <sheet name>: { <A1>: '<typed>' | ['<typed>', '<number format>'] } } }`: the player's cell edits, only
+  the difference from the file as built (`FR.xl.edits` in excel.js: restored when the file opens, saved on every committed edit/undo;
+  max ~100 KB, validated by `harden`). A workbook opened with no file node (File › New) isn't saved.
   `FR.save()` persists. `FR.flags.get(k)`, `FR.flags.set(k, v)` (persists + emits 'flag').
 - `FR.loadState(obj)` → a validated state (or null) built from a save that came from elsewhere.
 - `FR.account` (src/account.js): `{ user (player name or null), available (account server reachable), start(), screen(mode), signOut() }`.

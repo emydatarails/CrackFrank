@@ -1445,6 +1445,59 @@
   XL.books = { rankedBook, budgetBook, boardBook, covenantBook, cashBook, bridgeBook, esportsBook, v2Book, blankBook, packBook, changelogBook, model47Book, forBoardBook, VERS };
 
   /* =====================================================================
+     The player's edits, saved with the game (FR.state.xl) — a file opens the way the player left it, after a
+     reload or on another computer. Only the difference from the file's own contents is kept:
+       FR.state.xl = { <file id>: { <sheet name>: { <A1>: '<what was typed>' | ['<typed>', '<number format>'] } } }
+     (a number format only when typing changed it, e.g. "22%"). core.js (harden) validates it on load.
+     ===================================================================== */
+  const EDITS_MAX = 100000;   // characters of JSON for all files together (the account server takes 1 MB per save)
+  const EDIT_RAW_MAX = 2000;
+  XL.edits = {
+    // put the saved edits into a freshly built book; note(si, r, c) is told about each cell before it changes
+    restore(book, fileId, note) {
+      const all = typeof FR !== 'undefined' && FR.state && FR.state.xl, f = all && all[fileId];
+      if (!f || typeof f !== 'object') return 0;
+      let n = 0;
+      for (const sn in f) {
+        const si = book.idx(sn); if (si < 0) continue;
+        const cells = book.sheets[si].cells;
+        for (const a in f[sn]) {
+          const p = parseA1(a), v = f[sn][a]; if (!p) continue;
+          const raw = Array.isArray(v) ? v[0] : v, fmt = Array.isArray(v) ? v[1] : undefined;
+          if (typeof raw !== 'string') continue;
+          if (note) note(si, p.r, p.c);
+          const k = p.r + ',' + p.c, cl = cells[k] || (cells[k] = { raw: '' });
+          cl.raw = raw; delete cl.ast; delete cl.lit;
+          if (typeof fmt === 'string') cl.s = Object.assign({}, cl.s || {}, { f: fmt });
+          n++;
+        }
+      }
+      book.recalc();
+      return n;
+    },
+    // write this book's edits (the cells in orig: 'si,r,c' → {raw, f} as the file had them) into FR.state.xl
+    // and save; returns false (nothing changes) if it would go over the size limit
+    save(book, fileId, orig) {
+      if (typeof FR === 'undefined' || !FR.state || !fileId) return false;
+      const f = {};
+      orig.forEach((o, k) => {
+        const [si, r, c] = k.split(',').map(Number), sh = book.sheets[si]; if (!sh) return;
+        const cl = sh.cells[r + ',' + c], raw = cl ? cl.raw || '' : '', fmt = cl && cl.s ? cl.s.f : undefined;
+        if (raw === (o.raw || '') && fmt === o.f) return;
+        if (raw.length > EDIT_RAW_MAX) return;
+        (f[sh.name] = f[sh.name] || {})[a1(r, c)] = fmt !== o.f && typeof fmt === 'string' ? [raw, fmt] : raw;
+      });
+      const all = Object.assign({}, FR.state.xl || {});
+      if (Object.keys(f).length) all[fileId] = f; else delete all[fileId];
+      if (JSON.stringify(all).length > EDITS_MAX) return false;
+      FR.state.xl = all;
+      if (FR.save) FR.save();
+      return true;
+    },
+    MAX: EDITS_MAX,
+  };
+
+  /* =====================================================================
      Number display
      ===================================================================== */
   const commas = (x, d) => { const [i, f] = x.toFixed(d).split('.'); return i.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (f ? '.' + f : ''); };
@@ -1536,6 +1589,12 @@
 
   function openWorkbook(book, opts = {}) {
     const st = { si: 0, ar: 0, ac: 0, anchor: { r: 0, c: 0 }, focus: { r: 0, c: 0 }, edit: null, tinted: [], hs: [], undo: [], redo: [], dirty: false, circWarned: false, showCm: false, fbar: true, drag: false, clip: null, closed: false };
+    // the player's earlier edits of this file come back (FR.state.xl, see XL.edits); orig remembers each touched
+    // cell as the file had it, so only the difference is saved
+    const fileId = opts.id && opts.node ? opts.node.id : null;
+    const orig = new Map();
+    const noteOrig = (si, r, c) => { const k = si + ',' + r + ',' + c; if (orig.has(k)) return; const cl = book.sheets[si] && book.sheets[si].cells[r + ',' + c]; orig.set(k, { raw: cl ? cl.raw || '' : '', f: cl && cl.s ? cl.s.f : undefined }); };
+    if (fileId) XL.edits.restore(book, fileId, noteOrig);
     const app = $(`<div class="xl-app">
       <div class="xl-dock">
         <div class="xl-tb xl-tb-std"></div>
@@ -1686,7 +1745,7 @@
       colX = colTh.map(th => th.offsetLeft); colWd = colTh.map(th => th.offsetWidth);
       rowY = tds.map(row => row[0].offsetTop); rowHt = tds.map(row => row[0].offsetHeight);
       wrap.style.width = table.offsetWidth + 'px'; wrap.style.height = table.offsetHeight + 'px';
-      tcache.set(st.si, { table, tds, colTh, rowTh, colX, colWd, rowY, rowHt, NR, NC });
+      tcache.set(st.si, { table, tds, colTh, rowTh, colX, colWd, rowY, rowHt, NR, NC, h: table.offsetHeight });
       renderTabs();
       refresh();
     }
@@ -1747,12 +1806,23 @@
           td.className = cls; td.style.cssText = css; td.innerHTML = html;
         }
       }
+      if (FR.mobile) remeasure();
       renderObjs();
       drawSel();
       if (book.circ && !st.circWarned) {
         st.circWarned = true;
         setTimeout(() => FR.dialog({ icon: 'warn', title: 'Microsoft Excel', width: 440, message: 'Microsoft Office Excel cannot calculate a formula. There is a circular reference in an open workbook, but the references that cause it cannot be listed for you automatically.<br><br>The circular reference has been treated as zero.' }), 0);
       }
+    }
+    // (R3b S15) phones: if filling the cells made a row taller than it was when the grid was measured (big text, a
+    // wrapped label), the rows below moved: measure again, so the selection box, notes and taps stay on the right row
+    function remeasure() {
+      const hit = tcache.get(st.si); if (!hit || hit.table !== table || !tds.length) return;
+      const h = table.offsetHeight; if (h === hit.h) return;
+      rowY = tds.map(row => row[0].offsetTop); rowHt = tds.map(row => row[0].offsetHeight);
+      colX = colTh.map(th => th.offsetLeft); colWd = colTh.map(th => th.offsetWidth);
+      wrap.style.width = table.offsetWidth + 'px'; wrap.style.height = h + 'px';
+      Object.assign(hit, { rowY, rowHt, colX, colWd, h });
     }
     function renderObjs() {
       const s = sh();
@@ -1804,8 +1874,12 @@
         if (!mc) for (const k in sh().cells) { const c = +k.split(',')[1]; if (sh().cells[k].raw && c > mc) mc = c; }
         const used = colX[mc] + colWd[mc] + 4, avail = q('.xl-main').getBoundingClientRect().width;
         scroll.style.zoom = Math.max(0.55, Math.min(1.2, avail / used)).toFixed(3);
+        // (R3b S14) the status bar says how far it zoomed out, and when even that is too wide (the 13-week sheet on a
+        // phone held upright) that sideways shows it all
+        st.fitPct = Math.round(+scroll.style.zoom / 1.2 * 100); st.fitShort = avail / used < 0.55 && innerHeight > innerWidth;
       }
       scroll.scrollLeft = 0;
+      drawSel();
       const zb = q('.xl-zoomb'); if (zb) { zb.textContent = on ? '100%' : 'Fit'; zb.classList.toggle('on', on); }
       tapNote(null);
     }
@@ -1858,7 +1932,7 @@
       return cl.raw;
     }
     function statusSum(r0, r1, c0, c1, multi) {
-      stMode.textContent = st.edit ? (st.edit.point ? 'Point' : st.edit.mode === 'edit' ? 'Edit' : 'Enter') : 'Ready';
+      stMode.textContent = st.edit ? (st.edit.point ? 'Point' : st.edit.mode === 'edit' ? 'Edit' : 'Enter') : st.fit && FR.mobile ? `Zoom ${st.fitPct}%${st.fitShort ? ' · turn sideways to see all' : ''}` : 'Ready';
       if (!multi) { stSum.textContent = ''; return; }
       const s = sh(); let sum = 0, n = 0, f = null;
       for (const k in s.cells) {
@@ -1997,6 +2071,7 @@
     }
     function applyChanges(list) {
       list.forEach(x => {
+        if (fileId) noteOrig(x.si, x.r, x.c);
         const s = book.sheets[x.si], k = x.r + ',' + x.c;
         let cl = s.cells[k];
         if (!cl) cl = s.cells[k] = { raw: '' };
@@ -2005,6 +2080,7 @@
       });
       st.dirty = true;
       book.recalc();
+      if (fileId) XL.edits.save(book, fileId, orig);   // one save per committed edit / fill / paste / undo
       refresh();
       if (opts.afterCalc) opts.afterCalc(book, api);
     }
@@ -2269,6 +2345,14 @@
         box.style.top = rowY[r] + rowHt[r] + 4 + 'px';
         if (ln) ln.style.display = 'none';
       }
+      // (R3b S5) and never under the sheet tabs: no room below → above the cell; a tall note stays inside the grid
+      const vt = scroll.scrollTop + CHH + 2, vb = scroll.scrollTop + scroll.clientHeight - 4, bh = box.offsetHeight;
+      let top = parseFloat(box.style.top) || 0;
+      if (top + bh > vb) {
+        top = rowY[r] - bh - 4 >= vt ? rowY[r] - bh - 4 : Math.max(vt, vb - bh);
+        box.style.top = top + 'px';
+        if (ln) ln.style.display = 'none';
+      }
     }
     wrap.addEventListener('mouseover', e => {
       if (FR.mobile) return;
@@ -2457,7 +2541,12 @@
     };
     FR.bus.on('solved', onBus);
     return {
-      afterOpen: (book, ui) => { wasOk = test(book); uiRef = ui; if (o.afterOpen) o.afterOpen(book, ui); },
+      afterOpen: (book, ui) => {
+        wasOk = test(book); uiRef = ui; if (o.afterOpen) o.afterOpen(book, ui);
+        // reopened with the player's saved edits already right (FR.state.xl): solved ones stay as they are (no second
+        // award); one fixed while the checklist wasn't there yet counts now, or as soon as the checklist catches up
+        if (wasOk && !FR.puzzle.isSolved(o.puzzle)) { pending = true; if (FR.puzzle.isUnlocked(o.puzzle)) check(book, ui, true); }
+      },
       afterCalc: (book, ui) => check(book, ui, false),
     };
   }

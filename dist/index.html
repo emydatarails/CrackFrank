@@ -1490,6 +1490,9 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   .fr-balloon.fr-balloon-open .fr-balloon-acts { display: flex; justify-content: flex-end; margin-top: 6px; }
   .fr-balloon .fr-balloon-go { min-height: 36px; min-width: 96px; padding: 0 14px; font: 700 12.5px Tahoma, sans-serif; }
   html.fr-kb .fr-balloon { display: none; }
+  /* (R3b S2-S4) arriving: taps pass through it for its first 0.4 s; leaving: it fades but still takes a tap aimed at it */
+  .fr-balloon.fr-balloon-pass { pointer-events: none; }
+  .fr-balloon.fr-balloon-leaving { opacity: .35; transition: opacity .6s ease-in; }
   .fr-modal-shade { background: rgba(0,0,0,.28); }
   .fr-ctx { min-width: 190px; font-size: 13px; }
   .fr-ctx .fr-menu-item { padding: 10px 12px 10px 4px; }
@@ -1522,7 +1525,8 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   /* ---------- checklist ---------- */
   .ck-head { padding: 8px 10px; }
   .ck-head h2 { font-size: 14px; }
-  .ck-list { padding: 4px 8px 16px; }
+  .ck-list { padding: 4px 8px 44px; scroll-padding-bottom: 44px; }   /* (R3b S6) the last row scrolls well clear of the footer */
+  .ck-foot { position: relative; z-index: 1; box-shadow: 0 -3px 6px rgba(0,0,0,.13); }   /* (a shadow: the list goes on under it) */
   .ck-item { grid-template-columns: 20px 1fr; gap: 8px; padding: 10px 4px; }
   .ck-t { font-size: 13px; line-height: 1.35; }
   .ck-d { font-size: 12.5px; }
@@ -1552,8 +1556,11 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   .ck-fos-p { font-size: 11.5px; }
   .ck-fb, .ck-auto { font-size: 12px; }
   .ck-solved-val { font-size: 12px; }
-  .ck-foot { flex-wrap: wrap; font-size: 12px; padding: 6px 10px; }
-  #fr-root .ck-help { min-height: 32px; }
+  /* (R3b S6/S16) one compact row: the score line wraps beside the button (not under it), so the list gets the height
+     and nothing ("Time: 29 min") is cut */
+  .ck-foot { flex-wrap: nowrap; font-size: 12px; padding: 5px 8px 5px 10px; }
+  .ck-foot .ck-meta { flex: 1 1 auto; min-width: 0; line-height: 1.35; overflow-wrap: anywhere; }
+  #fr-root .ck-help { flex: none; min-height: 32px; min-width: 0; padding: 0 10px; }
 
   html.fr-kb .ck-head, html.fr-kb .ck-prog, html.fr-kb .ck-foot { display: none; }
 
@@ -1631,6 +1638,11 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   #fr-root .oe-cl { height: 34px; }
   /* (R3) a reply with the Board Pack attached: the five attachments scroll in a short box, so the text box stays usable */
   .oe-catt { max-height: 64px; overflow-y: auto; overscroll-behavior: contain; }
+  /* (R3b S16) the box shows it scrolls: a line under it; the label wraps above the files on a narrow phone */
+  .oe-cr-att .oe-catt { border-bottom: 1px dashed #b9b6a6; padding-bottom: 2px; }
+  /* (R3b S8) the message window's way back to the list */
+  .oe-tbb-back .fr-ico { width: 24px !important; height: 24px !important; margin-bottom: 2px; }
+  .oe-tbb-back { border-right: 1px solid #d6d2c2 !important; }
   .oe-pick { display: flex; align-items: center; flex-wrap: wrap; gap: 0 6px; min-height: 40px; padding: 4px 0; border-top: 1px solid #e2dfd2; line-height: 16px; }
   .oe-pick span { flex-basis: 100%; padding-left: 28px; font-size: 11.5px; overflow-wrap: anywhere; }
   #fr-root .oe-pick input[type=checkbox] { position: static; opacity: 1; -webkit-appearance: checkbox; appearance: auto; width: 20px; height: 20px; margin: 0 2px 0 0; flex: none; }
@@ -1693,11 +1705,11 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   /* ---------- Notepad, pictures, IE, calculator ---------- */
   #fr-root .np-ta { font-size: 13px !important; line-height: 18px; }
   #fr-root .np-ta.np-nowrap { font-size: 12px !important; line-height: 16px; }
-  #fr-root .np-ta { padding-bottom: 56px; }   /* (S7) the last lines scroll up clear of the floating Wrap button */
-  .np { position: relative; }
-  #fr-root .np-wrapb { position: absolute; right: 10px; bottom: 10px; z-index: 2; min-width: 0; min-height: 0; height: 34px; padding: 0 12px; font: 12px Tahoma, sans-serif; border-radius: 17px; background: #fff; border: 1px solid #7f9db9; box-shadow: 0 1px 4px rgba(0,0,0,.25); opacity: .92; }
+  #fr-root .np-ta { padding: 4px 6px 12px; }
+  /* (R3b S10) the Wrap switch sits in its own slim bar under the text (it never covers a line) */
+  .np-mbar { flex: none; display: flex; justify-content: flex-end; align-items: center; padding: 3px 6px; background: #ece9d8; border-top: 1px solid #d6d2c2; }
+  #fr-root .np-wrapb { min-width: 0; min-height: 0; height: 32px; padding: 0 14px; font: 12px Tahoma, sans-serif; border-radius: 16px; background: #fff; border: 1px solid #7f9db9; }
   #fr-root .np-wrapb.on { background: #dfe9fb; border-color: #316ac5; }
-  #fr-root .np-sbon .np-wrapb { bottom: 30px; }
   .iv-bar { flex-wrap: wrap; }
   .iv-bar button { width: 38px; height: 38px; }
   .ie-links { display: none; }   /* the same links are under Favorites; the page gets the room */
@@ -1733,6 +1745,13 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   .st-t { font-size: 11.5px; }
   .st-t td, .st-t th { padding: 5px 5px; }
   .st-t td:nth-child(2) { overflow-wrap: anywhere; min-width: 70px; }
+  /* (R3b S12) the page is never wider than the phone: the header wraps, tighter margins, the status wraps */
+  .st-top { flex-wrap: wrap; gap: 4px 10px; padding: 8px 10px; }
+  .st-top em { margin-left: 0; }
+  .st-crumb { padding: 5px 10px; overflow-wrap: anywhere; }
+  .st-body { padding: 10px 10px 30px; }
+  .st-body h1 { font-size: 19px; overflow-wrap: anywhere; }
+  .st-t td:nth-child(4) { white-space: normal; }
 
   /* ---------- ending ---------- */
   /* (Q2) the bottom strip, where the taskbar was, stays empty: a stray tap there never lands on a button */
@@ -1771,7 +1790,7 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   html.fr-m .oe-fbar { display: none; }
   html.fr-m .ck-head { display: none; }
   html.fr-m .ck-prog { padding: 4px 10px; }
-  html.fr-m .ck-foot { flex-wrap: nowrap; padding: 3px 10px; }
+  html.fr-m .ck-foot { padding: 3px 10px; }
   html.fr-m .oe-right { flex-direction: row; }
   html.fr-m .oe-list { flex: 0 0 52%; }
   html.fr-m .oe-prev-split { display: none !important; }
@@ -1794,6 +1813,8 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   html.fr-m .sh-sheet menu[role=tablist] button { min-height: 30px; }
   html.fr-m .sh-sheetwin .sh-sheet-btns { padding-top: 4px; }
   html.fr-m .sh-sheet-btns button { min-height: 34px; }
+  html.fr-m .np-mbar { padding: 1px 6px; }
+  html.fr-m #fr-root .np-wrapb { height: 26px; }
   html.fr-m .fr-balloon { bottom: 37px; min-height: 40px; max-height: 50px; padding-top: 3px; padding-bottom: 3px; }
   html.fr-m .fr-balloon .fr-balloon-b { -webkit-line-clamp: 2; }
   html.fr-m .fr-start-head { height: 44px; }
@@ -1823,10 +1844,24 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   html.fr-m .oe-tbl th:nth-child(5), html.fr-m .oe-tbl td:nth-child(5) { display: table-cell; }
 }
 
+/* (R3b S11) short phones (iPhone SE: 568 px high): the Start menu is more compact, so all of it (down to All Programs
+   and Log Off) fits above the taskbar, even with the leaderboard shortcut in it; it still scrolls if it must */
+@media (max-height: 700px) {
+  html.fr-m .fr-start-head { height: 46px; padding: 4px 8px; }
+  html.fr-m .fr-start-head .fr-avatar { width: 36px; height: 36px; }
+  html.fr-m .fr-sm-item { padding: 4px 6px; line-height: 1.2; }
+  html.fr-m .fr-start-l .fr-sm-item .fr-ico { width: 26px; height: 26px; }
+  html.fr-m .fr-start-foot { padding-top: 2px; padding-bottom: 2px; }
+}
 /* phones: the grid a little bigger, so a finger hits the right cell (Excel measures its cells from the DOM, so the
    zoomed grid stays consistent: selection box, notes, scrolling) */
 @media (max-width: 760px), (max-height: 500px) {
   html.fr-m .xl-scroll { zoom: 1.2; }
+}
+/* (R3b S16) 320-400 px: a new message's toolbar fits (the phone has its own cut / copy / paste / undo) */
+@media (max-width: 400px) {
+  html.fr-m .oe-cw .oe-tbb[data-a=cut], html.fr-m .oe-cw .oe-tbb[data-a=copy], html.fr-m .oe-cw .oe-tbb[data-a=paste], html.fr-m .oe-cw .oe-tbb[data-a=undo] { display: none; }
+  html.fr-m .oe-cw .oe-tb .oe-tb-sep:nth-of-type(2) { display: none; }
 }
 /* narrow phones (iPhone SE…): a slimmer Start button and tray, so the window switcher keeps its title */
 @media (max-width: 400px) {
@@ -1843,15 +1878,32 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
 @media (max-width: 400px) {
   html.fr-m .ie-win .ie-tb { padding: 2px 0; }
   html.fr-m .ie-win .ie-b { min-width: 40px; padding-left: 0; padding-right: 0; }
-  html.fr-m .erp-nav { width: 104px; }
   html.fr-m .erp-kv th { white-space: normal; padding-right: 8px; }
   html.fr-m .erp-kv td { overflow-wrap: anywhere; }
   html.fr-m .erp-top { flex-wrap: wrap; gap: 2px 10px; }
+}
+/* (R3b S13) narrow portrait phones: ShowMe ERP's module list becomes a strip across the top (swipe sideways), so the
+   tables get the whole width */
+@media (max-width: 560px) {
+  html.fr-m .erp-main { flex-direction: column; }
+  html.fr-m .erp-nav { width: auto; display: flex; align-items: center; flex: none; overflow-x: auto; overflow-y: hidden; padding: 3px 4px; gap: 3px; border-right: 0; border-bottom: 1px solid #a09d92; scrollbar-width: none; overscroll-behavior-x: contain; }
+  html.fr-m .erp-nav::-webkit-scrollbar { display: none; }
+  html.fr-m .erp-g { display: none; }
+  html.fr-m #fr-root .erp-n { display: block; flex: none; width: auto; white-space: nowrap; padding: 8px 11px; border-radius: 3px; border: 1px solid #c9c5b6; background: #f7f6f0; }
+  html.fr-m #fr-root .erp-n.on { background: #316ac5; border-color: #316ac5; color: #fff; }
+  html.fr-m .erp-pane { flex: 1 1 auto; min-height: 0; }
 }
 /* narrow portrait phones: no Received column in Outlook (the preview shows the date), so From and Subject get the room */
 @media (max-width: 560px) {
   html.fr-m .oe-tbl th:nth-child(5), html.fr-m .oe-tbl td:nth-child(5) { display: none; }
   html.fr-m .oe-tbl col:last-child { width: 0 !important; }
+}
+/* (R3b S12) 320-360 px: the leaderboard keeps rank, player, points and status (hints, wrong, time are on the checklist) */
+@media (max-width: 360px) {
+  html.fr-m .st-t th:nth-child(6), html.fr-m .st-t td:nth-child(6) { display: none; }
+  html.fr-m .st-t td.st-name { min-width: 0; }
+  html.fr-m .st-t td.st-score { font-size: 12px; }
+  html.fr-m .st-top img { height: 28px; }
 }
 @media (max-width: 380px) { html.fr-m .fr-tray .fr-ktray { display: none; } }   /* (Kristians' tips still come by themselves) */
 /* a very narrow phone has no free desktop space for the sticky notes */
@@ -1915,6 +1967,27 @@ FR.apps = FR.apps || {};
       const okPic = f => f && typeof f === 'object' && typeof f.id === 'string' && typeof f.name === 'string' && f.name.length <= 80 && typeof f.png === 'string'
         && f.png.startsWith('data:image/png;base64,') && f.w >= 1 && f.w <= 800 && f.h >= 1 && f.h <= 800;
       st.paint = { files: (st.paint && Array.isArray(st.paint.files) ? st.paint.files.filter(okPic) : []).slice(0, 8) };
+    }
+    // the player's spreadsheet edits (src/apps/excel.js, XL.edits): { fileId: { sheet: { A1: raw | [raw, numberFormat] } } }
+    if (st.xl !== undefined) {
+      const xl = {}, isObj = o => !!o && typeof o === 'object' && !Array.isArray(o);
+      let n = 0;
+      if (isObj(st.xl)) Object.keys(st.xl).slice(0, 60).forEach(fid => {
+        if (!/^[\w-]{1,40}$/.test(fid) || !isObj(st.xl[fid])) return;
+        const f = {};
+        Object.keys(st.xl[fid]).slice(0, 60).forEach(sn => {
+          if (sn.length > 64 || !isObj(st.xl[fid][sn])) return;
+          const cells = {};
+          Object.keys(st.xl[fid][sn]).forEach(a => {
+            const v = st.xl[fid][sn][a], m = /^([A-Z]{1,2})([1-9]\d{0,3})$/.exec(a);
+            const ok = typeof v === 'string' ? v.length <= 2000 : Array.isArray(v) && v.length === 2 && typeof v[0] === 'string' && v[0].length <= 2000 && typeof v[1] === 'string' && /^[a-z]{1,4}\d{0,2}$/.test(v[1]);
+            if (m && ok && n < 5000) { cells[a] = v; n++; }
+          });
+          if (Object.keys(cells).length) f[sn] = cells;
+        });
+        if (Object.keys(f).length) xl[fid] = f;
+      });
+      st.xl = xl;
     }
     return st;
   };
@@ -2324,14 +2397,12 @@ FR.apps = FR.apps || {};
   };
 
   /* ---------- balloon ---------- */
+  // opts: { silent, act (phones: the label of its action button), still: () => bool (asked right before it shows:
+  // false = it no longer applies, e.g. a nudge about an item that got solved meanwhile, and it is dropped) }
   FR.balloon = (title, text, onClick, opts = {}) => {
     if (document.querySelector('.fr-end')) return;
-    // phones: never while typing (keyboard up) or while a message box waits for an answer; it waits its turn
-    const typing = () => { const a = document.activeElement; return !!a && (/^(INPUT|TEXTAREA)$/.test(a.tagName) && !a.readOnly) && !!a.closest('#fr-root'); };
-    // (nor over a property sheet's OK / Cancel or a checklist Submit bar, which sit where the toast goes)
-    if (FR.mobile && (document.documentElement.classList.contains('fr-kb') || FR.wm.topDialog() || typing() || document.querySelector('.sh-sheetwin:not(.fr-inactive):not(.fr-closing), .fr-win:not(.fr-inactive) .ck-confirm'))) {
-      const n = (opts.tries || 0) + 1; if (n < 20) setTimeout(() => FR.balloon(title, text, onClick, Object.assign({}, opts, { tries: n })), 1500); return;
-    }
+    if (FR.mobile) return tipQueue(title, text, onClick, opts);
+    if (opts.still && !opts.still()) return;
     if (!opts.silent && Date.now() - (FR._lastSound || 0) > 400) FR.sound.play('notify');
     const tray = document.querySelector('.fr-tray');
     document.querySelectorAll('.fr-balloon').forEach(b => b.remove());
@@ -2339,47 +2410,142 @@ FR.apps = FR.apps || {};
     b.querySelector('b').textContent = title; b.querySelector('.fr-balloon-b').innerHTML = text;
     document.body.appendChild(b);
     if (tray) { const r = tray.getBoundingClientRect(); b.style.right = Math.max(6, window.innerWidth - r.right + 4) + 'px'; }
-    // phones: when it goes, a tap already on its way to it must not land on what was underneath (see the tap guard below)
-    const bye = () => { if (!b.isConnected) return; if (FR.mobile) balloonGhost = { r: b.getBoundingClientRect(), at: Date.now() }; b.remove(); };
-    b.onclick = e => {
-      // phones (S2): a toast whose text is cut off opens up on the first tap (the whole text, scrolling if long); it then
-      // stays until ✕, a tap elsewhere, or a second tap (which does what the toast is for)
-      const x = e.target.classList.contains('fr-balloon-x') || (FR.mobile && !!e.target.closest('.fr-balloon-x'));
-      if (FR.mobile && !x && b.classList.contains('fr-balloon-more') && !b.classList.contains('fr-balloon-open')) { b.classList.add('fr-balloon-open'); b._frShown = Date.now(); b._frGuard = 350; return; }
-      bye(); if (!x && onClick) onClick();
-    };
-    // phones: it doesn't vanish from under a finger (waits while the screen is being touched, or was just touched, or
-    // while it is opened up), and a long text stays up long enough to read
-    const auto = () => { if (FR.mobile && b.isConnected && (touching || Date.now() - lastTouch < 1500 || b.classList.contains('fr-balloon-open'))) return setTimeout(auto, 1500); bye(); };
-    setTimeout(auto, FR.mobile ? Math.min(12000, Math.max(5000, 2500 + 45 * (b.textContent || '').length)) : 9000);
-    if (FR.mobile) {
-      // opened up, the toast shows what a tap on it does as a real button (e.g. "Open the checklist")
-      if (onClick) { const go = $(`<div class="fr-balloon-acts"><button class="fr-balloon-go"></button></div>`); go.firstChild.textContent = opts.act || 'Open'; b.appendChild(go); }
-      const bb = b.querySelector('.fr-balloon-b'), bt = b.querySelector('.fr-balloon-t b');
-      if (bb.scrollHeight > bb.clientHeight + 1 || b.scrollHeight > b.clientHeight + 1 || (bt && bt.scrollWidth > bt.clientWidth + 1)) b.classList.add('fr-balloon-more');
-      b._frShown = Date.now(); b._frGuard = 500;
-      // a tap anywhere else puts it away (like a toast)
-      setTimeout(() => {
-        const away = e => { if (!b.contains(e.target)) bye(); if (!b.isConnected) document.removeEventListener('touchstart', away, true); };
-        if (b.isConnected) document.addEventListener('touchstart', away, { capture: true, passive: true });
-      }, 1200);
-    }
+    b.onclick = e => { const x = e.target.classList.contains('fr-balloon-x'); b.remove(); if (!x && onClick) onClick(); };
+    setTimeout(() => b.remove(), 9000);
   };
+
+  /* ---------- phones: the tip strip (balloons), a small state machine (S2-S4 / R3b) ----------
+     queued ──(quiet)──▶ arriving ──400 ms──▶ shown ──(its time is up, and no touch for 1.5 s)──▶ leaving ──0.7 s──▶ gone
+       ▲                    │ a tap now passes through        │ ✕ / a tap elsewhere / keyboard ─▶ gone      │ a tap on it: back to shown
+       └──── suspended ◀────┴── window list, a menu, a dialog, a Submit bar or a text field comes up (not once it is opened up)
+     • quiet: no finger on the screen, no touch for 2 s (debounce: a player who is tapping around is never interrupted),
+       no window list / Start menu / menu / context menu / message box / property sheet / checklist Submit bar / keyboard
+       / text field in use. Only one tip at a time; the others wait their turn (a queue, oldest first).
+     • arriving (the first 400 ms): the strip lets taps through (pointer-events: none) — it wasn't there when they aimed.
+       A touch that starts then keeps it that way until the finger is up.
+     • leaving: fades out but still takes taps (a tap meant for its ✕ / "more" still lands on it); when it is gone a tap
+       where it was is swallowed for 1 s (the tap guard's balloonGhost).
+     • still(): asked when it is about to show; a tip that no longer applies is dropped (S9). */
+  const TIP = { QUIET: 2000, PASS: 400, HOLD: 1500, LEAVE: 700, GHOST: 1000, WAIT: 90000, MAXQ: 4, MIN: 5000, MAX: 12000, BASE: 2500 };
+  const tips = { q: [], cur: null, pump: 0, log: [] };
+  const tipLog = ev => { tips.log.push([Date.now(), ev]); if (tips.log.length > 60) tips.log.shift(); };
+  const typingNow = () => { const a = document.activeElement; return !!a && (/^(INPUT|TEXTAREA)$/.test(a.tagName) && !a.readOnly) && !!a.closest('#fr-root'); };
+  // something is up that the strip must not cover or interrupt (independent of touches)
+  const tipBlocked = () => document.documentElement.classList.contains('fr-kb') || !!FR.wm.topDialog() || typingNow()
+    || !!document.querySelector('.fr-swlist, .fr-start, .fr-ctx, .fr-menu-drop, .sh-pop, .sh-sheetwin:not(.fr-inactive):not(.fr-closing), .fr-win:not(.fr-inactive) .ck-confirm');
+  // (a tip the player asked for, e.g. by tapping Kristians' face in the tray, only waits for the finger to lift)
+  const tipQuiet = t => !touching && sinceTouch() >= (t && t.opts.asked ? 350 : TIP.QUIET) && !tipBlocked();
+  function tipQueue(title, text, onClick, opts) {
+    if (tips.q.some(t => t.title === title && t.text === text) || (tips.cur && tips.cur.t.title === title && tips.cur.t.text === text)) return;
+    if (opts.asked) { tips.q.unshift({ title, text, onClick, opts, at: Date.now() }); tipLog('asked ' + title); if (tips.cur && tips.cur.state !== 'arriving') return tipGone(tips.cur, 'closed'); return tipPump(); }
+    tips.q.push({ title, text, onClick, opts, at: Date.now() });
+    if (tips.q.length > TIP.MAXQ) tips.q.shift();
+    tipLog('queued ' + title);
+    tipPump();
+  }
+  function tipPump() {
+    clearTimeout(tips.pump); tips.pump = 0;
+    if (document.querySelector('.fr-end')) { tips.q = []; return; }
+    const c = tips.cur;
+    if (c) {
+      // a blocker came up over a tip that hasn't been opened up: it steps aside and comes back later
+      if (c.state !== 'leaving' && !c.b.classList.contains('fr-balloon-open') && tipBlocked()) tipGone(c, 'suspended');
+      else { tips.pump = setTimeout(tipPump, 250); return; }
+    }
+    tips.q = tips.q.filter(t => Date.now() - t.at < TIP.WAIT);
+    if (!tips.q.length) return;
+    if (!tipQuiet(tips.q[0])) { tips.pump = setTimeout(tipPump, tips.q[0].opts.asked ? 100 : 300); return; }
+    const t = tips.q.shift();
+    if (t.opts.still && !t.opts.still()) { tipLog('stale ' + t.title); return tipPump(); }
+    tipShow(t);
+    tips.pump = setTimeout(tipPump, 250);
+  }
+  function tipShow(t) {
+    const { title, text, onClick, opts } = t;
+    if (!opts.silent && !t.shown && Date.now() - (FR._lastSound || 0) > 400) FR.sound.play('notify');
+    t.shown = true;
+    document.querySelectorAll('.fr-balloon').forEach(x => x.remove());
+    const b = $(`<div class="fr-balloon fr-balloon-pass"><div class="fr-balloon-t">${FR.icon('info', 16)}<b></b><span class="fr-balloon-x">&#x2715;</span></div><div class="fr-balloon-b"></div></div>`);
+    b.querySelector('b').textContent = title; b.querySelector('.fr-balloon-b').innerHTML = text;
+    // opened up, the toast shows what a tap on it does as a real button (e.g. "Open the checklist")
+    if (onClick) { const go = $(`<div class="fr-balloon-acts"><button class="fr-balloon-go"></button></div>`); go.firstChild.textContent = opts.act || 'Open'; b.appendChild(go); }
+    document.body.appendChild(b);
+    const c = tips.cur = { t, b, state: 'arriving', shownAt: Date.now(), timer: 0 };
+    tipLog('shown ' + title);
+    const bb = b.querySelector('.fr-balloon-b'), bt = b.querySelector('.fr-balloon-t b');
+    if (bb.scrollHeight > bb.clientHeight + 1 || b.scrollHeight > b.clientHeight + 1 || (bt && bt.scrollWidth > bt.clientWidth + 1)) b.classList.add('fr-balloon-more');
+    // arriving: taps pass through for 400 ms (and for as long as a finger that came down meanwhile stays down)
+    let touchedMeanwhile = false;
+    const arrive = () => {
+      if (tips.cur !== c) return;
+      if (touching || (touchedMeanwhile && sinceTouch() < 350)) return setTimeout(arrive, 100);
+      b.classList.remove('fr-balloon-pass'); c.state = 'shown'; tipLog('interactive');
+      schedule(dur);
+    };
+    const markTouch = () => { if (c.state === 'arriving') touchedMeanwhile = true; };
+    window.addEventListener('touchstart', markTouch, { capture: true, passive: true });
+    c.off = () => window.removeEventListener('touchstart', markTouch, true);
+    setTimeout(arrive, TIP.PASS);
+    const dur = Math.min(TIP.MAX, Math.max(TIP.MIN, TIP.BASE + 45 * (b.textContent || '').length));   // a long text stays up long enough to read
+    const schedule = ms => { clearTimeout(c.timer); c.timer = setTimeout(timeUp, ms); };
+    // its time is up: not while a finger is down or was down in the last 1.5 s (it might be on its way to it),
+    // not while it is opened up
+    const timeUp = () => {
+      if (tips.cur !== c || c.state !== 'shown') return;
+      if (touching || sinceTouch() < TIP.HOLD || b.classList.contains('fr-balloon-open')) return schedule(300);
+      c.state = 'leaving'; b.classList.add('fr-balloon-leaving'); tipLog('leaving');
+      c.timer = setTimeout(() => { if (tips.cur === c && c.state === 'leaving') tipGone(c, 'timeout'); }, TIP.LEAVE);
+    };
+    // a finger on the strip while it fades: it stays (the tap was meant for it)
+    b.addEventListener('touchstart', () => { if (c.state === 'leaving') { c.state = 'shown'; b.classList.remove('fr-balloon-leaving'); tipLog('kept'); schedule(dur); } }, { passive: true });
+    b.onclick = e => {
+      // a toast whose text is cut off opens up on the first tap (the whole text, scrolling if long); it then stays
+      // until ✕, a tap elsewhere, or a tap on its button (which does what the toast is for)
+      const x = !!e.target.closest('.fr-balloon-x');
+      if (!x && b.classList.contains('fr-balloon-more') && !b.classList.contains('fr-balloon-open') && !e.target.closest('.fr-balloon-go')) { b.classList.add('fr-balloon-open'); b._frShown = Date.now(); b._frGuard = 350; tipLog('opened'); return; }
+      tipGone(c, x ? 'closed' : 'tapped');
+      if (!x && onClick) onClick();
+    };
+    // a tap anywhere else puts it away (like a toast), once it has been there a moment
+    setTimeout(() => {
+      if (tips.cur !== c) return;
+      const away = e => { if (tips.cur !== c) return document.removeEventListener('touchstart', away, true); if (!b.contains(e.target) && c.state !== 'arriving') tipGone(c, 'away'); };
+      c.away = away; document.addEventListener('touchstart', away, { capture: true, passive: true });
+    }, 1200);
+  }
+  // why: timeout (faded out: ghost 1 s), closed / tapped / away (ghost 0.6 s), suspended (back in the queue, no ghost),
+  // typing (a text field got focus: back in the queue)
+  function tipGone(c, why) {
+    if (!c || tips.cur !== c) return;
+    tips.cur = null; clearTimeout(c.timer); if (c.off) c.off(); if (c.away) document.removeEventListener('touchstart', c.away, true);
+    tipLog('gone ' + why);
+    if (c.b.isConnected) {
+      if (why !== 'suspended' && why !== 'typing') balloonGhost = { r: c.b.getBoundingClientRect(), at: Date.now(), ms: why === 'timeout' ? TIP.GHOST : 600 };
+      c.b.remove();
+    }
+    if (why === 'suspended' || why === 'typing') { c.t.at = Date.now(); tips.q.unshift(c.t); }
+    tipPump();
+  }
+  FR.tips = { TIP, state: () => ({ cur: tips.cur ? { title: tips.cur.t.title, state: tips.cur.state } : null, queued: tips.q.map(t => t.title), log: tips.log.slice() }),
+    clear() { tips.q = []; if (tips.cur) tipGone(tips.cur, 'closed'); balloonGhost = null; } };
 
   /* ---------- phones: tap guard ----------
      A finger that was already on its way when something appeared under it (a message box, a window that came to the
      front by itself, a balloon, the window list) must not press what appeared, and a tap aimed at a balloon that just
      went away must not press what was underneath. Only touch taps are filtered (a mouse on a tablet is not). */
   let lastTouch = 0, balloonGhost = null;
-  // phones: starting to type (a cell, the formula bar, an answer box) puts a balloon away at once
+  // phones: starting to type (a cell, the formula bar, an answer box) puts a balloon away at once (it comes back later)
   document.addEventListener('focusin', e => {
     if (!FR.mobile || !e.target || !/^(INPUT|TEXTAREA)$/.test(e.target.tagName) || e.target.readOnly) return;
+    if (tips.cur) tipGone(tips.cur, 'typing');
     document.querySelectorAll('.fr-balloon').forEach(b => b.remove());
   });
   let touching = false;   // a finger is on the screen right now
   const noteTouch = () => { lastTouch = Date.now(); };
   window.addEventListener('touchstart', e => { noteTouch(); touching = true; }, { capture: true, passive: true });
-  ['touchend', 'touchcancel'].forEach(ev => window.addEventListener(ev, e => { touching = e.touches.length > 0; }, { capture: true, passive: true }));
+  let lastLift = 0;       // (tips) when a finger last left the screen
+  ['touchend', 'touchcancel'].forEach(ev => window.addEventListener(ev, e => { touching = e.touches.length > 0; lastLift = Date.now(); }, { capture: true, passive: true }));
+  const sinceTouch = () => Date.now() - Math.max(lastTouch, lastLift);
   window.addEventListener('pointerdown', e => { if (e.pointerType === 'touch') noteTouch(); }, { capture: true, passive: true });
   const tapBlocked = e => {
     if (!FR.mobile || !e.isTrusted) return false;
@@ -2390,7 +2556,7 @@ FR.apps = FR.apps || {};
       if (t._frShown && lastTouch < t._frShown + (t._frGuard || 350)) return true;
     }
     const g = balloonGhost;
-    if (g && lastTouch > g.at - 1500 && lastTouch < g.at + 600 && e.clientX >= g.r.left && e.clientX <= g.r.right && e.clientY >= g.r.top && e.clientY <= g.r.bottom) return true;
+    if (g && lastTouch > g.at - 1500 && lastTouch < g.at + (g.ms || 600) && e.clientX >= g.r.left && e.clientX <= g.r.right && e.clientY >= g.r.top && e.clientY <= g.r.bottom) return true;
     return false;
   };
   ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click', 'dblclick'].forEach(ev => window.addEventListener(ev, e => {
@@ -3263,6 +3429,8 @@ FR.data.logo = {"mark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"380
     const show = k => {
       const [t, sub, body] = S[k];
       root.querySelectorAll('.erp-n').forEach(b => b.classList.toggle('on', b.dataset.k === k));
+      // (R3b S13) phones: the module strip keeps the open module in view
+      if (FR.mobile) { const on = root.querySelector('.erp-n.on'); if (on && on.parentElement.scrollWidth > on.parentElement.clientWidth) { const nav = on.parentElement, r = on.getBoundingClientRect(), nr = nav.getBoundingClientRect(); nav.scrollLeft = Math.max(0, nav.scrollLeft + r.left - nr.left - (nav.clientWidth - r.width) / 2); } }
       pane.innerHTML = `<div class="erp-h"><b>${t}</b><span>${sub}</span></div><div class="erp-body">${body()}</div>`;
       pane.scrollTop = 0;
       win.setStatus(0, `<span>${t.replace(/&amp;/g, '&')}</span>`);
@@ -4747,6 +4915,59 @@ FR.data.logo = {"mark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"380
   XL.books = { rankedBook, budgetBook, boardBook, covenantBook, cashBook, bridgeBook, esportsBook, v2Book, blankBook, packBook, changelogBook, model47Book, forBoardBook, VERS };
 
   /* =====================================================================
+     The player's edits, saved with the game (FR.state.xl) — a file opens the way the player left it, after a
+     reload or on another computer. Only the difference from the file's own contents is kept:
+       FR.state.xl = { <file id>: { <sheet name>: { <A1>: '<what was typed>' | ['<typed>', '<number format>'] } } }
+     (a number format only when typing changed it, e.g. "22%"). core.js (harden) validates it on load.
+     ===================================================================== */
+  const EDITS_MAX = 100000;   // characters of JSON for all files together (the account server takes 1 MB per save)
+  const EDIT_RAW_MAX = 2000;
+  XL.edits = {
+    // put the saved edits into a freshly built book; note(si, r, c) is told about each cell before it changes
+    restore(book, fileId, note) {
+      const all = typeof FR !== 'undefined' && FR.state && FR.state.xl, f = all && all[fileId];
+      if (!f || typeof f !== 'object') return 0;
+      let n = 0;
+      for (const sn in f) {
+        const si = book.idx(sn); if (si < 0) continue;
+        const cells = book.sheets[si].cells;
+        for (const a in f[sn]) {
+          const p = parseA1(a), v = f[sn][a]; if (!p) continue;
+          const raw = Array.isArray(v) ? v[0] : v, fmt = Array.isArray(v) ? v[1] : undefined;
+          if (typeof raw !== 'string') continue;
+          if (note) note(si, p.r, p.c);
+          const k = p.r + ',' + p.c, cl = cells[k] || (cells[k] = { raw: '' });
+          cl.raw = raw; delete cl.ast; delete cl.lit;
+          if (typeof fmt === 'string') cl.s = Object.assign({}, cl.s || {}, { f: fmt });
+          n++;
+        }
+      }
+      book.recalc();
+      return n;
+    },
+    // write this book's edits (the cells in orig: 'si,r,c' → {raw, f} as the file had them) into FR.state.xl
+    // and save; returns false (nothing changes) if it would go over the size limit
+    save(book, fileId, orig) {
+      if (typeof FR === 'undefined' || !FR.state || !fileId) return false;
+      const f = {};
+      orig.forEach((o, k) => {
+        const [si, r, c] = k.split(',').map(Number), sh = book.sheets[si]; if (!sh) return;
+        const cl = sh.cells[r + ',' + c], raw = cl ? cl.raw || '' : '', fmt = cl && cl.s ? cl.s.f : undefined;
+        if (raw === (o.raw || '') && fmt === o.f) return;
+        if (raw.length > EDIT_RAW_MAX) return;
+        (f[sh.name] = f[sh.name] || {})[a1(r, c)] = fmt !== o.f && typeof fmt === 'string' ? [raw, fmt] : raw;
+      });
+      const all = Object.assign({}, FR.state.xl || {});
+      if (Object.keys(f).length) all[fileId] = f; else delete all[fileId];
+      if (JSON.stringify(all).length > EDITS_MAX) return false;
+      FR.state.xl = all;
+      if (FR.save) FR.save();
+      return true;
+    },
+    MAX: EDITS_MAX,
+  };
+
+  /* =====================================================================
      Number display
      ===================================================================== */
   const commas = (x, d) => { const [i, f] = x.toFixed(d).split('.'); return i.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (f ? '.' + f : ''); };
@@ -4838,6 +5059,12 @@ FR.data.logo = {"mark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"380
 
   function openWorkbook(book, opts = {}) {
     const st = { si: 0, ar: 0, ac: 0, anchor: { r: 0, c: 0 }, focus: { r: 0, c: 0 }, edit: null, tinted: [], hs: [], undo: [], redo: [], dirty: false, circWarned: false, showCm: false, fbar: true, drag: false, clip: null, closed: false };
+    // the player's earlier edits of this file come back (FR.state.xl, see XL.edits); orig remembers each touched
+    // cell as the file had it, so only the difference is saved
+    const fileId = opts.id && opts.node ? opts.node.id : null;
+    const orig = new Map();
+    const noteOrig = (si, r, c) => { const k = si + ',' + r + ',' + c; if (orig.has(k)) return; const cl = book.sheets[si] && book.sheets[si].cells[r + ',' + c]; orig.set(k, { raw: cl ? cl.raw || '' : '', f: cl && cl.s ? cl.s.f : undefined }); };
+    if (fileId) XL.edits.restore(book, fileId, noteOrig);
     const app = $(`<div class="xl-app">
       <div class="xl-dock">
         <div class="xl-tb xl-tb-std"></div>
@@ -4988,7 +5215,7 @@ FR.data.logo = {"mark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"380
       colX = colTh.map(th => th.offsetLeft); colWd = colTh.map(th => th.offsetWidth);
       rowY = tds.map(row => row[0].offsetTop); rowHt = tds.map(row => row[0].offsetHeight);
       wrap.style.width = table.offsetWidth + 'px'; wrap.style.height = table.offsetHeight + 'px';
-      tcache.set(st.si, { table, tds, colTh, rowTh, colX, colWd, rowY, rowHt, NR, NC });
+      tcache.set(st.si, { table, tds, colTh, rowTh, colX, colWd, rowY, rowHt, NR, NC, h: table.offsetHeight });
       renderTabs();
       refresh();
     }
@@ -5049,12 +5276,23 @@ FR.data.logo = {"mark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"380
           td.className = cls; td.style.cssText = css; td.innerHTML = html;
         }
       }
+      if (FR.mobile) remeasure();
       renderObjs();
       drawSel();
       if (book.circ && !st.circWarned) {
         st.circWarned = true;
         setTimeout(() => FR.dialog({ icon: 'warn', title: 'Microsoft Excel', width: 440, message: 'Microsoft Office Excel cannot calculate a formula. There is a circular reference in an open workbook, but the references that cause it cannot be listed for you automatically.<br><br>The circular reference has been treated as zero.' }), 0);
       }
+    }
+    // (R3b S15) phones: if filling the cells made a row taller than it was when the grid was measured (big text, a
+    // wrapped label), the rows below moved: measure again, so the selection box, notes and taps stay on the right row
+    function remeasure() {
+      const hit = tcache.get(st.si); if (!hit || hit.table !== table || !tds.length) return;
+      const h = table.offsetHeight; if (h === hit.h) return;
+      rowY = tds.map(row => row[0].offsetTop); rowHt = tds.map(row => row[0].offsetHeight);
+      colX = colTh.map(th => th.offsetLeft); colWd = colTh.map(th => th.offsetWidth);
+      wrap.style.width = table.offsetWidth + 'px'; wrap.style.height = h + 'px';
+      Object.assign(hit, { rowY, rowHt, colX, colWd, h });
     }
     function renderObjs() {
       const s = sh();
@@ -5106,8 +5344,12 @@ FR.data.logo = {"mark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"380
         if (!mc) for (const k in sh().cells) { const c = +k.split(',')[1]; if (sh().cells[k].raw && c > mc) mc = c; }
         const used = colX[mc] + colWd[mc] + 4, avail = q('.xl-main').getBoundingClientRect().width;
         scroll.style.zoom = Math.max(0.55, Math.min(1.2, avail / used)).toFixed(3);
+        // (R3b S14) the status bar says how far it zoomed out, and when even that is too wide (the 13-week sheet on a
+        // phone held upright) that sideways shows it all
+        st.fitPct = Math.round(+scroll.style.zoom / 1.2 * 100); st.fitShort = avail / used < 0.55 && innerHeight > innerWidth;
       }
       scroll.scrollLeft = 0;
+      drawSel();
       const zb = q('.xl-zoomb'); if (zb) { zb.textContent = on ? '100%' : 'Fit'; zb.classList.toggle('on', on); }
       tapNote(null);
     }
@@ -5160,7 +5402,7 @@ FR.data.logo = {"mark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"380
       return cl.raw;
     }
     function statusSum(r0, r1, c0, c1, multi) {
-      stMode.textContent = st.edit ? (st.edit.point ? 'Point' : st.edit.mode === 'edit' ? 'Edit' : 'Enter') : 'Ready';
+      stMode.textContent = st.edit ? (st.edit.point ? 'Point' : st.edit.mode === 'edit' ? 'Edit' : 'Enter') : st.fit && FR.mobile ? `Zoom ${st.fitPct}%${st.fitShort ? ' · turn sideways to see all' : ''}` : 'Ready';
       if (!multi) { stSum.textContent = ''; return; }
       const s = sh(); let sum = 0, n = 0, f = null;
       for (const k in s.cells) {
@@ -5299,6 +5541,7 @@ FR.data.logo = {"mark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"380
     }
     function applyChanges(list) {
       list.forEach(x => {
+        if (fileId) noteOrig(x.si, x.r, x.c);
         const s = book.sheets[x.si], k = x.r + ',' + x.c;
         let cl = s.cells[k];
         if (!cl) cl = s.cells[k] = { raw: '' };
@@ -5307,6 +5550,7 @@ FR.data.logo = {"mark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"380
       });
       st.dirty = true;
       book.recalc();
+      if (fileId) XL.edits.save(book, fileId, orig);   // one save per committed edit / fill / paste / undo
       refresh();
       if (opts.afterCalc) opts.afterCalc(book, api);
     }
@@ -5571,6 +5815,14 @@ FR.data.logo = {"mark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"380
         box.style.top = rowY[r] + rowHt[r] + 4 + 'px';
         if (ln) ln.style.display = 'none';
       }
+      // (R3b S5) and never under the sheet tabs: no room below → above the cell; a tall note stays inside the grid
+      const vt = scroll.scrollTop + CHH + 2, vb = scroll.scrollTop + scroll.clientHeight - 4, bh = box.offsetHeight;
+      let top = parseFloat(box.style.top) || 0;
+      if (top + bh > vb) {
+        top = rowY[r] - bh - 4 >= vt ? rowY[r] - bh - 4 : Math.max(vt, vb - bh);
+        box.style.top = top + 'px';
+        if (ln) ln.style.display = 'none';
+      }
     }
     wrap.addEventListener('mouseover', e => {
       if (FR.mobile) return;
@@ -5759,7 +6011,12 @@ FR.data.logo = {"mark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"380
     };
     FR.bus.on('solved', onBus);
     return {
-      afterOpen: (book, ui) => { wasOk = test(book); uiRef = ui; if (o.afterOpen) o.afterOpen(book, ui); },
+      afterOpen: (book, ui) => {
+        wasOk = test(book); uiRef = ui; if (o.afterOpen) o.afterOpen(book, ui);
+        // reopened with the player's saved edits already right (FR.state.xl): solved ones stay as they are (no second
+        // award); one fixed while the checklist wasn't there yet counts now, or as soon as the checklist catches up
+        if (wasOk && !FR.puzzle.isSolved(o.puzzle)) { pending = true; if (FR.puzzle.isUnlocked(o.puzzle)) check(book, ui, true); }
+      },
       afterCalc: (book, ui) => check(book, ui, false),
     };
   }
@@ -6931,7 +7188,8 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
       tb.dataset.wired = '1';
       const rowMsg = e => { const tr = e.target.closest('tr[data-id]'); return tr && byId(tr.dataset.id); };
       let again = null;   // phones: tapping the selected message again opens it in its own window (no double-click)
-      tb.addEventListener('mousedown', e => { const m = rowMsg(e); if (!m) return; e.preventDefault(); again = FR.mobile && V.sel[V.folder] === m.id ? m.id : null; if (V.sel[V.folder] !== m.id) select(m); else V.el.querySelector('.oe-list').focus({ preventScroll: true }); });
+      // (R3b S8) a narrow phone (320-360 px) has room for only a line or two of preview: one tap opens the message
+      tb.addEventListener('mousedown', e => { const m = rowMsg(e); if (!m) return; e.preventDefault(); again = FR.mobile && (V.sel[V.folder] === m.id || innerWidth <= 360) ? m.id : null; if (V.sel[V.folder] !== m.id) select(m); else V.el.querySelector('.oe-list').focus({ preventScroll: true }); });
       tb.addEventListener('click', e => { const m = rowMsg(e); if (FR.mobile && m && again === m.id) openRow(m); again = null; });
       tb.addEventListener('dblclick', e => { if (FR.mobile) return; const m = rowMsg(e); if (m) openRow(m); });
     }
@@ -7032,6 +7290,8 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
         { label: 'Help', items: [{ label: 'About Outlook Express', action: () => FR.dialog({ icon: 'info', title: 'About Outlook Express', message: '<b>Outlook Express 6</b><br>Version 6.00.2900.5512' }) }] },
       ] });
     const tb = el.querySelector('.oe-tb');
+    // (R3b S8) phones: a clear way back to the list, first in the toolbar
+    if (FR.mobile) { const bk = $(`<button class="oe-tbb oe-tbb-back">${FR.icon('back', 20)}<span class="oe-tbl-l">Inbox</span></button>`); bk.onclick = () => w.close(); tb.appendChild(bk); }
     [['reply', 'Reply', () => replyTo(m, false)], ['replyall', 'Reply All', () => replyTo(m, true)], ['forward', 'Forward', () => forward(m)], '|', ['print', 'Print', () => printMsg(m)], ['del', 'Delete', () => { moveToDeleted(m); w.close(); }], '|', ['prev', 'Previous', () => step(-1)], ['next', 'Next', () => step(1)], '|', ['addresses', 'Addresses', addressBook]].forEach(b => {
       if (b === '|') { tb.appendChild($('<span class="oe-tb-sep"></span>')); return; }
       const btn = $(`<button class="oe-tbb">${ico(TI[b[0]], 'oe-tbi')}<span class="oe-tbl-l">${b[1]}</span></button>`); btn.onclick = b[2]; tb.appendChild(btn);
@@ -7125,7 +7385,7 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
     const tb = el.querySelector('.oe-tb');
     [['send', 'Send', () => doSend(), 'oe-tbb-send'], '|', ['cut', 'Cut', () => document.execCommand('cut')], ['copy', 'Copy', () => document.execCommand('copy')], ['paste', 'Paste', () => document.execCommand('paste')], ['undo', 'Undo', () => document.execCommand('undo')], '|', ['check', 'Check', () => checkNames()], ['spell', 'Spelling', spelling], '|', ['attach', 'Attach', () => attachDlg()], ['priority', 'Priority', () => { el.classList.toggle('oe-hipri'); w.setStatus(0, el.classList.contains('oe-hipri') ? 'This message will be sent with High Priority.' : ''); }, 'drop']].forEach(b => {
       if (b === '|') { tb.appendChild($('<span class="oe-tb-sep"></span>')); return; }
-      const btn = $(`<button class="oe-tbb ${b[3] || ''}">${ico(TI[b[0]], 'oe-tbi')}<span class="oe-tbl-l">${b[1]}${b[3] === 'drop' ? ' <i class="oe-dd">&#9662;</i>' : ''}</span></button>`); btn.onclick = b[2]; tb.appendChild(btn);
+      const btn = $(`<button class="oe-tbb ${b[3] || ''}" data-a="${b[0]}">${ico(TI[b[0]], 'oe-tbi')}<span class="oe-tbl-l">${b[1]}${b[3] === 'drop' ? ' <i class="oe-dd">&#9662;</i>' : ''}</span></button>`); btn.onclick = b[2]; tb.appendChild(btn);
     });
     const toDiane = () => parseList($to.value).concat(parseList($cc.value)).some(isDiane);
     const withPack = () => toDiane() && packReady();
@@ -7135,6 +7395,8 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
       el.querySelector('.oe-cr-att').style.display = a.length ? '' : 'none';
       el.querySelector('.oe-packbar').style.display = withPack() ? '' : 'none';
       const c = el.querySelector('.oe-catt'); c.innerHTML = chipsHTML(a); wireChips(c, a);
+      // (R3b S16) phones: the short attachment box scrolls, so its label says how many files there are
+      if (FR.mobile) el.querySelector('.oe-cr-att .oe-cl-s').textContent = a.length > 1 ? `Attach (${a.length} files):` : 'Attach:';
     }
     function pick(input) {
       FR.dialog({ icon: 'user', title: 'Select Recipients', message: 'Type name or select from list:<br><br>' + CONTACT_ORDER.map(k => `<label class="oe-pick"><input type="checkbox" value="${k}"> ${E(P[k].name)} <span>(${E(P[k].email)})</span></label>`).join(''), buttons: ['OK', 'Cancel'], width: 420 }).then(r => {});
@@ -8918,6 +9180,12 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
     if (node.type === 'file' && node.app !== 'zip') return FR.openFile(node);
     if (node.empty) { emptyDriveError(node); return null; }
     for (const x of explorers) if (x.cur === node.id && !x.search) { x.win.restore(); x.win.focus(); return x.win; }
+    // (R3b S7) phones: one Explorer window, reused (Back goes to where it was): a checklist chip or a desktop icon
+    // doesn't pile up another full-screen window each time
+    if (FR.mobile) {
+      const x = [...explorers].filter(v => FR.wm.wins.has(v.win.id)).sort((a, b) => (b.win._used || 0) - (a.win._used || 0))[0];
+      if (x && x.go(node.id, true) !== false) { x.win.restore(); x.win.focus(); return x.win; }
+    }
     const X = new Explorer(node.id);
     return X.win;
   }
@@ -9778,6 +10046,27 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
   /* ======================================================================================
      NOTEPAD
      ====================================================================================== */
+  // (R3b S10) phones: is this a text hard-wrapped at ~90 columns (most lines long and ending mid-sentence)?
+  const npLong = l => l.length >= 70;
+  function npReflowable(t) {
+    const ls = t.split('\n').filter(l => l.trim());
+    return ls.length >= 8 && ls.filter(npLong).length / ls.length >= 0.4;
+  }
+  // one paragraph per line: a line joins the one before it when that one ran to the margin (≥ 70 columns) and it isn't a
+  // new list item; separators get short, centred headings move to the left, wide gaps (two columns) become " · "
+  function npReflow(t) {
+    const out = []; let prev = null;
+    const sep = l => /^\s*[-=_*]{8,}\s*$/.test(l), item = l => /^(\([a-z0-9]{1,4}\)|\d+[.)]\s|[-•*]\s|Section\s|\[|\.\.\.)/.test(l);
+    t.split('\n').forEach(raw => {
+      const l = raw.trim().replace(/(\S) {3,}(?=\S)/g, '$1 · ');
+      if (!l) { out.push(''); prev = null; return; }
+      if (sep(raw)) { out.push('—————————'); prev = null; return; }
+      if (prev !== null && npLong(prev) && !item(l)) out[out.length - 1] += ' ' + l;
+      else out.push(l);
+      prev = raw;
+    });
+    return out.join('\n');
+  }
   function notepad(node) {
     node = node ? FR.fs.get(node) : null;
     const id = node ? 'np-' + node.id : undefined;
@@ -9791,11 +10080,16 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
       const v = ta.value.slice(0, ta.selectionStart); const lines = v.split('\n');
       root.querySelector('.np-pos').textContent = `Ln ${lines.length}, Col ${lines[lines.length - 1].length + 1}`;
     };
-    // phones: a visible Wrap switch (the Format menu is far away and sideways swiping a wide text is tiring)
+    // phones: a visible Wrap switch (the Format menu is far away and sideways swiping a wide text is tiring), in its own
+    // slim bar under the text (R3b S10: never floating over the text)
     const wrapB = FR.mobile ? $('<button class="np-wrapb" aria-label="Word wrap"></button>') : null;
+    // (R3b S10) phones, Wrap on: a text Frank broke into ~90-column lines (the loan agreement) is shown reflowed, one
+    // paragraph per line, headings on their own line, so it wraps cleanly to the screen; Wrap off shows the file as it is
+    const orig = ta.value, reflow = FR.mobile && npReflowable(orig) ? npReflow(orig) : null;
     const setWrap = on => { S.wrap = on; ta.setAttribute('wrap', on ? 'soft' : 'off'); ta.classList.toggle('np-nowrap', !on);
+      if (reflow && !S.dirty) { const v = on ? reflow : orig; if (ta.value !== v) { ta.value = v; ta.scrollTop = 0; ta.scrollLeft = 0; } }
       if (wrapB) { wrapB.textContent = on ? 'Wrap: on' : 'Wrap: off'; wrapB.classList.toggle('on', on); } };
-    if (wrapB) { root.appendChild(wrapB); wrapB.onclick = e => { e.stopPropagation(); setWrap(!S.wrap); if (S.wrap) setStatus(false); }; }
+    if (wrapB) { const bar = $('<div class="np-mbar"></div>'); bar.appendChild(wrapB); root.appendChild(bar); wrapB.onclick = e => { e.stopPropagation(); setWrap(!S.wrap); if (S.wrap) setStatus(false); }; }
     const setStatus = on => { S.status = on; root.classList.toggle('np-sbon', on); pos(); };
     const saveDenied = () => FR.dialog({ title: 'Notepad', icon: 'error', message: `Cannot create the ${esc(node ? FR.fs.path(node.parent) + '\\' + node.name : 'Untitled.txt')} file.<br><br>Access is denied. Make sure the path and file name are correct.` });
     const find = async () => {
@@ -10347,7 +10641,11 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
         let first = true;
         f.onload = () => {
           S.loading = false; status('Done');
-          if (!first) { /* navigated inside the site: we can't read the cross-origin URL */ win.setTitle('Packa Corporation - Internet Explorer'); }
+          // navigated inside the site: the page's own title when the browser lets us read it (same origin), else the
+          // company name (a cross-origin page's title and URL can't be read) (R3b S17)
+          let t = '';
+          try { t = (f.contentDocument && f.contentDocument.title || '').trim(); } catch (er) {}
+          if (!first) win.setTitle(`${t || 'Packa Corporation'} - Internet Explorer`);
           first = false;
         };
         page.appendChild(f);
@@ -12020,7 +12318,9 @@ Website:      still says 'Director'. Steve. Don't ask.
     vol.onclick = () => { FR.sound.muted = !FR.sound.muted; FR.state.flags.muted = FR.sound.muted; FR.save(); vol.style.opacity = FR.sound.muted ? .45 : 1; FR.balloon('Volume', FR.sound.muted ? 'Sounds are muted.' : 'Sounds are on.'); };
     if (!FR.storageOk && !storageWarned) { storageWarned = true; setTimeout(() => FR.balloon('Progress not saved', "Progress can't be saved in this browser (private mode?)"), 4000); }
     updateTray();
-    el.querySelector('.fr-ktray').onclick = () => kTip();
+    el.querySelector('.fr-ktray').onclick = () => kTip(undefined, true);
+    // (R3b S18) phones have no hover tooltips: the little face says what it is (and a tap on it shows a tip at once)
+    if (FR.mobile) { const k = el.querySelector('.fr-ktray'); k.alt = "Kristians' Cheat Sheet of the Day"; k.setAttribute('role', 'button'); k.setAttribute('aria-label', "Kristians' Cheat Sheet of the Day: tap for a tip"); }
     stickies(el);
     // start menu
     const sb = el.querySelector('.fr-startbtn');
@@ -12061,11 +12361,11 @@ Website:      still says 'Director'. Steve. Don't ask.
     'Lost a window? The button next to Start lists every open window.',
   ];
   let kIdx = 0;
-  function kTip(i) {
+  function kTip(i, asked) {
     // phones: none after the Board Pack has gone out (the game is over)
     if (FR.mobile && FR.puzzle.isSolved('frank')) return;
     const list = FR.mobile ? KTIPS_M : KTIPS, t = list[(i ?? kIdx) % list.length]; kIdx = (i ?? kIdx) + 1;
-    FR.balloon("Kristians' Cheat Sheet of the Day", `<div class="fr-ktip"><img src="${FR.data.images.kristians}" alt=""><span>${esc(t)}</span></div>`, null);
+    FR.balloon("Kristians' Cheat Sheet of the Day", `<div class="fr-ktip"><img src="${FR.data.images.kristians}" alt=""><span>${esc(t)}</span></div>`, null, { asked, still: () => !(FR.mobile && FR.puzzle.isSolved('frank')) });
   }
   setInterval(() => { if (document.querySelector('.fr-desktop') && !document.querySelector('.fr-balloon')) kTip(); }, 240000);
 
@@ -12358,7 +12658,9 @@ Website:      still says 'Director'. Steve. Don't ask.
     if (Date.now() - FR.state.unlockedAt[cur] < 240000) return;
     FR.state.nudged[cur] = 1; FR.save();
     const it = ITEMS.find(i => i.id === cur);
-    FR.balloon('FinanceOS Assist', `Stuck on <b>${esc(it.t)}</b>? Ask FinanceOS on the checklist. Emily's trial has 1 day left.`, () => openChecklist(), { act: 'Open the checklist' });
+    FR.balloon('FinanceOS Assist', `Stuck on <b>${esc(it.t)}</b>? Ask FinanceOS on the checklist. Emily's trial has 1 day left.`, () => openChecklist(), { act: 'Open the checklist',
+      // (S9) asked again right before it shows (on a phone it can wait for a quiet moment): never about a solved item
+      still: () => FR.puzzle.current() === cur && !FR.puzzle.isSolved(cur) && !((FR.state.hintsUsed[cur] || 0) > 0) });
   }, 30000);
 
   // targeted feedback for common traps
@@ -12397,7 +12699,7 @@ Website:      still says 'Director'. Steve. Don't ask.
     const it = ITEMS.find(i => i.id === id);
     const n = ITEMS.filter(i => FR.puzzle.isSolved(i.id)).length;
     const nxt = ITEMS.find(i => !FR.puzzle.isSolved(i.id));
-    if (it && id !== 'login') setTimeout(() => FR.balloon(`Board Pack: ${n} of ${ITEMS.length} done`, `<b>${esc(it.t)}</b> — done.${REACT[id] ? `<br><i>${esc(REACT[id])}</i>` : ''}${nxt ? `<br>Next up: ${esc(nxt.t)}` : ''}`, () => openChecklist(), { silent: true, act: 'Open the checklist' }), 900);
+    if (it && id !== 'login') setTimeout(() => FR.balloon(`Board Pack: ${n} of ${ITEMS.length} done`, `<b>${esc(it.t)}</b> — done.${REACT[id] ? `<br><i>${esc(REACT[id])}</i>` : ''}${nxt ? `<br>Next up: ${esc(nxt.t)}` : ''}`, () => openChecklist(), { silent: true, act: 'Open the checklist', still: () => !nxt || !FR.puzzle.isSolved(nxt.id) }), 900);
     if (id === 'frank') {
       FR.state.finishedAt = FR.state.finishedAt || Date.now();
       if (FR.state.finishPlayMs == null) FR.state.finishPlayMs = FR.clock.playMs();

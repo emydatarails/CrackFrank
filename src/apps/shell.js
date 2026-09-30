@@ -230,6 +230,12 @@
     if (node.type === 'file' && node.app !== 'zip') return FR.openFile(node);
     if (node.empty) { emptyDriveError(node); return null; }
     for (const x of explorers) if (x.cur === node.id && !x.search) { x.win.restore(); x.win.focus(); return x.win; }
+    // (R3b S7) phones: one Explorer window, reused (Back goes to where it was): a checklist chip or a desktop icon
+    // doesn't pile up another full-screen window each time
+    if (FR.mobile) {
+      const x = [...explorers].filter(v => FR.wm.wins.has(v.win.id)).sort((a, b) => (b.win._used || 0) - (a.win._used || 0))[0];
+      if (x && x.go(node.id, true) !== false) { x.win.restore(); x.win.focus(); return x.win; }
+    }
     const X = new Explorer(node.id);
     return X.win;
   }
@@ -1090,6 +1096,27 @@
   /* ======================================================================================
      NOTEPAD
      ====================================================================================== */
+  // (R3b S10) phones: is this a text hard-wrapped at ~90 columns (most lines long and ending mid-sentence)?
+  const npLong = l => l.length >= 70;
+  function npReflowable(t) {
+    const ls = t.split('\n').filter(l => l.trim());
+    return ls.length >= 8 && ls.filter(npLong).length / ls.length >= 0.4;
+  }
+  // one paragraph per line: a line joins the one before it when that one ran to the margin (≥ 70 columns) and it isn't a
+  // new list item; separators get short, centred headings move to the left, wide gaps (two columns) become " · "
+  function npReflow(t) {
+    const out = []; let prev = null;
+    const sep = l => /^\s*[-=_*]{8,}\s*$/.test(l), item = l => /^(\([a-z0-9]{1,4}\)|\d+[.)]\s|[-•*]\s|Section\s|\[|\.\.\.)/.test(l);
+    t.split('\n').forEach(raw => {
+      const l = raw.trim().replace(/(\S) {3,}(?=\S)/g, '$1 · ');
+      if (!l) { out.push(''); prev = null; return; }
+      if (sep(raw)) { out.push('—————————'); prev = null; return; }
+      if (prev !== null && npLong(prev) && !item(l)) out[out.length - 1] += ' ' + l;
+      else out.push(l);
+      prev = raw;
+    });
+    return out.join('\n');
+  }
   function notepad(node) {
     node = node ? FR.fs.get(node) : null;
     const id = node ? 'np-' + node.id : undefined;
@@ -1103,11 +1130,16 @@
       const v = ta.value.slice(0, ta.selectionStart); const lines = v.split('\n');
       root.querySelector('.np-pos').textContent = `Ln ${lines.length}, Col ${lines[lines.length - 1].length + 1}`;
     };
-    // phones: a visible Wrap switch (the Format menu is far away and sideways swiping a wide text is tiring)
+    // phones: a visible Wrap switch (the Format menu is far away and sideways swiping a wide text is tiring), in its own
+    // slim bar under the text (R3b S10: never floating over the text)
     const wrapB = FR.mobile ? $('<button class="np-wrapb" aria-label="Word wrap"></button>') : null;
+    // (R3b S10) phones, Wrap on: a text Frank broke into ~90-column lines (the loan agreement) is shown reflowed, one
+    // paragraph per line, headings on their own line, so it wraps cleanly to the screen; Wrap off shows the file as it is
+    const orig = ta.value, reflow = FR.mobile && npReflowable(orig) ? npReflow(orig) : null;
     const setWrap = on => { S.wrap = on; ta.setAttribute('wrap', on ? 'soft' : 'off'); ta.classList.toggle('np-nowrap', !on);
+      if (reflow && !S.dirty) { const v = on ? reflow : orig; if (ta.value !== v) { ta.value = v; ta.scrollTop = 0; ta.scrollLeft = 0; } }
       if (wrapB) { wrapB.textContent = on ? 'Wrap: on' : 'Wrap: off'; wrapB.classList.toggle('on', on); } };
-    if (wrapB) { root.appendChild(wrapB); wrapB.onclick = e => { e.stopPropagation(); setWrap(!S.wrap); if (S.wrap) setStatus(false); }; }
+    if (wrapB) { const bar = $('<div class="np-mbar"></div>'); bar.appendChild(wrapB); root.appendChild(bar); wrapB.onclick = e => { e.stopPropagation(); setWrap(!S.wrap); if (S.wrap) setStatus(false); }; }
     const setStatus = on => { S.status = on; root.classList.toggle('np-sbon', on); pos(); };
     const saveDenied = () => FR.dialog({ title: 'Notepad', icon: 'error', message: `Cannot create the ${esc(node ? FR.fs.path(node.parent) + '\\' + node.name : 'Untitled.txt')} file.<br><br>Access is denied. Make sure the path and file name are correct.` });
     const find = async () => {
@@ -1659,7 +1691,11 @@
         let first = true;
         f.onload = () => {
           S.loading = false; status('Done');
-          if (!first) { /* navigated inside the site: we can't read the cross-origin URL */ win.setTitle('Packa Corporation - Internet Explorer'); }
+          // navigated inside the site: the page's own title when the browser lets us read it (same origin), else the
+          // company name (a cross-origin page's title and URL can't be read) (R3b S17)
+          let t = '';
+          try { t = (f.contentDocument && f.contentDocument.title || '').trim(); } catch (er) {}
+          if (!first) win.setTitle(`${t || 'Packa Corporation'} - Internet Explorer`);
           first = false;
         };
         page.appendChild(f);

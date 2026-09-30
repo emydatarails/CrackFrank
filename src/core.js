@@ -49,6 +49,27 @@ FR.apps = FR.apps || {};
         && f.png.startsWith('data:image/png;base64,') && f.w >= 1 && f.w <= 800 && f.h >= 1 && f.h <= 800;
       st.paint = { files: (st.paint && Array.isArray(st.paint.files) ? st.paint.files.filter(okPic) : []).slice(0, 8) };
     }
+    // the player's spreadsheet edits (src/apps/excel.js, XL.edits): { fileId: { sheet: { A1: raw | [raw, numberFormat] } } }
+    if (st.xl !== undefined) {
+      const xl = {}, isObj = o => !!o && typeof o === 'object' && !Array.isArray(o);
+      let n = 0;
+      if (isObj(st.xl)) Object.keys(st.xl).slice(0, 60).forEach(fid => {
+        if (!/^[\w-]{1,40}$/.test(fid) || !isObj(st.xl[fid])) return;
+        const f = {};
+        Object.keys(st.xl[fid]).slice(0, 60).forEach(sn => {
+          if (sn.length > 64 || !isObj(st.xl[fid][sn])) return;
+          const cells = {};
+          Object.keys(st.xl[fid][sn]).forEach(a => {
+            const v = st.xl[fid][sn][a], m = /^([A-Z]{1,2})([1-9]\d{0,3})$/.exec(a);
+            const ok = typeof v === 'string' ? v.length <= 2000 : Array.isArray(v) && v.length === 2 && typeof v[0] === 'string' && v[0].length <= 2000 && typeof v[1] === 'string' && /^[a-z]{1,4}\d{0,2}$/.test(v[1]);
+            if (m && ok && n < 5000) { cells[a] = v; n++; }
+          });
+          if (Object.keys(cells).length) f[sn] = cells;
+        });
+        if (Object.keys(f).length) xl[fid] = f;
+      });
+      st.xl = xl;
+    }
     return st;
   };
   FR.state = fresh();
@@ -457,14 +478,12 @@ FR.apps = FR.apps || {};
   };
 
   /* ---------- balloon ---------- */
+  // opts: { silent, act (phones: the label of its action button), still: () => bool (asked right before it shows:
+  // false = it no longer applies, e.g. a nudge about an item that got solved meanwhile, and it is dropped) }
   FR.balloon = (title, text, onClick, opts = {}) => {
     if (document.querySelector('.fr-end')) return;
-    // phones: never while typing (keyboard up) or while a message box waits for an answer; it waits its turn
-    const typing = () => { const a = document.activeElement; return !!a && (/^(INPUT|TEXTAREA)$/.test(a.tagName) && !a.readOnly) && !!a.closest('#fr-root'); };
-    // (nor over a property sheet's OK / Cancel or a checklist Submit bar, which sit where the toast goes)
-    if (FR.mobile && (document.documentElement.classList.contains('fr-kb') || FR.wm.topDialog() || typing() || document.querySelector('.sh-sheetwin:not(.fr-inactive):not(.fr-closing), .fr-win:not(.fr-inactive) .ck-confirm'))) {
-      const n = (opts.tries || 0) + 1; if (n < 20) setTimeout(() => FR.balloon(title, text, onClick, Object.assign({}, opts, { tries: n })), 1500); return;
-    }
+    if (FR.mobile) return tipQueue(title, text, onClick, opts);
+    if (opts.still && !opts.still()) return;
     if (!opts.silent && Date.now() - (FR._lastSound || 0) > 400) FR.sound.play('notify');
     const tray = document.querySelector('.fr-tray');
     document.querySelectorAll('.fr-balloon').forEach(b => b.remove());
@@ -472,47 +491,142 @@ FR.apps = FR.apps || {};
     b.querySelector('b').textContent = title; b.querySelector('.fr-balloon-b').innerHTML = text;
     document.body.appendChild(b);
     if (tray) { const r = tray.getBoundingClientRect(); b.style.right = Math.max(6, window.innerWidth - r.right + 4) + 'px'; }
-    // phones: when it goes, a tap already on its way to it must not land on what was underneath (see the tap guard below)
-    const bye = () => { if (!b.isConnected) return; if (FR.mobile) balloonGhost = { r: b.getBoundingClientRect(), at: Date.now() }; b.remove(); };
-    b.onclick = e => {
-      // phones (S2): a toast whose text is cut off opens up on the first tap (the whole text, scrolling if long); it then
-      // stays until ✕, a tap elsewhere, or a second tap (which does what the toast is for)
-      const x = e.target.classList.contains('fr-balloon-x') || (FR.mobile && !!e.target.closest('.fr-balloon-x'));
-      if (FR.mobile && !x && b.classList.contains('fr-balloon-more') && !b.classList.contains('fr-balloon-open')) { b.classList.add('fr-balloon-open'); b._frShown = Date.now(); b._frGuard = 350; return; }
-      bye(); if (!x && onClick) onClick();
-    };
-    // phones: it doesn't vanish from under a finger (waits while the screen is being touched, or was just touched, or
-    // while it is opened up), and a long text stays up long enough to read
-    const auto = () => { if (FR.mobile && b.isConnected && (touching || Date.now() - lastTouch < 1500 || b.classList.contains('fr-balloon-open'))) return setTimeout(auto, 1500); bye(); };
-    setTimeout(auto, FR.mobile ? Math.min(12000, Math.max(5000, 2500 + 45 * (b.textContent || '').length)) : 9000);
-    if (FR.mobile) {
-      // opened up, the toast shows what a tap on it does as a real button (e.g. "Open the checklist")
-      if (onClick) { const go = $(`<div class="fr-balloon-acts"><button class="fr-balloon-go"></button></div>`); go.firstChild.textContent = opts.act || 'Open'; b.appendChild(go); }
-      const bb = b.querySelector('.fr-balloon-b'), bt = b.querySelector('.fr-balloon-t b');
-      if (bb.scrollHeight > bb.clientHeight + 1 || b.scrollHeight > b.clientHeight + 1 || (bt && bt.scrollWidth > bt.clientWidth + 1)) b.classList.add('fr-balloon-more');
-      b._frShown = Date.now(); b._frGuard = 500;
-      // a tap anywhere else puts it away (like a toast)
-      setTimeout(() => {
-        const away = e => { if (!b.contains(e.target)) bye(); if (!b.isConnected) document.removeEventListener('touchstart', away, true); };
-        if (b.isConnected) document.addEventListener('touchstart', away, { capture: true, passive: true });
-      }, 1200);
-    }
+    b.onclick = e => { const x = e.target.classList.contains('fr-balloon-x'); b.remove(); if (!x && onClick) onClick(); };
+    setTimeout(() => b.remove(), 9000);
   };
+
+  /* ---------- phones: the tip strip (balloons), a small state machine (S2-S4 / R3b) ----------
+     queued ──(quiet)──▶ arriving ──400 ms──▶ shown ──(its time is up, and no touch for 1.5 s)──▶ leaving ──0.7 s──▶ gone
+       ▲                    │ a tap now passes through        │ ✕ / a tap elsewhere / keyboard ─▶ gone      │ a tap on it: back to shown
+       └──── suspended ◀────┴── window list, a menu, a dialog, a Submit bar or a text field comes up (not once it is opened up)
+     • quiet: no finger on the screen, no touch for 2 s (debounce: a player who is tapping around is never interrupted),
+       no window list / Start menu / menu / context menu / message box / property sheet / checklist Submit bar / keyboard
+       / text field in use. Only one tip at a time; the others wait their turn (a queue, oldest first).
+     • arriving (the first 400 ms): the strip lets taps through (pointer-events: none) — it wasn't there when they aimed.
+       A touch that starts then keeps it that way until the finger is up.
+     • leaving: fades out but still takes taps (a tap meant for its ✕ / "more" still lands on it); when it is gone a tap
+       where it was is swallowed for 1 s (the tap guard's balloonGhost).
+     • still(): asked when it is about to show; a tip that no longer applies is dropped (S9). */
+  const TIP = { QUIET: 2000, PASS: 400, HOLD: 1500, LEAVE: 700, GHOST: 1000, WAIT: 90000, MAXQ: 4, MIN: 5000, MAX: 12000, BASE: 2500 };
+  const tips = { q: [], cur: null, pump: 0, log: [] };
+  const tipLog = ev => { tips.log.push([Date.now(), ev]); if (tips.log.length > 60) tips.log.shift(); };
+  const typingNow = () => { const a = document.activeElement; return !!a && (/^(INPUT|TEXTAREA)$/.test(a.tagName) && !a.readOnly) && !!a.closest('#fr-root'); };
+  // something is up that the strip must not cover or interrupt (independent of touches)
+  const tipBlocked = () => document.documentElement.classList.contains('fr-kb') || !!FR.wm.topDialog() || typingNow()
+    || !!document.querySelector('.fr-swlist, .fr-start, .fr-ctx, .fr-menu-drop, .sh-pop, .sh-sheetwin:not(.fr-inactive):not(.fr-closing), .fr-win:not(.fr-inactive) .ck-confirm');
+  // (a tip the player asked for, e.g. by tapping Kristians' face in the tray, only waits for the finger to lift)
+  const tipQuiet = t => !touching && sinceTouch() >= (t && t.opts.asked ? 350 : TIP.QUIET) && !tipBlocked();
+  function tipQueue(title, text, onClick, opts) {
+    if (tips.q.some(t => t.title === title && t.text === text) || (tips.cur && tips.cur.t.title === title && tips.cur.t.text === text)) return;
+    if (opts.asked) { tips.q.unshift({ title, text, onClick, opts, at: Date.now() }); tipLog('asked ' + title); if (tips.cur && tips.cur.state !== 'arriving') return tipGone(tips.cur, 'closed'); return tipPump(); }
+    tips.q.push({ title, text, onClick, opts, at: Date.now() });
+    if (tips.q.length > TIP.MAXQ) tips.q.shift();
+    tipLog('queued ' + title);
+    tipPump();
+  }
+  function tipPump() {
+    clearTimeout(tips.pump); tips.pump = 0;
+    if (document.querySelector('.fr-end')) { tips.q = []; return; }
+    const c = tips.cur;
+    if (c) {
+      // a blocker came up over a tip that hasn't been opened up: it steps aside and comes back later
+      if (c.state !== 'leaving' && !c.b.classList.contains('fr-balloon-open') && tipBlocked()) tipGone(c, 'suspended');
+      else { tips.pump = setTimeout(tipPump, 250); return; }
+    }
+    tips.q = tips.q.filter(t => Date.now() - t.at < TIP.WAIT);
+    if (!tips.q.length) return;
+    if (!tipQuiet(tips.q[0])) { tips.pump = setTimeout(tipPump, tips.q[0].opts.asked ? 100 : 300); return; }
+    const t = tips.q.shift();
+    if (t.opts.still && !t.opts.still()) { tipLog('stale ' + t.title); return tipPump(); }
+    tipShow(t);
+    tips.pump = setTimeout(tipPump, 250);
+  }
+  function tipShow(t) {
+    const { title, text, onClick, opts } = t;
+    if (!opts.silent && !t.shown && Date.now() - (FR._lastSound || 0) > 400) FR.sound.play('notify');
+    t.shown = true;
+    document.querySelectorAll('.fr-balloon').forEach(x => x.remove());
+    const b = $(`<div class="fr-balloon fr-balloon-pass"><div class="fr-balloon-t">${FR.icon('info', 16)}<b></b><span class="fr-balloon-x">&#x2715;</span></div><div class="fr-balloon-b"></div></div>`);
+    b.querySelector('b').textContent = title; b.querySelector('.fr-balloon-b').innerHTML = text;
+    // opened up, the toast shows what a tap on it does as a real button (e.g. "Open the checklist")
+    if (onClick) { const go = $(`<div class="fr-balloon-acts"><button class="fr-balloon-go"></button></div>`); go.firstChild.textContent = opts.act || 'Open'; b.appendChild(go); }
+    document.body.appendChild(b);
+    const c = tips.cur = { t, b, state: 'arriving', shownAt: Date.now(), timer: 0 };
+    tipLog('shown ' + title);
+    const bb = b.querySelector('.fr-balloon-b'), bt = b.querySelector('.fr-balloon-t b');
+    if (bb.scrollHeight > bb.clientHeight + 1 || b.scrollHeight > b.clientHeight + 1 || (bt && bt.scrollWidth > bt.clientWidth + 1)) b.classList.add('fr-balloon-more');
+    // arriving: taps pass through for 400 ms (and for as long as a finger that came down meanwhile stays down)
+    let touchedMeanwhile = false;
+    const arrive = () => {
+      if (tips.cur !== c) return;
+      if (touching || (touchedMeanwhile && sinceTouch() < 350)) return setTimeout(arrive, 100);
+      b.classList.remove('fr-balloon-pass'); c.state = 'shown'; tipLog('interactive');
+      schedule(dur);
+    };
+    const markTouch = () => { if (c.state === 'arriving') touchedMeanwhile = true; };
+    window.addEventListener('touchstart', markTouch, { capture: true, passive: true });
+    c.off = () => window.removeEventListener('touchstart', markTouch, true);
+    setTimeout(arrive, TIP.PASS);
+    const dur = Math.min(TIP.MAX, Math.max(TIP.MIN, TIP.BASE + 45 * (b.textContent || '').length));   // a long text stays up long enough to read
+    const schedule = ms => { clearTimeout(c.timer); c.timer = setTimeout(timeUp, ms); };
+    // its time is up: not while a finger is down or was down in the last 1.5 s (it might be on its way to it),
+    // not while it is opened up
+    const timeUp = () => {
+      if (tips.cur !== c || c.state !== 'shown') return;
+      if (touching || sinceTouch() < TIP.HOLD || b.classList.contains('fr-balloon-open')) return schedule(300);
+      c.state = 'leaving'; b.classList.add('fr-balloon-leaving'); tipLog('leaving');
+      c.timer = setTimeout(() => { if (tips.cur === c && c.state === 'leaving') tipGone(c, 'timeout'); }, TIP.LEAVE);
+    };
+    // a finger on the strip while it fades: it stays (the tap was meant for it)
+    b.addEventListener('touchstart', () => { if (c.state === 'leaving') { c.state = 'shown'; b.classList.remove('fr-balloon-leaving'); tipLog('kept'); schedule(dur); } }, { passive: true });
+    b.onclick = e => {
+      // a toast whose text is cut off opens up on the first tap (the whole text, scrolling if long); it then stays
+      // until ✕, a tap elsewhere, or a tap on its button (which does what the toast is for)
+      const x = !!e.target.closest('.fr-balloon-x');
+      if (!x && b.classList.contains('fr-balloon-more') && !b.classList.contains('fr-balloon-open') && !e.target.closest('.fr-balloon-go')) { b.classList.add('fr-balloon-open'); b._frShown = Date.now(); b._frGuard = 350; tipLog('opened'); return; }
+      tipGone(c, x ? 'closed' : 'tapped');
+      if (!x && onClick) onClick();
+    };
+    // a tap anywhere else puts it away (like a toast), once it has been there a moment
+    setTimeout(() => {
+      if (tips.cur !== c) return;
+      const away = e => { if (tips.cur !== c) return document.removeEventListener('touchstart', away, true); if (!b.contains(e.target) && c.state !== 'arriving') tipGone(c, 'away'); };
+      c.away = away; document.addEventListener('touchstart', away, { capture: true, passive: true });
+    }, 1200);
+  }
+  // why: timeout (faded out: ghost 1 s), closed / tapped / away (ghost 0.6 s), suspended (back in the queue, no ghost),
+  // typing (a text field got focus: back in the queue)
+  function tipGone(c, why) {
+    if (!c || tips.cur !== c) return;
+    tips.cur = null; clearTimeout(c.timer); if (c.off) c.off(); if (c.away) document.removeEventListener('touchstart', c.away, true);
+    tipLog('gone ' + why);
+    if (c.b.isConnected) {
+      if (why !== 'suspended' && why !== 'typing') balloonGhost = { r: c.b.getBoundingClientRect(), at: Date.now(), ms: why === 'timeout' ? TIP.GHOST : 600 };
+      c.b.remove();
+    }
+    if (why === 'suspended' || why === 'typing') { c.t.at = Date.now(); tips.q.unshift(c.t); }
+    tipPump();
+  }
+  FR.tips = { TIP, state: () => ({ cur: tips.cur ? { title: tips.cur.t.title, state: tips.cur.state } : null, queued: tips.q.map(t => t.title), log: tips.log.slice() }),
+    clear() { tips.q = []; if (tips.cur) tipGone(tips.cur, 'closed'); balloonGhost = null; } };
 
   /* ---------- phones: tap guard ----------
      A finger that was already on its way when something appeared under it (a message box, a window that came to the
      front by itself, a balloon, the window list) must not press what appeared, and a tap aimed at a balloon that just
      went away must not press what was underneath. Only touch taps are filtered (a mouse on a tablet is not). */
   let lastTouch = 0, balloonGhost = null;
-  // phones: starting to type (a cell, the formula bar, an answer box) puts a balloon away at once
+  // phones: starting to type (a cell, the formula bar, an answer box) puts a balloon away at once (it comes back later)
   document.addEventListener('focusin', e => {
     if (!FR.mobile || !e.target || !/^(INPUT|TEXTAREA)$/.test(e.target.tagName) || e.target.readOnly) return;
+    if (tips.cur) tipGone(tips.cur, 'typing');
     document.querySelectorAll('.fr-balloon').forEach(b => b.remove());
   });
   let touching = false;   // a finger is on the screen right now
   const noteTouch = () => { lastTouch = Date.now(); };
   window.addEventListener('touchstart', e => { noteTouch(); touching = true; }, { capture: true, passive: true });
-  ['touchend', 'touchcancel'].forEach(ev => window.addEventListener(ev, e => { touching = e.touches.length > 0; }, { capture: true, passive: true }));
+  let lastLift = 0;       // (tips) when a finger last left the screen
+  ['touchend', 'touchcancel'].forEach(ev => window.addEventListener(ev, e => { touching = e.touches.length > 0; lastLift = Date.now(); }, { capture: true, passive: true }));
+  const sinceTouch = () => Date.now() - Math.max(lastTouch, lastLift);
   window.addEventListener('pointerdown', e => { if (e.pointerType === 'touch') noteTouch(); }, { capture: true, passive: true });
   const tapBlocked = e => {
     if (!FR.mobile || !e.isTrusted) return false;
@@ -523,7 +637,7 @@ FR.apps = FR.apps || {};
       if (t._frShown && lastTouch < t._frShown + (t._frGuard || 350)) return true;
     }
     const g = balloonGhost;
-    if (g && lastTouch > g.at - 1500 && lastTouch < g.at + 600 && e.clientX >= g.r.left && e.clientX <= g.r.right && e.clientY >= g.r.top && e.clientY <= g.r.bottom) return true;
+    if (g && lastTouch > g.at - 1500 && lastTouch < g.at + (g.ms || 600) && e.clientX >= g.r.left && e.clientX <= g.r.right && e.clientY >= g.r.top && e.clientY <= g.r.bottom) return true;
     return false;
   };
   ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click', 'dblclick'].forEach(ev => window.addEventListener(ev, e => {

@@ -3,7 +3,9 @@ every checklist item the way test/play.py clicks through them on a desktop. Taps
 the context menu, typing with the phone keyboard into the formula bar, dialogs and the checklist. Then a few screens in
 landscape and on a small phone. The same on a Pixel 7 and on an iPhone SE (320x568), with round-3 regression checks
 (S1: nothing invisible over a property sheet's OK/Cancel/Apply; S2: toasts open up, never vanish under a finger and a tap
-where one just vanished doesn't go through; S4 Submit label; S5 comment marker; S6 formula bar; S7/S8 Notepad).
+where one just vanished doesn't go through; S4 Submit label; S5 comment marker; S6 formula bar; S7/S8 Notepad), and round-3b
+checks (r3b_checks: tips never under a finger / over the window list, pass-through, fading tip, stale tips, comment pop-ups,
+checklist footer, one window per file, one-tap mail on 320 px, Start menu, leaderboard, edits kept after a reload).
 Screenshots go to OUT (default test/out).
 Usage: python3 test/mobile_play.py      (Playwright + Chromium, like test/play.py; CHROMIUM=path to use another binary)"""
 import os, re, sys
@@ -309,15 +311,18 @@ def playthrough(p, b, devname):
     ok(z <= 1.2 and fits and pg.locator(TOP + ' .xl-zoomb').inner_text() == '100%', f'R2: Fit makes the sheet fit the screen width (zoom {z:.2f}), the button says 100%')
     tap(pg, pg.locator(TOP + ' .xl-zoomb'), 400)
     ok(abs(pg.evaluate("() => +getComputedStyle(document.querySelector('.fr-win:not(.fr-inactive) .xl-scroll')).zoom") - 1.2) < 0.01, 'R2: 100% goes back')
-    pg.evaluate("() => FR.balloon('Test', 'a balloon')"); pg.wait_for_timeout(100)
+    pg.evaluate("() => { FR.tips.clear(); FR.balloon('Test', 'a balloon'); }"); pg.wait_for_timeout(100)
     tap(pg, pg.locator(TOP + ' .xl-fin'), 300)
     sel6 = pg.evaluate("() => { const f = document.activeElement; return [f.className, f.selectionStart, f.selectionEnd, f.value.length]; }")
     ok(sel6[0] == 'xl-fin' and sel6[1] == 0 and sel6[2] == sel6[3] > 0, f'S6: the first tap into the formula bar selects the whole content {sel6}')
-    ok(pg.locator('.fr-balloon').count() == 0, 'R2: a balloon goes away as soon as you type (formula bar)')
-    pg.evaluate("() => FR.balloon('Test 2', 'while typing')"); pg.wait_for_timeout(100)
-    ok(pg.locator('.fr-balloon').count() == 0, 'R2: no balloon appears while you are typing')
+    ok(pg.locator('.fr-balloon').count() == 0, 'R2: no balloon over the formula bar while you type')
+    pg.evaluate("() => FR.balloon('Test 2', 'while typing')"); pg.wait_for_timeout(2600)
+    ok(pg.locator('.fr-balloon').count() == 0, 'R2: no balloon appears while you are typing (it waits)')
     tap(pg, pg.locator(TOP + ' .xl-fx-x'), 300)   # ✕ in the formula bar (a phone has no Esc)
-    pg.wait_for_selector('.fr-balloon:has-text("while typing")', timeout=5000); pg.wait_for_timeout(700)   # it waited its turn
+    pg.wait_for_selector('.fr-balloon:has-text("a balloon")', timeout=6000); pg.wait_for_timeout(700)   # they waited their turn, oldest first
+    ok(pg.evaluate("() => FR.tips.state().queued.includes('Test 2')"), 'R3b: one tip at a time, the next one waits in the queue')
+    tap(pg, pg.locator('.fr-balloon .fr-balloon-x'), 300)
+    pg.wait_for_selector('.fr-balloon:has-text("while typing")', timeout=6000); pg.wait_for_timeout(700)
     tap(pg, pg.locator('.fr-balloon .fr-balloon-x'), 300)
     pg.evaluate("() => FR.balloon('Board Pack: 7 of 10 done', '<b>Close the Q3 EBITDA bridge</b> — done.<br><i>A long reaction line to fill the toast.</i><br>Next up: Open FOR THE BOARD')")
     pg.wait_for_selector('.fr-balloon:has-text("7 of 10")', timeout=6000); pg.wait_for_timeout(700)
@@ -339,7 +344,8 @@ def playthrough(p, b, devname):
     tap(pg, pg.locator('.fr-balloon .fr-balloon-go'), 350)
     ok(pg.evaluate("() => window.__s2 === 1 && !document.querySelector('.fr-balloon')"), "S2: the opened toast's button does what the toast is for")
     # S2: it never goes away from under a finger resting on it (well past its 5 s)
-    pg.evaluate("() => { FR.__bal = FR.balloon; FR.balloon = (t, ...a) => t === 'Test 3' ? FR.__bal(t, ...a) : null; FR.balloon('Test 3', 'a short one'); }");   # (no other tip meanwhile) pg.wait_for_selector('.fr-balloon:has-text("Test 3")', timeout=6000); pg.wait_for_timeout(700)
+    pg.evaluate("() => { FR.__bal = FR.balloon; FR.balloon = (t, ...a) => t === 'Test 3' ? FR.__bal(t, ...a) : null; FR.balloon('Test 3', 'a short one'); }")   # (no other tip meanwhile)
+    pg.wait_for_selector('.fr-balloon:has-text("Test 3")', timeout=6000); pg.wait_for_timeout(700)
     r3 = pg.locator('.fr-balloon').bounding_box(); cx, cy = r3['x'] + 60, r3['y'] + r3['height'] / 2
     cdp = pg.context.new_cdp_session(pg)
     cdp.send('Input.dispatchTouchEvent', {'type': 'touchStart', 'touchPoints': [{'x': cx, 'y': cy}]})
@@ -352,7 +358,7 @@ def playthrough(p, b, devname):
     pg.wait_for_function("() => !document.querySelector('.fr-balloon')", timeout=20000, polling=40)
     pg.touchscreen.tap(cx, cy); pg.wait_for_timeout(250)
     thru = pg.evaluate("() => window.__thru")
-    pg.wait_for_timeout(900); pg.touchscreen.tap(cx, cy); pg.wait_for_timeout(300)   # (control: a second later a tap there counts)
+    pg.wait_for_timeout(1200); pg.touchscreen.tap(cx, cy); pg.wait_for_timeout(300)   # (control: a moment later a tap there counts)
     thru2 = pg.evaluate("() => { window.__thruOn = false; FR.balloon = FR.__bal; return window.__thru; }")
     ok(thru is None and thru2 is not None, f'S2: a tap landing where a toast just vanished does not go through (then: {thru}, a second later: {thru2})')
     closeall(pg)
@@ -392,9 +398,16 @@ def playthrough(p, b, devname):
     ex_tap(pg, 'loan')
     if pg.locator('.fr-dialog .fr-dlg-input input').count(): dlg_type(pg, '3130')
     ok(pg.evaluate("() => /Loan_Agreement/.test(FR.wm.active.el.querySelector('.fr-title').textContent)"), 'the loan agreement opens in Notepad from the zip')
-    s7 = pg.evaluate("() => { const w = document.querySelector('.fr-win:not(.fr-inactive)'), t = w.querySelector('.np-ta'), b = w.querySelector('.np-wrapb'); t.scrollTop = 1e6; const tr = t.getBoundingClientRect(), br = b.getBoundingClientRect(); return [parseFloat(getComputedStyle(t).paddingBottom), br.top > tr.top ? tr.bottom - br.top : 0, parseFloat(getComputedStyle(t).fontSize)]; }")
-    ok(s7[0] >= s7[1] + 4, f'S7: the last lines of a Notepad file scroll clear of the Wrap button (padding {s7[0]} px, button covers {s7[1]:.0f} px)')
-    if narrow(pg): ok(s7[2] <= 12, f'S8: 320 px: Notepad text a notch smaller ({s7[2]} px)')
+    s7 = pg.evaluate("() => { const w = document.querySelector('.fr-win:not(.fr-inactive)'), t = w.querySelector('.np-ta'), b = w.querySelector('.np-wrapb'); const tr = t.getBoundingClientRect(), br = b.getBoundingClientRect(); return [br.top >= tr.bottom - 1, parseFloat(getComputedStyle(t).fontSize), br.height]; }")
+    ok(s7[0] and s7[2] >= 26, f'R3b S10: the Wrap button sits in its own bar under the text, never over a line {s7}')
+    if narrow(pg): ok(s7[1] <= 12, f'S8: 320 px: Notepad text a notch smaller ({s7[1]} px)')
+    was_wrap = pg.evaluate("() => !document.querySelector('.fr-win:not(.fr-inactive) .np-ta.np-nowrap')")
+    if not was_wrap: tap(pg, pg.locator(TOP + ' .np-wrapb'), 300)
+    rf = pg.evaluate("""() => { const t = document.querySelector('.fr-win:not(.fr-inactive) .np-ta'), L = t.value.split('\\n');
+      return [L.filter(l => /^ {6,}\\S/.test(l)).length, L.filter(l => /Section 6\\.1  Debt Service Coverage Ratio\\.  The Borrower shall not permit the Debt Service Coverage Ratio, as of/.test(l)).length, t.scrollWidth <= t.clientWidth + 1]; }""")
+    ok(rf[0] == 0 and rf[1] == 1 and rf[2], f'R3b S10: Wrap on: the loan agreement reflows (paragraphs on one line, headings not centred with spaces, nothing sideways) {rf}')
+    tap(pg, pg.locator(TOP + ' .np-wrapb'), 300)
+    ok(pg.evaluate("() => { const t = document.querySelector('.fr-win:not(.fr-inactive) .np-ta'); return t.classList.contains('np-nowrap') && /^ {20,}CREDIT AGREEMENT$/m.test(t.value); }"), 'R3b S10: Wrap off shows the file exactly as it is again')
     shot(pg, 'loan'); close_top(pg)
     ex_tap(pg, 'covenant', 1000)
     chip(pg, "Karen's email"); close_top(pg)
@@ -488,15 +501,20 @@ def playthrough(p, b, devname):
     ok('Inbox' in rows[1][1], 'R2: most recently used first (after the pinned checklist)')
     shot(pg, 'window_list'); tap(pg, pg.locator('.fr-switch'), 300)
     row = pg.locator(TOP + ' tr[data-id]', has_text='Send me the pack').first
-    tap(pg, row, 400)
-    ok(pg.evaluate("() => document.querySelector('.fr-win:not(.fr-inactive) .oe-prev').innerText.length > 40"), 'Outlook: a tap shows the message in the preview')
+    tap(pg, row, 700)
+    if narrow(pg):   # (R3b S8) 320 px: one tap opens the message in its own window, with a way back to the list
+        ok(pg.evaluate("() => /^oe-msg-/.test(FR.wm.active.id) && !!FR.wm.active.el.querySelector('.oe-tbb-back') && FR.wm.active.el.querySelector('.oe-mbody').innerText.length > 40"), 'R3b S8: 320 px: one tap opens the message, readable, with a Back button')
+    else:
+        ok(pg.evaluate("() => document.querySelector('.fr-win:not(.fr-inactive) .oe-prev').innerText.length > 40"), 'Outlook: a tap shows the message in the preview')
     tap(pg, pg.locator(TOP + ' .oe-tbb', has_text='Reply').first, 800); shot(pg, 'reply')
     tap(pg, pg.locator(TOP + ' .oe-tbb-send'), 800)
     ok('send' in solved(pg), '9 send by touch')
     task(pg, 'Inbox')
-    for subj in ('Next thing', 'BRIDGE'):   # tap a message, tap it again: it opens in its own window
+    for subj in ('Next thing', 'BRIDGE'):   # tap a message, tap it again: it opens in its own window (320 px: one tap)
         row = pg.locator(TOP + ' tr[data-id]', has_text=subj).first
-        tap(pg, row, 400); tap(pg, row, 700); task(pg, 'Inbox')
+        tap(pg, row, 700)
+        if not narrow(pg): tap(pg, row, 700)
+        task(pg, 'Inbox')
     ok(pg.evaluate("() => [...FR.wm.wins.keys()].filter(k => /^oe-msg-/.test(k)).length") == 1, 'P3: one message window at a time on a phone')
     tap(pg, pg.locator('.fr-switch'), 400)
     tops = lambda: pg.eval_on_selector_all('.fr-swlist .fr-swl-r', 'e => e.map(r => Math.round(r.getBoundingClientRect().top))')
@@ -541,10 +559,204 @@ def playthrough(p, b, devname):
     ctx.close()
 
 
+MUTE = "() => { FR.__bal = FR.__bal || FR.balloon; FR.balloon = (t, ...a) => /^T-/.test(t) ? FR.__bal(t, ...a) : null; FR.tips.clear(); }"   # only the test's own tips
+TIPST = "() => FR.tips.state()"
+
+
+def touch_hold(pg, x, y):
+    cdp = pg.context.new_cdp_session(pg)
+    cdp.send('Input.dispatchTouchEvent', {'type': 'touchStart', 'touchPoints': [{'x': x, 'y': y}]})
+    cdp.send('Input.dispatchTouchEvent', {'type': 'touchMove', 'touchPoints': [{'x': x + 40, 'y': y}]})   # (moves: no long-press, no tap)
+    return cdp
+
+
+def touch_up(cdp):
+    cdp.send('Input.dispatchTouchEvent', {'type': 'touchEnd', 'touchPoints': []}); cdp.detach()
+
+
+def center(pg, sel):
+    return pg.evaluate("s => { const e = document.querySelector(s); if (!e) return null; const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2, r.left, r.top, r.right, r.bottom]; }", sel)
+
+
+def r3b_checks(p, b, devname):
+    """round 3b (iPhone SE player): tips never under a finger / over a list, taps pass through a tip that just appeared,
+    a fading tip still takes its tap, stale tips dropped, comment pop-ups inside the grid, checklist footer, one window
+    per file / one Explorer, one-tap mail on 320 px, Start menu fits, leaderboard fits (S2-S9, S11, S12)"""
+    dev = dict(p.devices[devname]); dev.pop('default_browser_type', None)
+    PFX[0] = 'r3b_' + devname.replace(' ', '') + '_'
+    print('== round 3b checks on', devname, flush=True)
+    ctx = b.new_context(**dev); ctx.route(re.compile(r'https?://(www\.)?packacorp\.com/.*'), site)
+    pg = ctx.new_page()
+    pg.on('console', lambda m: logs.append(m.type + ': ' + m.text) if m.type in ('error', 'warning') and '404' not in m.text else None)
+    pg.on('pageerror', lambda e: logs.append('PAGEERROR ' + str(e)))
+    pg.goto(URL + '?dev=1&solve=login'); pg.wait_for_selector('.fr-desktop'); pg.wait_for_timeout(900)
+    pg.evaluate(MUTE)
+    nwin = lambda: pg.evaluate("() => FR.wm.wins.size")
+
+    # S7: the same file twice from the checklist → one window; a folder chip twice (after going elsewhere) → one Explorer
+    tap(pg, ck(pg).locator('.ck-file small').first, 900)
+    n1 = nwin(); ck(pg); tap(pg, ck(pg).locator('.ck-file small').first, 900)
+    ok(nwin() == n1 and pg.evaluate("() => FR.wm.active.id") == 'xl-bud_v3', 'R3b S7: "open" on a file that is already open brings its window back (no second window)')
+    chip(pg, 'FY27 Budget folder'); pg.evaluate("() => FR.apps.explorer('mydocs')"); pg.wait_for_timeout(400)
+    chip(pg, 'FY27 Budget folder')
+    exs = pg.evaluate("() => [...FR.wm.wins.values()].filter(w => w.el.classList.contains('ex-win')).length")
+    ok(exs == 1 and 'FY27 Budget' in pg.evaluate("() => FR.wm.active.el.querySelector('.fr-title').textContent"), f'R3b S7: phones reuse one Explorer window ({exs} open)')
+    tap(pg, pg.locator(TOP + ' .ex-b', has_text='Back').first if pg.locator(TOP + ' .ex-b', has_text='Back').count() else pg.locator(TOP + ' .title-bar-controls button[aria-label=Close]').first, 500)
+    closeall(pg)
+
+    # S6: the checklist list ends clear of its footer; the footer is one compact row
+    ckl = ck(pg)
+    six = pg.evaluate("""() => { const w = FR.wm.wins.get('checklist').el, l = w.querySelector('.ck-list'), f = w.querySelector('.ck-foot'); l.scrollTop = 1e6;
+      const last = [...l.querySelectorAll('.ck-item')].pop().getBoundingClientRect(), fr = f.getBoundingClientRect(), m = f.querySelector('.ck-meta');
+      return [fr.top - last.bottom, fr.height, m.scrollWidth <= m.clientWidth + 1]; }""")
+    ok(six[0] >= 20 and six[1] <= 60 and six[2], f'R3b S6/S16: scrolled to the end, the last checklist row sits clear of the footer; footer one compact row, nothing cut {six}')
+    pg.evaluate("() => { FR.wm.wins.get('checklist').el.querySelector('.ck-list').scrollTop = 0; }")
+
+    # an Excel window with sheet tabs (the approved budget) for the tip checks
+    tap(pg, ck(pg).locator('.ck-file small').nth(3), 900)
+    pg.evaluate(MUTE); pg.wait_for_timeout(300)
+    # S2: a tip never appears while a finger is on the screen, nor within 2 s of the last touch
+    g = center(pg, TOP + ' .xl-grid td[data-r="6"][data-c="3"]')
+    cdp = touch_hold(pg, g[0], g[1])
+    pg.evaluate("() => FR.balloon('T-under', 'queued under a finger')"); pg.wait_for_timeout(2500)
+    ok(pg.locator('.fr-balloon').count() == 0, 'R3b S2: no tip appears while a finger is down')
+    touch_up(cdp); pg.wait_for_timeout(1000)
+    ok(pg.locator('.fr-balloon').count() == 0, 'R3b S2: nor in the first second after the finger lifts')
+    pg.wait_for_selector('.fr-balloon:has-text("queued under a finger")', timeout=4000)
+    ok(True, 'R3b S2: it shows once the screen has been quiet for a moment')
+    pg.wait_for_timeout(700); tap(pg, pg.locator('.fr-balloon .fr-balloon-x'), 300)
+    # S2: while the player keeps tapping, the tip waits (debounce), then comes ~2 s after the last tap
+    pg.evaluate("() => FR.balloon('T-busy', 'the player is busy')")
+    seen = False
+    for i in range(6):
+        c = center(pg, TOP + f' .xl-grid td[data-r="{4 + i}"][data-c="4"]'); pg.touchscreen.tap(c[0], c[1]); pg.wait_for_timeout(700)
+        seen = seen or pg.locator('.fr-balloon').count() > 0
+    t_last = pg.evaluate('() => Date.now()')
+    pg.wait_for_selector('.fr-balloon:has-text("the player is busy")', timeout=5000)
+    gap = pg.evaluate(f'() => Date.now() - {t_last}')
+    ok(not seen and gap >= 1200, f'R3b S2: no tip while the player is tapping; it came {gap} ms after the last tap')
+    pg.wait_for_timeout(700); tap(pg, pg.locator('.fr-balloon .fr-balloon-x'), 300)
+    # S2: a tap that lands just as a tip appears goes to what's under it (a sheet tab here), and the tip stays
+    pg.wait_for_timeout(1200)
+    tabsel = TOP + ' .xl-tab:not(.xl-tab-on)'
+    tb = center(pg, tabsel); tabname = pg.locator(tabsel).first.inner_text()
+    pg.evaluate("() => FR.balloon('T-pass', 'appears under the finger')")
+    pg.wait_for_function("() => !!document.querySelector('.fr-balloon')", timeout=6000, polling=10)
+    br = center(pg, '.fr-balloon')
+    pg.touchscreen.tap(tb[0], tb[1]); pg.wait_for_timeout(300)
+    on = pg.evaluate("() => document.querySelector('.fr-win:not(.fr-inactive) .xl-tab-on').innerText")
+    st = pg.evaluate(TIPST)
+    under = br[3] <= tb[1] <= br[5]
+    ok(on == tabname and st['cur'] and st['cur']['title'] == 'T-pass', f'R3b S2: a tap in the first 0.4 s of a tip goes through to the sheet tab under it ({tabname}; tab under the tip: {under}), the tip stays')
+    pg.wait_for_timeout(700); tap(pg, pg.locator('.fr-balloon .fr-balloon-x'), 300)
+
+    # S4: a fading tip still takes the tap aimed at its ✕ (Fit underneath is not toggled); no fade within 1.5 s of a touch
+    pg.evaluate("() => Object.assign(FR.tips.TIP, { MIN: 1500, MAX: 1500, BASE: 0 })"); pg.wait_for_timeout(1500)
+    fit0 = pg.evaluate("() => document.querySelector('.fr-win:not(.fr-inactive) .xl-zoomb').textContent")
+    pg.evaluate("() => FR.balloon('T-leave', 'about to fade')")
+    pg.wait_for_function("() => { const s = FR.tips.state(); return s.cur && s.cur.state === 'leaving'; }", timeout=9000, polling=15)
+    x = center(pg, '.fr-balloon .fr-balloon-x'); pg.touchscreen.tap(x[0], x[1]); pg.wait_for_timeout(400)
+    log = [e[1] for e in pg.evaluate(TIPST)['log']]
+    fit1 = pg.evaluate("() => document.querySelector('.fr-win:not(.fr-inactive) .xl-zoomb').textContent")
+    ok('gone closed' in log and 'gone timeout' not in log[-3:] and fit0 == fit1, f'R3b S4: a tap on the ✕ of a tip that is fading closes the tip, nothing under it is pressed ({fit0} → {fit1})')
+    pg.wait_for_timeout(1500)
+    pg.evaluate("() => FR.balloon('T-hold', 'a finger touched it')")
+    pg.wait_for_function("() => { const s = FR.tips.state(); return s.cur && s.cur.state === 'shown'; }", timeout=6000, polling=20)
+    bb = center(pg, '.fr-balloon .fr-balloon-b'); cdp = touch_hold(pg, bb[0], bb[1]); pg.wait_for_timeout(200); touch_up(cdp)
+    pg.wait_for_timeout(1250)
+    st = pg.evaluate(TIPST)
+    ok(st['cur'] and st['cur']['title'] == 'T-hold' and st['cur']['state'] == 'shown', f'R3b S4: its time is up, but it does not fade within 1.5 s of a touch {st["cur"]} {[e[1] for e in st["log"][-6:]]}')
+    pg.wait_for_function("() => !document.querySelector('.fr-balloon')", timeout=8000, polling=20)
+    pg.touchscreen.tap(x[0], x[1]); pg.wait_for_timeout(300)
+    ok(pg.evaluate("() => document.querySelector('.fr-win:not(.fr-inactive) .xl-zoomb').textContent") == fit0, 'R3b S4: a tap where a tip just faded out is swallowed (Fit under its ✕ not toggled)')
+    pg.evaluate("() => Object.assign(FR.tips.TIP, { MIN: 5000, MAX: 12000, BASE: 2500 })")
+
+    # S3: no tip while the window list is open; the tap on its last row switches window; the tip comes afterwards
+    pg.evaluate("() => { FR.apps.calc(); FR.apps.notepad(null); }"); pg.wait_for_timeout(1500)
+    tap(pg, pg.locator('.fr-switch'), 400)
+    pg.evaluate("() => FR.balloon('T-list', 'waits for the window list')"); pg.wait_for_timeout(3000)
+    ok(pg.locator('.fr-balloon').count() == 0, 'R3b S3: no tip while the window list is open')
+    last = pg.locator('.fr-swlist .fr-swl-r[data-wid]').last; wid = last.get_attribute('data-wid')
+    tap(pg, last, 500)
+    ok(pg.locator('.fr-swlist').count() == 0 and pg.evaluate("() => FR.wm.active.id") == wid, f'R3b S3: the tap on the last row of the window list switches to it ({wid})')
+    pg.wait_for_selector('.fr-balloon:has-text("waits for the window list")', timeout=5000); ok(True, 'R3b S3: the tip comes once the list is gone')
+    pg.wait_for_timeout(700); tap(pg, pg.locator('.fr-balloon .fr-balloon-x'), 300)
+    # a message box that comes up by itself over a tip: the tip steps aside and comes back after
+    pg.wait_for_timeout(1200); pg.evaluate("() => FR.balloon('T-susp', 'steps aside')")
+    pg.wait_for_function("() => { const s = FR.tips.state(); return s.cur && s.cur.state === 'shown'; }", timeout=6000, polling=20)
+    pg.evaluate("() => { void FR.dialog({ title: 'Test', message: 'a message box' }); }"); pg.wait_for_timeout(500)
+    st = pg.evaluate(TIPST)
+    ok(pg.locator('.fr-balloon').count() == 0 and 'T-susp' in st['queued'], f'R3b S3: a message box coming up puts the tip back in the queue {st["queued"]}')
+    dlg_btn(pg, 'OK')
+    pg.wait_for_selector('.fr-balloon:has-text("steps aside")', timeout=5000); ok(True, 'R3b S3: and it comes back once the message box is gone')
+    pg.wait_for_timeout(700); tap(pg, pg.locator('.fr-balloon .fr-balloon-x'), 300)
+    # S9: a tip that no longer applies when its turn comes is dropped (the "Stuck on …" nudge for a solved item)
+    tap(pg, pg.locator('.fr-switch'), 400)
+    pg.evaluate("() => { window.__still = true; FR.balloon('T-stale', 'no longer true', null, { still: () => window.__still }); window.__still = false; }")
+    tap(pg, pg.locator('.fr-switch'), 400); pg.wait_for_timeout(3500)
+    ok(pg.locator('.fr-balloon').count() == 0 and any('stale T-stale' in e[1] for e in pg.evaluate(TIPST)['log']), 'R3b S9: a tip that no longer applies when its turn comes is dropped')
+    pg.evaluate("() => { const w = FR.wm.wins.get('xl-bud_v5ut'); if (w) { w.restore(); w.focus(); } }"); pg.wait_for_timeout(400)
+
+    # S5: a note on a cell near the bottom of the grid opens above it, inside the grid (not under the sheet tabs)
+    closeall(pg); pg.evaluate("() => FR.openFile('bridge')"); pg.wait_for_timeout(900)
+    pg.evaluate("""() => { const w = FR.wm.active.el, s = w.querySelector('.xl-scroll'), td = w.querySelector('td[data-r="10"][data-c="2"]');
+      s.scrollTop = Math.max(0, td.offsetTop + td.offsetHeight - s.clientHeight + 3); }"""); pg.wait_for_timeout(300)
+    tap(pg, pg.locator(TOP + ' .xl-grid td[data-r="10"][data-c="2"]'), 400)
+    s5 = pg.evaluate("""() => { const w = FR.wm.active.el, c = w.querySelector('.xl-cmtip .xl-cm'), s = w.querySelector('.xl-scroll').getBoundingClientRect(), td = w.querySelector('td[data-r="10"][data-c="2"]').getBoundingClientRect(), t = w.querySelector('.xl-tabbar').getBoundingClientRect();
+      if (!c) return null; const r = c.getBoundingClientRect(); return [r.top >= s.top - 1 && r.bottom <= s.bottom + 1 && r.bottom <= t.top + 1, r.left >= s.left - 1 && r.right <= s.right + 1, /residual/.test(c.innerText), r.bottom <= td.top + 1]; }""")
+    ok(bool(s5) and s5[0] and s5[1] and s5[2], f'R3b S5: a note near the bottom of the grid shows whole, above the cell, clear of the sheet tabs {s5}')
+    closeall(pg)
+
+    # S8: 320 px: one tap on a message opens it (full height, a Back button); wider phones keep the preview
+    tap(pg, pg.locator('.fr-startbtn'), 500); tap(pg, pg.locator('.fr-sm-item', has_text='E-mail').first, 1200)
+    pg.evaluate(MUTE)
+    tap(pg, pg.locator(TOP + ' tr[data-id]').nth(1), 800)
+    if narrow(pg):
+        ok(pg.evaluate("() => /^oe-msg-/.test(FR.wm.active.id) && FR.wm.active.max"), 'R3b S8: 320 px: one tap opens the message full screen')
+        tap(pg, pg.locator(TOP + ' .oe-tbb-back'), 600)
+        ok(pg.evaluate("() => FR.wm.active && FR.wm.active.id === 'outlook'"), 'R3b S8: its Back button goes back to the Inbox')
+    else:
+        ok(pg.evaluate("() => FR.wm.active.id === 'outlook'"), 'R3b S8: wider phones: one tap previews (a second tap opens)')
+    closeall(pg)
+
+    # S11: the Start menu fits above the taskbar (with the leaderboard shortcut in it): All Programs and Log Off on screen
+    pg.evaluate("() => { FR.score.__av = FR.score.available; FR.score.available = () => true; }")
+    tap(pg, pg.locator('.fr-startbtn'), 500)
+    ap = pg.evaluate("""() => { const m = document.querySelector('.fr-start'), tb = document.querySelector('.fr-taskbar').getBoundingClientRect();
+      const it = t => [...m.querySelectorAll('.fr-sm-item')].find(e => e.textContent.includes(t)).getBoundingClientRect();
+      const a = it('All Programs'), l = it('Log Off'); return [a.bottom <= tb.top && l.bottom <= tb.top && a.top >= 0, m.scrollHeight <= m.clientHeight + 1]; }""")
+    ok(ap[0], f'R3b S11: Start menu: All Programs and Log Off above the taskbar {ap}')
+    tap(pg, pg.locator('.fr-startbtn'), 400)
+
+    # S12: the leaderboard page fits the phone's width (no sideways panning); ≤ 360 px drops the minor columns
+    pg.evaluate("""() => { FR.score.fetch = () => Promise.resolve({ players: 4, me: { rank: 2, name: 'fpaemy3', score: 10000, finished: true, solved: 10, hints: 0, wrong: 0, timeMs: 1740000, inTop: true },
+      top: [{ rank: 1, name: 'Kristians_Busars_Fan_Club_Riga_2026', score: 10000, finished: true, solved: 10, hints: 0, wrong: 0, timeMs: 1500000 }, { rank: 2, name: 'fpaemy3', score: 10000, finished: true, solved: 10, hints: 0, wrong: 0, timeMs: 1740000 },
+        { rank: 3, name: 'diane.k', score: 6000, finished: false, solved: 6, hints: 1, wrong: 2, timeMs: 1260000 }] }); FR.score.open(); }"""); pg.wait_for_timeout(1500)
+    s12 = pg.evaluate("""() => { const p = document.querySelector('.fr-win:not(.fr-inactive) .ie-page'), t = p.querySelector('.st-t'); if (!t) return null;
+      const r = t.getBoundingClientRect(), pr = p.getBoundingClientRect(), wrong = t.querySelector('th:nth-child(6)');
+      return [p.scrollWidth <= p.clientWidth + 1, r.right <= pr.right + 1 && r.left >= pr.left - 1, getComputedStyle(wrong).display]; }""")
+    ok(bool(s12) and s12[0] and s12[1] and (s12[2] == 'none' or not narrow(pg)), f'R3b S12: leaderboard fits the width, no sideways swipe (≤ 360 px: fewer columns) {s12}')
+    pg.screenshot(path=f'{OUT}/mobile_{PFX[0]}leaderboard.png')
+    pg.evaluate("() => { FR.score.available = FR.score.__av; }")
+    closeall(pg)
+
+    # S1: what the player typed is still in the file after a reload (FR.state.xl)
+    pg.evaluate("() => FR.openFile('cash13')"); pg.wait_for_timeout(1000); pg.evaluate(MUTE)
+    xl_type(pg, 13, 1, '196')
+    pg.reload(); pg.wait_for_selector('.fr-desktop'); pg.wait_for_timeout(900)
+    pg.evaluate("() => FR.openFile('cash13')"); pg.wait_for_timeout(1000)
+    v = pg.evaluate("() => { const t = document.querySelector('.fr-win:not(.fr-inactive) .xl-grid td[data-r=\"13\"][data-c=\"1\"]').cloneNode(true); t.querySelectorAll('.xl-rp').forEach(x => x.remove()); return t.textContent.trim(); }")
+    ok(v == '196', f'R3b S1: a cell typed on the phone is still there after a reload ({v})')
+    ctx.close()
+
+
 os.makedirs(OUT, exist_ok=True)
 with sync_playwright() as p:
     kw = {'executable_path': os.environ['CHROMIUM']} if os.environ.get('CHROMIUM') else {}
     b = p.chromium.launch(**kw)
+    for devname in DEVICES: r3b_checks(p, b, devname)
+    if os.environ.get('R3B_ONLY'):   # (developers: only the round-3b checks)
+        print('\n'.join(logs) or 'no console errors'); print('ALL PASS' if not fails[0] and not logs else f'{fails[0]} FAILED'); sys.exit(1 if fails[0] or logs else 0)
     for devname in DEVICES: playthrough(p, b, devname)
 
     # ---- landscape: the same phones turned sideways

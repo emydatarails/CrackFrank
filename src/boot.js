@@ -280,7 +280,9 @@
     vol.onclick = () => { FR.sound.muted = !FR.sound.muted; FR.state.flags.muted = FR.sound.muted; FR.save(); vol.style.opacity = FR.sound.muted ? .45 : 1; FR.balloon('Volume', FR.sound.muted ? 'Sounds are muted.' : 'Sounds are on.'); };
     if (!FR.storageOk && !storageWarned) { storageWarned = true; setTimeout(() => FR.balloon('Progress not saved', "Progress can't be saved in this browser (private mode?)"), 4000); }
     updateTray();
-    el.querySelector('.fr-ktray').onclick = () => kTip();
+    el.querySelector('.fr-ktray').onclick = () => kTip(undefined, true);
+    // (R3b S18) phones have no hover tooltips: the little face says what it is (and a tap on it shows a tip at once)
+    if (FR.mobile) { const k = el.querySelector('.fr-ktray'); k.alt = "Kristians' Cheat Sheet of the Day"; k.setAttribute('role', 'button'); k.setAttribute('aria-label', "Kristians' Cheat Sheet of the Day: tap for a tip"); }
     stickies(el);
     // start menu
     const sb = el.querySelector('.fr-startbtn');
@@ -321,11 +323,11 @@
     'Lost a window? The button next to Start lists every open window.',
   ];
   let kIdx = 0;
-  function kTip(i) {
+  function kTip(i, asked) {
     // phones: none after the Board Pack has gone out (the game is over)
     if (FR.mobile && FR.puzzle.isSolved('frank')) return;
     const list = FR.mobile ? KTIPS_M : KTIPS, t = list[(i ?? kIdx) % list.length]; kIdx = (i ?? kIdx) + 1;
-    FR.balloon("Kristians' Cheat Sheet of the Day", `<div class="fr-ktip"><img src="${FR.data.images.kristians}" alt=""><span>${esc(t)}</span></div>`, null);
+    FR.balloon("Kristians' Cheat Sheet of the Day", `<div class="fr-ktip"><img src="${FR.data.images.kristians}" alt=""><span>${esc(t)}</span></div>`, null, { asked, still: () => !(FR.mobile && FR.puzzle.isSolved('frank')) });
   }
   setInterval(() => { if (document.querySelector('.fr-desktop') && !document.querySelector('.fr-balloon')) kTip(); }, 240000);
 
@@ -618,7 +620,9 @@
     if (Date.now() - FR.state.unlockedAt[cur] < 240000) return;
     FR.state.nudged[cur] = 1; FR.save();
     const it = ITEMS.find(i => i.id === cur);
-    FR.balloon('FinanceOS Assist', `Stuck on <b>${esc(it.t)}</b>? Ask FinanceOS on the checklist. Emily's trial has 1 day left.`, () => openChecklist(), { act: 'Open the checklist' });
+    FR.balloon('FinanceOS Assist', `Stuck on <b>${esc(it.t)}</b>? Ask FinanceOS on the checklist. Emily's trial has 1 day left.`, () => openChecklist(), { act: 'Open the checklist',
+      // (S9) asked again right before it shows (on a phone it can wait for a quiet moment): never about a solved item
+      still: () => FR.puzzle.current() === cur && !FR.puzzle.isSolved(cur) && !((FR.state.hintsUsed[cur] || 0) > 0) });
   }, 30000);
 
   // targeted feedback for common traps
@@ -657,7 +661,7 @@
     const it = ITEMS.find(i => i.id === id);
     const n = ITEMS.filter(i => FR.puzzle.isSolved(i.id)).length;
     const nxt = ITEMS.find(i => !FR.puzzle.isSolved(i.id));
-    if (it && id !== 'login') setTimeout(() => FR.balloon(`Board Pack: ${n} of ${ITEMS.length} done`, `<b>${esc(it.t)}</b> — done.${REACT[id] ? `<br><i>${esc(REACT[id])}</i>` : ''}${nxt ? `<br>Next up: ${esc(nxt.t)}` : ''}`, () => openChecklist(), { silent: true, act: 'Open the checklist' }), 900);
+    if (it && id !== 'login') setTimeout(() => FR.balloon(`Board Pack: ${n} of ${ITEMS.length} done`, `<b>${esc(it.t)}</b> — done.${REACT[id] ? `<br><i>${esc(REACT[id])}</i>` : ''}${nxt ? `<br>Next up: ${esc(nxt.t)}` : ''}`, () => openChecklist(), { silent: true, act: 'Open the checklist', still: () => !nxt || !FR.puzzle.isSolved(nxt.id) }), 900);
     if (id === 'frank') {
       FR.state.finishedAt = FR.state.finishedAt || Date.now();
       if (FR.state.finishPlayMs == null) FR.state.finishPlayMs = FR.clock.playMs();

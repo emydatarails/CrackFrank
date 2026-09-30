@@ -56,15 +56,4 @@
 .so-gc figcaption span { display: block; font-size: 11px; color: #d6f5d6; }
 .so-gc figcaption i { display: block; font-size: 11px; color: #fff6c2; margin-top: 1px; }
 
-/* phones / small tablets (FR.MOBILE_MQ): a button row for the common moves, a denser gallery */
-@media (max-width: 760px), (pointer: coarse) and (max-width: 1100px) {
-  .so-tools { display: flex; gap: 4px; padding: 4px; background: #ece9d8; border-top: 1px solid #b5b1a4; flex: none; }
-  #fr-root .so-tools button { flex: 1 1 0; min-width: 0; min-height: 34px; padding: 0 4px; font-size: 13px; }
-  .so-win .status-bar-field { min-width: 0; }
-  .so-card.so-sel { box-shadow: 0 0 0 2px #1a3fa8, 0 0 0 3px #ffe14d; }
-  .so-gal { padding: 10px 8px 16px; }
-  .so-gal-i { font-size: 13px; }
-  .so-gal-g { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 12px 6px; }
-  .so-gc-c { width: 100px; height: 136px; }
-  .so-gc figcaption b { font-size: 12px; }
-}
+/* phones / small tablets (a button row for the common moves, a denser gallery): in src/mobile.css ("Solitaire", at the end) */

@@ -853,42 +853,7 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
 .pt-fd-empty { color: #777; padding: 6px; }
 .pt-fd-note, .pt-dim { color: #666; }
 
-/* phones and small tablets (FR.mobile; the class is only set on those, so desktop never changes) */
-@media (max-width: 760px), (pointer: coarse) and (max-width: 1100px) {
-  .pt.pt-mob .pt-main { flex-direction: column; }
-  .pt.pt-mob .pt-left { width: auto; flex-direction: row; padding: 2px 0; border-right: 0; box-shadow: 0 1px #aca899; border-bottom: 1px solid #fff; position: relative; }
-  .pt.pt-mob .pt-tools { display: flex; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; scrollbar-width: none; flex: 1 1 auto; padding: 0 2px; }
-  .pt.pt-mob .pt-tools::-webkit-scrollbar { display: none; }
-  .pt.pt-mob .pt-tool { width: 36px; height: 36px; flex: none; }
-  .pt.pt-mob .pt-tool svg { width: 20px; height: 20px; }
-  .pt.pt-mob .pt-opts { display: none; position: absolute; left: 6px; top: 40px; z-index: 6; width: auto; min-width: 64px; min-height: 0; padding: 4px; box-shadow: 2px 2px 4px rgba(0,0,0,.4); border: 1px solid #0a246a; }
-  .pt.pt-mob.pt-opts-open .pt-opts:not(.pt-empty) { display: flex; }
-  .pt.pt-mob .pt-o { min-height: 30px; min-width: 56px; font-size: 12px; }
-  .pt.pt-mob .pt-o svg { width: 40px; height: 22px; }
-  .pt.pt-mob .pt-bgrid { grid-template-columns: repeat(3, 30px); gap: 2px; }
-  .pt.pt-mob .pt-bgrid .pt-o { width: 30px; height: 30px; min-width: 0; }
-  .pt.pt-mob .pt-bgrid .pt-o svg { width: 22px; height: 22px; }
-  .pt.pt-mob .pt-page { padding: 4px 16px 16px 4px; }
-  .pt.pt-mob .pt-h { width: 10px; height: 10px; }
-  .pt.pt-mob .pt-h-r { right: -12px; top: calc(50% - 5px); }
-  .pt.pt-mob .pt-h-b { bottom: -12px; left: calc(50% - 5px); }
-  .pt.pt-mob .pt-h-rb { right: -12px; bottom: -12px; }
-  .pt.pt-mob .pt-h::after { inset: -10px; }
-  .pt.pt-mob .pt-fontbar { top: 4px; right: 4px; left: 4px; flex-wrap: wrap; }
-  .pt.pt-mob .pt-fb-t { display: none; }
-  #fr-root .pt.pt-mob .pt-fontbar select { height: 30px; font-size: 14px; }
-  .pt.pt-mob .pt-fb-f { flex: 1 1 auto; width: auto; }
-  .pt.pt-mob .pt-fb-b { width: 30px; height: 30px; font-size: 16px; }
-  .pt.pt-mob .pt-colors { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding: 4px; }
-  .pt.pt-mob .pt-colors::-webkit-scrollbar { display: none; }
-  .pt.pt-mob .pt-fgbg { width: 44px; height: 44px; }
-  .pt.pt-mob .pt-fgc, .pt.pt-mob .pt-bgc { width: 20px; height: 20px; }
-  .pt.pt-mob .pt-fgc { left: 5px; top: 5px; }
-  .pt.pt-mob .pt-bgc { left: 17px; top: 17px; }
-  .pt.pt-mob .pt-pal { grid-template-rows: 22px 22px; grid-template-columns: repeat(14, 22px); }
-  .pt-dlgwin .pt-fd-list { height: 150px; }
-  .pt-dlgwin .pt-fd-it { padding: 6px 4px; }
-}
+/* phones and small tablets: in src/mobile.css ("Paint", at the end) */
 
 /* ===== FRANK'S COMPUTER — shell apps (Explorer, Folder Options, Properties, Notepad, Picture Viewer, IE6, Calculator) ===== */
 .ex, .ie, .np, .iv, .ca, .sh-sheet, .sh-pop { font-family: Tahoma, 'Segoe UI', Verdana, sans-serif; font-size: 11px; color: #000; }
@@ -1367,21 +1332,10 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
 .so-gc figcaption span { display: block; font-size: 11px; color: #d6f5d6; }
 .so-gc figcaption i { display: block; font-size: 11px; color: #fff6c2; margin-top: 1px; }
 
-/* phones / small tablets (FR.MOBILE_MQ): a button row for the common moves, a denser gallery */
-@media (max-width: 760px), (pointer: coarse) and (max-width: 1100px) {
-  .so-tools { display: flex; gap: 4px; padding: 4px; background: #ece9d8; border-top: 1px solid #b5b1a4; flex: none; }
-  #fr-root .so-tools button { flex: 1 1 0; min-width: 0; min-height: 34px; padding: 0 4px; font-size: 13px; }
-  .so-win .status-bar-field { min-width: 0; }
-  .so-card.so-sel { box-shadow: 0 0 0 2px #1a3fa8, 0 0 0 3px #ffe14d; }
-  .so-gal { padding: 10px 8px 16px; }
-  .so-gal-i { font-size: 13px; }
-  .so-gal-g { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 12px 6px; }
-  .so-gc-c { width: 100px; height: 136px; }
-  .so-gc figcaption b { font-size: 12px; }
-}
+/* phones / small tablets (a button row for the common moves, a denser gallery): in src/mobile.css ("Solitaire", at the end) */
 
 /* FRANK'S COMPUTER — the extras: Blue Screen (.bs-), Norton AntiVirus 2003 (.nv-), Easter eggs (.eg-),
-   bonus requests (.bn-). Phone rules at the bottom, inside the same media query as src/mobile.css. */
+   bonus requests (.bn-). Phone rules: in src/mobile.css ("extras", at the end). */
 
 /* ---------- Blue Screen of Death ---------- */
 .bs-screen { position: fixed; inset: 0; z-index: 2147483000; background: #0000aa; color: #fff; cursor: none; overflow: hidden; outline: none;
@@ -1466,37 +1420,6 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
 .bn-bal-s { color: #6b5a2a; }
 .bn-shake { animation: bnShake .3s; }
 @keyframes bnShake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
-
-/* ---------- phones (same query as src/mobile.css) ---------- */
-@media (max-width: 760px), (pointer: coarse) and (max-width: 1100px) {
-  .bs-screen { padding: max(14px, env(safe-area-inset-top)) 12px 12px; }
-  .bs-txt { font-size: 12px; line-height: 1.3; }
-  .bs-txt p { margin-bottom: .8em; }
-  html.fr-m .fr-balloon.nv-bal .nv-tip .nv-ico, html.fr-m .fr-balloon.nv-bal .nv-tip .nv-ico svg { width: 22px; height: 22px; }
-  .nv { flex-direction: column; font-size: 12.5px; }
-  .nv-side { width: auto; flex-direction: row; flex-wrap: wrap; align-items: center; border-right: 0; border-bottom: 1px solid #b98a00; padding: 0; }
-  .nv-brand { flex-direction: row; padding: 6px 8px; border: 0; margin: 0; gap: 6px; text-align: left; }
-  .nv-brand b br { display: none; }
-  .nv-brand small { display: none; }
-  .nv-ico32 { width: 26px; height: 26px; }
-  .nv-nav { padding: 12px 10px; min-height: 20px; }
-  .nv-nav.nv-dis { display: none; }
-  .nv-nav.on { box-shadow: inset 0 -3px 0 #b98a00; }
-  .nv-t td:first-child { white-space: normal; }
-  .nv-btns button { min-height: 40px; }
-  .eg-toast { top: 6px; font-size: 12px; }
-  .bn-box { font-size: 13px; padding: 10px; }
-  .bn-row { flex-wrap: wrap; }
-  .bn-row input { flex: 1 1 140px; min-width: 0; width: auto; height: 38px; }
-  .bn-row button { min-height: 40px; min-width: 110px; }
-  .bn-note { font-size: 12px; }
-  /* the ending's five stat boxes in two rows (Score + Time, then Hints + Wrong + Bonus): the buttons stay on screen */
-  html.fr-m .fr-end-stats div:nth-child(n+3) { flex: 1 1 26%; }
-  html.fr-m .fr-end-stats span { letter-spacing: .4px; }
-}
-@media (max-width: 360px) { html.fr-m .bs-txt { font-size: 11px; } }
-@media (max-height: 600px) and (max-width: 1100px) { html.fr-m .bs-txt .bs-long { display: none; } }
-@media (orientation: landscape) and (max-height: 500px) { html.fr-m .bs-txt { font-size: 10.5px; } html.fr-m .bs-txt p { margin-bottom: .5em; } }
 
 /* ===== FRANK'S COMPUTER — phones and small tablets =====
    Everything in this file is inside the mobile media query (the same one core.js uses for FR.mobile, which also puts
@@ -2127,6 +2050,88 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   html.fr-m .oe-list { flex-basis: 66%; }
   html.fr-m .pt.pt-mob .pt-pal { grid-template-rows: repeat(4, 30px); grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
 }
+
+/* ===== moved here from the apps' own stylesheets (round 5 housekeeping: every phone rule lives in this file).
+   They used to come before this file; none of the rules above sets the same property on the same element with an
+   equal-or-higher specificity, so the result is the same (proof: computed styles of every element compared, round 5). */
+/* ---------- Paint (src/apps/paint.css) ---------- */
+@media (max-width: 760px), (pointer: coarse) and (max-width: 1100px) {
+  .pt.pt-mob .pt-main { flex-direction: column; }
+  .pt.pt-mob .pt-left { width: auto; flex-direction: row; padding: 2px 0; border-right: 0; box-shadow: 0 1px #aca899; border-bottom: 1px solid #fff; position: relative; }
+  .pt.pt-mob .pt-tools { display: flex; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; scrollbar-width: none; flex: 1 1 auto; padding: 0 2px; }
+  .pt.pt-mob .pt-tools::-webkit-scrollbar { display: none; }
+  .pt.pt-mob .pt-tool { width: 36px; height: 36px; flex: none; }
+  .pt.pt-mob .pt-tool svg { width: 20px; height: 20px; }
+  .pt.pt-mob .pt-opts { display: none; position: absolute; left: 6px; top: 40px; z-index: 6; width: auto; min-width: 64px; min-height: 0; padding: 4px; box-shadow: 2px 2px 4px rgba(0,0,0,.4); border: 1px solid #0a246a; }
+  .pt.pt-mob.pt-opts-open .pt-opts:not(.pt-empty) { display: flex; }
+  .pt.pt-mob .pt-o { min-height: 30px; min-width: 56px; font-size: 12px; }
+  .pt.pt-mob .pt-o svg { width: 40px; height: 22px; }
+  .pt.pt-mob .pt-bgrid { grid-template-columns: repeat(3, 30px); gap: 2px; }
+  .pt.pt-mob .pt-bgrid .pt-o { width: 30px; height: 30px; min-width: 0; }
+  .pt.pt-mob .pt-bgrid .pt-o svg { width: 22px; height: 22px; }
+  .pt.pt-mob .pt-page { padding: 4px 16px 16px 4px; }
+  .pt.pt-mob .pt-h { width: 10px; height: 10px; }
+  .pt.pt-mob .pt-h-r { right: -12px; top: calc(50% - 5px); }
+  .pt.pt-mob .pt-h-b { bottom: -12px; left: calc(50% - 5px); }
+  .pt.pt-mob .pt-h-rb { right: -12px; bottom: -12px; }
+  .pt.pt-mob .pt-h::after { inset: -10px; }
+  .pt.pt-mob .pt-fontbar { top: 4px; right: 4px; left: 4px; flex-wrap: wrap; }
+  .pt.pt-mob .pt-fb-t { display: none; }
+  #fr-root .pt.pt-mob .pt-fontbar select { height: 30px; font-size: 14px; }
+  .pt.pt-mob .pt-fb-f { flex: 1 1 auto; width: auto; }
+  .pt.pt-mob .pt-fb-b { width: 30px; height: 30px; font-size: 16px; }
+  .pt.pt-mob .pt-colors { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding: 4px; }
+  .pt.pt-mob .pt-colors::-webkit-scrollbar { display: none; }
+  .pt.pt-mob .pt-fgbg { width: 44px; height: 44px; }
+  .pt.pt-mob .pt-fgc, .pt.pt-mob .pt-bgc { width: 20px; height: 20px; }
+  .pt.pt-mob .pt-fgc { left: 5px; top: 5px; }
+  .pt.pt-mob .pt-bgc { left: 17px; top: 17px; }
+  .pt.pt-mob .pt-pal { grid-template-rows: 22px 22px; grid-template-columns: repeat(14, 22px); }
+  .pt-dlgwin .pt-fd-list { height: 150px; }
+  .pt-dlgwin .pt-fd-it { padding: 6px 4px; }
+}
+/* ---------- Solitaire (src/apps/solitaire.css) ---------- */
+@media (max-width: 760px), (pointer: coarse) and (max-width: 1100px) {
+  .so-tools { display: flex; gap: 4px; padding: 4px; background: #ece9d8; border-top: 1px solid #b5b1a4; flex: none; }
+  #fr-root .so-tools button { flex: 1 1 0; min-width: 0; min-height: 34px; padding: 0 4px; font-size: 13px; }
+  .so-win .status-bar-field { min-width: 0; }
+  .so-card.so-sel { box-shadow: 0 0 0 2px #1a3fa8, 0 0 0 3px #ffe14d; }
+  .so-gal { padding: 10px 8px 16px; }
+  .so-gal-i { font-size: 13px; }
+  .so-gal-g { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 12px 6px; }
+  .so-gc-c { width: 100px; height: 136px; }
+  .so-gc figcaption b { font-size: 12px; }
+}
+/* ---------- extras: Blue Screen, Norton, Easter-egg note, bonus box (src/apps/xp_extras.css) ---------- */
+@media (max-width: 760px), (pointer: coarse) and (max-width: 1100px) {
+  .bs-screen { padding: max(14px, env(safe-area-inset-top)) 12px 12px; }
+  .bs-txt { font-size: 12px; line-height: 1.3; }
+  .bs-txt p { margin-bottom: .8em; }
+  html.fr-m .fr-balloon.nv-bal .nv-tip .nv-ico, html.fr-m .fr-balloon.nv-bal .nv-tip .nv-ico svg { width: 22px; height: 22px; }
+  .nv { flex-direction: column; font-size: 12.5px; }
+  .nv-side { width: auto; flex-direction: row; flex-wrap: wrap; align-items: center; border-right: 0; border-bottom: 1px solid #b98a00; padding: 0; }
+  .nv-brand { flex-direction: row; padding: 6px 8px; border: 0; margin: 0; gap: 6px; text-align: left; }
+  .nv-brand b br { display: none; }
+  .nv-brand small { display: none; }
+  .nv-ico32 { width: 26px; height: 26px; }
+  .nv-nav { padding: 12px 10px; min-height: 20px; }
+  .nv-nav.nv-dis { display: none; }
+  .nv-nav.on { box-shadow: inset 0 -3px 0 #b98a00; }
+  .nv-t td:first-child { white-space: normal; }
+  .nv-btns button { min-height: 40px; }
+  .eg-toast { top: 6px; font-size: 12px; }
+  .bn-box { font-size: 13px; padding: 10px; }
+  .bn-row { flex-wrap: wrap; }
+  .bn-row input { flex: 1 1 140px; min-width: 0; width: auto; height: 38px; }
+  .bn-row button { min-height: 40px; min-width: 110px; }
+  .bn-note { font-size: 12px; }
+  /* the ending's five stat boxes in two rows (Score + Time, then Hints + Wrong + Bonus): the buttons stay on screen */
+  html.fr-m .fr-end-stats div:nth-child(n+3) { flex: 1 1 26%; }
+  html.fr-m .fr-end-stats span { letter-spacing: .4px; }
+}
+@media (max-width: 360px) { html.fr-m .bs-txt { font-size: 11px; } }
+@media (max-height: 600px) and (max-width: 1100px) { html.fr-m .bs-txt .bs-long { display: none; } }
+@media (orientation: landscape) and (max-height: 500px) { html.fr-m .bs-txt { font-size: 10.5px; } html.fr-m .bs-txt p { margin-bottom: .5em; } }
 
 </style>
 <script>

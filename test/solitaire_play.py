@@ -12,7 +12,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.environ.get('OUT', os.path.join(ROOT, 'test', 'out'))
 URL = 'file://' + ROOT + '/dist/index.html?dev=1'
 fails, errors = [0], []
-NAMES = ['Diarmuid Early', 'Michael Jarman', 'Andrew “The Annihilator” Ngai', 'Jean Wolleh', 'Jaq Kennedy', 'Nicolas Micot']
+NAMES = ['Diarmuid Early', 'Michael Jarman', 'Andrew “The Annihilator” Ngai', 'Jean Wolleh', 'Helen Dupree', 'Nicolas Micot']
 FACE_IDS = [r + s for r in 'KQJ' for s in 'SHDC']
 ALL = [r + s for s in 'SHDC' for r in ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']]
 

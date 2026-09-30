@@ -38,7 +38,7 @@
     jarman: { first: 'Michael', last: 'Jarman', from: 'Canada', hair: '#3a2a1a', style: 'swoop', shirt: '#27408b', glasses: true },
     ngai: { first: 'Andrew', nick: 'The Annihilator', last: 'Ngai', from: 'Australia', hair: '#1d1d1d', style: 'spiky', shirt: '#6a3d9a' },
     wolleh: { first: 'Jean', last: 'Wolleh', from: 'Germany', hair: '#2a2a2a', style: 'buzz', shirt: '#3b4a5a' },
-    kennedy: { first: 'Jaq', last: 'Kennedy', from: 'United Kingdom', hair: '#b5651d', style: 'wavy', shirt: '#2e7d32', glasses: true },
+    dupree: { first: 'Helen', last: 'Dupree', from: '', hair: '#3a2418', style: 'wavy', shirt: '#4a4f57' },
     micot: { first: 'Nicolas', last: 'Micot', from: '', hair: '#4a3222', style: 'curly', shirt: '#8e2b3a' },
   };
   // [card id] → who, the tag on the card, the prop they hold
@@ -47,13 +47,13 @@
     KH: ['jarman', '2024 World Champion', 'belt', '2024'],
     KD: ['ngai', 'Three-time World Champion', 'belt', '3×'],
     KC: ['wolleh', 'Bronze medalist, 2025', 'medal', '3'],
-    QS: ['kennedy', 'Founded the UK chapter', 'pennant', 'UK'],
+    QS: ['dupree', 'MEWC competitor', 'sheet'],
     QH: ['micot', 'Landmark Battle finalist', 'stopwatch'],
     QD: ['early', 'Won the 2026 Landmark Battle', 'trophy'],
     QC: ['jarman', 'Unseated the three-time champ', 'sheet'],
     JS: ['ngai', 'Champion 2021, 2022, 2023', 'keys'],
-    JH: ['kennedy', 'Landmark Battle finalist', 'laptop'],
-    JD: ['micot', 'Cool under the clock', 'laptop'],
+    JH: ['dupree', 'Cool under the clock', 'laptop'],
+    JD: ['micot', 'Formula wizard', 'laptop'],
     JC: ['wolleh', 'On the podium in 2025', 'sheet'],
   };
   const fullName = p => p.nick ? `${p.first} “${p.nick}” ${p.last}` : `${p.first} ${p.last}`;
@@ -126,12 +126,14 @@
   const tagLines = t => { if (t.length <= 21) return [t]; let best = -1; for (let i = 0; i < t.length; i++) if (t[i] === ' ' && (best < 0 || Math.abs(i - t.length / 2) < Math.abs(best - t.length / 2))) best = i; return best < 0 ? [t] : [t.slice(0, best), t.slice(best + 1)]; };
   function faceBody(id, s, r) {
     const f = FACES[id], p = P[f[0]], c = DARK[s];
+    // an 8-bit portrait made from the player's photo (src/assets.js); the cartoon below is the fallback
+    const pix = FR.data.images && FR.data.images['mewc_' + f[0]];
     let grid = ''; for (let x = 36; x < 116; x += 12) grid += `M${x} 9V113`; for (let y = 19; y < 113; y += 11) grid += `M25 ${y}H115`;
     const last = p.last.toUpperCase(), first = p.nick && r === 11 ? `“${p.nick}”` : p.nick && r === 13 ? `${p.first} “${p.nick}”` : p.first;
     return `<rect x="24" y="8" width="92" height="174" rx="5" fill="${TINT[s]}" stroke="${c}" stroke-width="1.6"/>
       <path d="${grid}" stroke="${c}" stroke-width=".5" opacity=".2"/>
+      ${pix ? `<clipPath id="so-pc-${id}"><rect x="25" y="9" width="90" height="104" rx="4"/></clipPath><image href="${pix}" x="24" y="21" width="92" height="92" preserveAspectRatio="xMidYMax meet" clip-path="url(#so-pc-${id})" style="image-rendering:pixelated"/>` : `
       <circle cx="70" cy="64" r="38" fill="#fff" opacity=".6"/>
-      ${pip(s, 106, 19, 12, false, c)}
       <path d="M30 113C31 97 44 89 58 87H82C96 89 109 97 110 113Z" fill="${p.shirt}" stroke="#00000055" stroke-width=".8"/>
       <path d="M61 87 70 98 79 87Z" fill="#fff"/>
       <path d="M63 74h14v14c-4 3-10 3-14 0z" fill="${SKIN_D}"/>
@@ -145,6 +147,8 @@
       <circle cx="59" cy="66" r="3" fill="#f28b82" opacity=".45"/><circle cx="81" cy="66" r="3" fill="#f28b82" opacity=".45"/>
       <path d="M62.5 68q7.5 7.5 15 0q-7.5 2.6-15 0z" fill="#fff" stroke="#8a3b2a" stroke-width="1.1" stroke-linejoin="round"/>
       ${hat(r, s)}
+      `}
+      ${pip(s, 106, 19, 12, false, c)}
       ${prop(f[2], s, f[3] || '')}
       <rect x="24" y="113" width="92" height="45" fill="${c}"/>
       <path d="M24 115.5H116M24 155.5H116" stroke="#f4c430" stroke-width="1"/>
@@ -688,7 +692,7 @@
     return FR.wm.open({ id: 'so-faces', title: 'Solitaire — The Face Cards', icon: 'solitaire', width: 760, height: 600, className: 'so-gal-win', content: el });
   }
   const help = () => FR.dialog({ title: 'Solitaire Help', icon: 'warn', message: 'Help file <b>SOL.CHM</b> not found.<br><br>Frank was using it as a mouse pad.' });
-  const about = () => FR.dialog({ title: 'About Solitaire', icon: 'solitaire', width: 400, message: `<b>Solitaire</b> &mdash; Frank's favourite way to "reconcile".<br>Version 5.1<br><br>Licensed to: Frank Warmington, Packa Corporation<br><br>The face cards celebrate the top competitors of the Microsoft Excel World Championship: Diarmuid Early, Michael Jarman, Andrew "The Annihilator" Ngai, Jean Wolleh, Jaq Kennedy and Nicolas Micot.<br><br><i>"Everything ties out if you move enough cards." &mdash;F</i>` });
+  const about = () => FR.dialog({ title: 'About Solitaire', icon: 'solitaire', width: 400, message: `<b>Solitaire</b> &mdash; Frank's favourite way to "reconcile".<br>Version 5.1<br><br>Licensed to: Frank Warmington, Packa Corporation<br><br>The face cards celebrate the top competitors of the Microsoft Excel World Championship: Diarmuid Early, Michael Jarman, Andrew "The Annihilator" Ngai, Jean Wolleh, Helen Dupree and Nicolas Micot. Portraits in 8-bit, from their photos.<br><br><i>"Everything ties out if you move enough cards." &mdash;F</i>` });
 
   /* ---------- the window ---------- */
   function solitaire() {

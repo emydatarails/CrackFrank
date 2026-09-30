@@ -166,10 +166,12 @@ rotation. Desktop browsers never match it and are unchanged. On a phone:
 
 - app windows fill the screen above a taller taskbar (no Maximize, nothing to drag); dialogs sit in the upper part of the screen
   and never grow past it (a long message scrolls, the buttons stay); property sheets (Folder Options) fill the screen with
-  OK / Cancel pinned at the bottom and a page that scrolls by swiping;
+  OK / Cancel pinned at the bottom and a page that scrolls by swiping (on a tablet, both sides at least 600 px, they float,
+  sized to their page);
 - the taskbar has one switcher button that lists every open window by its full title (rows stay put while you close
   windows from it); IE keeps its bars at the bottom;
-- a tap that started just before a message box or window appeared is ignored (no answering by accident); one-tap checklist
+- a tap that started just before a message box or window appeared is ignored (no answering by accident; a window that opens
+  by itself, like the checklist after "Continue", ignores taps for 0.6 s); one-tap checklist
   answers (weeks, suspects) ask for a Submit; balloons are a slim strip above the taskbar with a big ✕ that never vanishes
   under a finger (a tap where one just vanished is ignored; a cut-off one opens up on a tap, with its action as a button);
   the end screen ignores taps for a moment and "Play again" asks with Cancel as the default;
@@ -177,8 +179,9 @@ rotation. Desktop browsers never match it and are unchanged. On a phone:
   Fit / 100% zooms the sheet to the screen width and Fill… copies a cell right or down (the fill handle);
 - Notepad has a Wrap on/off button;
 - one tap opens desktop icons, Explorer items and (tapping it again) a selected message; a long-press is a right-click;
-- Excel: tap a cell to select it (and read its red-triangle note), tap it again to type in the formula bar; Enter or ✓ puts it in
-  (the first tap into the formula bar selects its content, the next one places the caret);
+- Excel: tap a cell to select it (and read its red-triangle note), tap it again (or double-tap it) to type in the formula bar,
+  and the cell shows what you type; Enter or ✓ puts it in (the first tap into the formula bar selects its content, the next
+  one places the caret); Frank's sticky notes off the screen get a "📝 Frank's note ▸" chip that scrolls to them;
 - when the soft keyboard comes up, the screen shrinks to the part above it, so the field being typed in stays visible;
 - tap targets, text and inputs are bigger (inputs are 16px, so iOS doesn't zoom in); landscape gets slimmer toolbars.
 
@@ -190,12 +193,13 @@ All mobile CSS is in `src/mobile.css`, inside that media query; mobile JS only r
 node test/excel_engine_test.js           # spreadsheet engine + answer checks (no dependencies)
 node test/account_api_test.js            # player-account API against an in-memory Redis (no dependencies)
 node test/score_test.js                  # scoring rules + scoreboard API (no dependencies)
+node test/bonus_grade_test.js            # bonus-request grading: box + replies, every request (no dependencies)
 pip install playwright && python3 test/play.py   # full honest playthrough in headless Chromium
 python3 test/account_play.py             # sign up, continue on another computer, guest → player, sign out, conflicts
 python3 test/persist_play.py             # spreadsheet edits: reload, another computer, undo, no second award, start over
 python3 test/erp_play.py                 # ShowMe ERP: every module, exports, no puzzle answers inside
 python3 test/score_play.py               # checklist score, paid hints, desktop shortcut → leaderboard, ending rank
-python3 test/mobile_play.py              # the whole game by touch on an emulated iPhone 13, Pixel 7 and iPhone SE (320x568), plus landscape
+python3 test/mobile_play.py              # the whole game by touch on an emulated iPhone 13, Pixel 7 and iPhone SE (320x568), plus landscape; round checks also on an iPad Mini
 python3 test/paint_play.py               # Paint: tools, save, My Pictures, phones
 python3 test/solitaire_play.py           # Solitaire: deal, moves, scoring, the face cards
 python3 test/features_play.py            # Blue Screen, Norton, bonus requests, Easter eggs, Paint/Solitaire icons (desktop + iPhone 13)

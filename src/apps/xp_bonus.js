@@ -169,6 +169,8 @@ P.S. Somebody keeps buying all the Funyuns at 2 AM.`,
       shown: '$2,391', right: "$2,391. Huh. That's more than the machine.\n\nSend it \"after the Board\", like you said. Gary" },
   ];
   const BY = Object.fromEntries(TASKS.map(t => [t.id, t]));
+  // t.check(text) → true | the sender's message (the same grader as the box and the replies, below)
+  TASKS.forEach(t => { t.check = v => { const r = judge(t.id, v); return r.ok ? true : r.msg; }; });
   // (F7, round 4) phones have no right-click: the IT survey says how to get to Properties there (desktop text unchanged)
   BY.it_audit.mbody = BY.it_audit.body.replace('(Right-click the file on the desktop, then Properties.)', '(Press and hold the file on the desktop until its menu opens, then tap Properties.)');
   BY.it_audit.mhint = BY.it_audit.hint.replace('right-click', 'press and hold');

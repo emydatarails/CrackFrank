@@ -186,6 +186,7 @@
       if (r.button !== 'OK') return false;
       const v = String(r.value || '').trim().replace(/[\s,$]/g, '');
       if (v && v === String(zipNode.password)) {
+        zipTypedNow = true;
         FR.flags.set('bankzipOpen', true); FR.sound.play('unlock');
         return true;
       }
@@ -194,8 +195,23 @@
       await FR.dialog({ title: 'Compressed (zipped) Folders', icon: 'error', message: `The password is incorrect. Please try again.${fails + 1 >= 3 ? ZIP_HINT : ''}` });
     }
   }
+  const zipSeen = new Set();   // files opened from the zip in this session
+  let zipTypedNow = false;     // the zip's password was typed in this session (not just remembered from an earlier one)
   async function openZipChild(n) {
-    if (await zipUnlock(n.parent, n.name)) FR.openFile(n);
+    const known = FR.flags.get('bankzipOpen');
+    if (!(await zipUnlock(n.parent, n.name))) return;
+    // (F2, round 4) phones: opening a file from the zip AGAIN (or after a reload: the password was typed another time)
+    // says why no password is asked, in a box where the password box used to be, so a tap aimed at "the password field"
+    // and a typed password + Enter land in the box (Enter = Open), not in a cell of the workbook that would otherwise
+    // have opened under the finger. (The first open right after typing the password opens at once.)
+    const again = known && (zipSeen.has(n.id) || !zipTypedNow);
+    zipSeen.add(n.id);
+    if (again && FR.mobile) {
+      const r = await FR.dialog({ icon: 'key', title: 'Compressed (zipped) Folders', width: 400, buttons: ['Open', 'Cancel'], enterKey: true,
+        message: `Bank.zip is already unlocked: Windows remembered the password you typed earlier.<br><br>Open <b>${esc(n.name)}</b>?` });
+      if (r.button !== 'Open') return;
+    }
+    FR.openFile(n);
   }
 
   /* ======================================================================================
@@ -1219,6 +1235,21 @@
     // (Format › Word Wrap still switches it). Plain prose keeps wrapping.
     const lines = ta.value.split('\n').filter(l => l.trim()), art = lines.filter(l => /\S {3,}\S|[|+=_\-]{4,}/.test(l)).length;
     setWrap(!(FR.mobile && lines.length && art / lines.length >= 0.2));
+    // (F15, round 4) phones: a small piece of ASCII art (the boarding pass: 70 columns) shrinks to fit the screen with
+    // Wrap off (no mush, nothing cut off), when that still leaves it readable (≥ 8.5 px); wider files scroll as before
+    if (FR.mobile && !S.wrap) {
+      const cols = Math.max(...ta.value.split('\n').map(l => l.length));
+      const fit = () => {
+        if (!ta.isConnected) return removeEventListener('resize', fit);
+        ta.classList.remove('np-fit');
+        const cs = getComputedStyle(ta), cx = document.createElement('canvas').getContext('2d');
+        cx.font = `100px ${cs.fontFamily}`;
+        const cw = cx.measureText('M').width / 100, room = ta.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 2;
+        const px = Math.floor(Math.min(parseFloat(cs.fontSize), room / (cols * cw)) * 2) / 2;
+        if (cols && px >= 8.5 && px < parseFloat(cs.fontSize)) { ta.style.setProperty('--np-fit', px + 'px'); ta.classList.add('np-fit'); }
+      };
+      setTimeout(fit, 30); addEventListener('resize', fit);
+    }
     setTimeout(() => { ta.focus(); ta.setSelectionRange(0, 0); ta.scrollTop = 0; }, 40);
     return win;
   }
@@ -1755,6 +1786,38 @@
       if (FR.mobile) return FR.dialog({ title: 'View Source', icon: 'info', message: "Frank's IE can't show source. Opening the page in your phone's browser.<br><br>On Android (Chrome), put <b>view-source:</b> in front of the address. On an iPhone there's no View Source: a laptop is easiest (Ctrl+U)." });
       FR.dialog({ title: 'View Source', icon: 'info', width: 420, message: "Frank's IE can't show source. Opening the page in your real browser.<br><br>When it opens, press <b>Ctrl+U</b> (or <b>&#8984;+Option+U</b> on a Mac) to view the page source." });
     };
+    // (F12, round 4) Edit › Find (on This Page): Frank's own pages (the intranet leaderboard, the fan club, the
+    // championship…) are searched here: every hit is marked, the first one (then the next, on "Find Next") scrolled into
+    // view. packacorp.com is the live company site in a frame the game can't read; the browser's own Find can.
+    const findOnPage = async () => {
+      const r = cur();
+      if (r && r.kind === 'site') {
+        let doc = null; try { doc = page.querySelector('iframe').contentDocument; } catch (er) {}
+        if (!doc) return FR.dialog({ title: 'Find', icon: 'info', width: 420, message: `This page is on <b>www.packacorp.com</b>, the company's live website. Frank's Internet Explorer can't search inside it, but your own browser can:<br><br>${FR.mobile ? "the browser's menu › <b>Find in page</b> (Chrome), or <b>Share › Find on Page</b> (Safari)." : 'press <b>Ctrl+F</b> (<b>&#8984;+F</b> on a Mac).'}` });
+      }
+      const res = await FR.dialog({ title: 'Find', icon: 'question', message: 'Find what:', input: { label: '', type: 'text', value: S.lastFind || '' }, buttons: ['Find Next', 'Cancel'] });
+      if (res.button !== 'Find Next' || !res.value || !res.value.trim()) return;
+      const q = res.value.trim(); S.lastFind = q;
+      let root_ = page, doc = document;
+      if (r && r.kind === 'site') { try { doc = page.querySelector('iframe').contentDocument; root_ = doc.body; } catch (er) { return; } }
+      root_.querySelectorAll('mark.ie-hit').forEach(m => m.replaceWith(doc.createTextNode(m.textContent)));
+      root_.normalize();
+      const hits = [], ql = q.toLowerCase(), tw = doc.createTreeWalker(root_, NodeFilter.SHOW_TEXT);
+      const nodes = []; for (let n = tw.nextNode(); n; n = tw.nextNode()) if (n.parentElement && !n.parentElement.closest('script, style') && n.nodeValue.toLowerCase().includes(ql)) nodes.push(n);
+      nodes.forEach(n => {
+        let t = n;
+        for (let i = t.nodeValue.toLowerCase().indexOf(ql); i >= 0; i = t.nodeValue.toLowerCase().indexOf(ql)) {
+          const hit = t.splitText(i); t = hit.splitText(q.length);
+          const m = doc.createElement('mark'); m.className = 'ie-hit'; m.style.cssText = 'background:#ffef5a;color:inherit;outline:1px solid #c9a800';
+          hit.replaceWith(m); m.appendChild(hit); hits.push(m);
+        }
+      });
+      if (!hits.length) return FR.dialog({ title: 'Microsoft Internet Explorer', icon: 'info', message: `Finished searching the page. "${esc(q)}" was not found.` });
+      S.hitN = S.lastHitQ === q ? (S.hitN + 1) % hits.length : 0; S.lastHitQ = q;
+      hits[S.hitN].style.background = '#ff9632';
+      hits[S.hitN].scrollIntoView({ block: 'center' });
+      status(`Found ${hits.length} match${hits.length === 1 ? '' : 'es'} for "${q}"${hits.length > 1 ? ` (${S.hitN + 1} of ${hits.length}; Find again for the next)` : ''}`);
+    };
     const openReal = () => { const r = cur(); window.open(r && r.kind === 'site' ? r.url : (r ? r.url : SITE + '/'), '_blank', 'noopener'); };
     const menu = [
       { label: 'File', items: [
@@ -1766,7 +1829,7 @@
         { label: 'Properties', action: () => { const r = cur(); FR.dialog({ title: 'Properties', icon: 'info', width: 420, message: `<b>${esc(r ? (PTITLE[r.path] || r.url) : '')}</b><br><br>Protocol: HyperText Transfer Protocol${r && r.url.startsWith('https') ? ' with Privacy' : ''}<br>Type: HTML Document<br>Connection: Not Encrypted (it's 2003 in here)<br>Address (URL): ${esc(r ? r.url : '')}<br>Zone: Internet` }); } },
         { label: 'Close', action: () => win.close() },
       ] },
-      { label: 'Edit', items: [{ label: 'Cut', disabled: true }, { label: 'Copy', disabled: true }, { label: 'Paste', disabled: true }, { sep: true }, { label: 'Select All', disabled: true }, { sep: true }, { label: 'Find (on This Page)...', disabled: true }] },
+      { label: 'Edit', items: [{ label: 'Cut', disabled: true }, { label: 'Copy', disabled: true }, { label: 'Paste', disabled: true }, { sep: true }, { label: 'Select All', disabled: true }, { sep: true }, { label: 'Find (on This Page)...', key: 'Ctrl+F', action: () => findOnPage() }] },
       { label: 'View', items: () => [
         { label: 'Toolbars', disabled: true }, { label: 'Status Bar', checked: true, disabled: true },
         { label: 'Explorer Bar: Favorites', checked: S.pane === 'favorites', action: () => { S.pane = S.pane === 'favorites' ? null : 'favorites'; renderPane(); } },
@@ -1804,6 +1867,7 @@
       else if (a === 'print') printDlg();
     });
     addr.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); go(addr.value); } });
+    root.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f' && e.target !== addr) { e.preventDefault(); findOnPage(); } });
     addr.addEventListener('focus', () => addr.select());
     root.querySelector('.ie-addr .ex-go').onclick = () => go(addr.value);
     root.querySelector('.ie-addr .ex-addr-dd').addEventListener('mousedown', e => {

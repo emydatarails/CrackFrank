@@ -30,7 +30,7 @@ const K = {
   sess: h => `fc:sess:${h}`,
   rate: (kind, id) => `fc:rl:${kind}:${id}`,
   board: 'fc:board',            // sorted set: player id → RULES.rankValue
-  boardInfo: 'fc:board:info',   // hash: player id → {name, score, bonus, solved, hints, wrong, finished, timeMs, at}
+  boardInfo: 'fc:board:info',   // hash: player id → {name, score, bonus, solved, hints, wrong, finished, timeMs, game, at}
 };
 
 /* ---------- passwords + sessions ---------- */
@@ -130,23 +130,32 @@ async function loadSave(username) {
 }
 
 /* ---------- scoreboard ---------- */
-// Called after every save. The board follows the player's game until they finish it once; that first finished
-// game is their scoreboard entry for good (a replay with the answers known doesn't count).
+// Called after every save. The board follows the player's game, and the first game they finish is their scoreboard
+// entry for good: it keeps following THAT game after the ending (bonus requests answered and Easter eggs found later
+// still count, so the board always shows the score the game shows), but a replay after "Start over" (answers known)
+// never changes it. A game is known by its finishedAt (set once, when the last item is solved).
+const gameOf = st => (st && +st.finishedAt > 0 ? +st.finishedAt : 0);
+function sameGame(cur, next, state) {
+  if (!next.finished) return false;
+  if (cur.game) return cur.game === gameOf(state);
+  // an entry locked before entries remembered their game: the same game has the same finish time and main score
+  return next.timeMs === cur.timeMs && next.main === cur.score - (cur.bonus || 0);
+}
 async function updateBoard(id, prevState, state) {
   const next = RULES.calc(state);
   if (prevState) {
     const prev = RULES.calc(prevState);
-    if (prev.score === next.score && prev.solved === next.solved && prev.hints === next.hints && prev.wrong === next.wrong && prev.bonus === next.bonus) return;
+    if (prev.score === next.score && prev.solved === next.solved && prev.hints === next.hints && prev.wrong === next.wrong && prev.bonus === next.bonus && gameOf(prevState) === gameOf(state)) return;
   }
   const raw = await redis('HGET', K.boardInfo, id);
   const cur = raw ? JSON.parse(raw) : null;
-  if (cur && cur.finished) return;
+  if (cur && cur.finished && !sameGame(cur, next, state)) return;
   if (!next.solved) {                       // "Start over" before finishing: off the board until they play again
     if (cur) { await redis('ZREM', K.board, id); await redis('HDEL', K.boardInfo, id); }
     return;
   }
   const user = JSON.parse((await redis('GET', K.user(id))) || '{}');
-  const entry = { name: user.name || id, score: next.score, bonus: next.bonus, solved: next.solved, hints: next.hints, wrong: next.wrong, finished: next.finished, timeMs: next.timeMs, at: Date.now() };
+  const entry = { name: user.name || id, score: next.score, bonus: next.bonus, solved: next.solved, hints: next.hints, wrong: next.wrong, finished: next.finished, timeMs: next.timeMs, game: next.finished ? gameOf(state) : 0, at: Date.now() };
   await redis('HSET', K.boardInfo, id, JSON.stringify(entry));
   await redis('ZADD', K.board, RULES.rankValue(next), id);
 }

@@ -49,17 +49,17 @@
       // phones have no hover: the first hint says "tap" there (mhints replaces hints[i] when FR.mobile)
       mhints: ["In the approved file, tap cell A1 (the one with the red triangle) to read Frank's note, or read its Notes tab."],
       hints: ['In the approved file, hover the red triangle in cell A1 (or read its Notes tab).', "Walter's seed money is in \"How We Got Started\" on About Us. The ISO year is on Quality & Safety.", '=SUM(2400, 2006) → 4406.'] },
-    { id: 'ebitda', level: 1, t: 'Repair FY27 EBITDA in the Board copy', d: 'Frank broke the EBITDA row at 3 AM (#REF!). Fix row 12 in Excel — FY and all four quarters (E12:H12) — or type the FY number here.', input: 'FY27 EBITDA ($K)', ph: 'e.g. 1,234',
+    { id: 'ebitda', level: 1, t: 'Repair FY27 EBITDA in the Board copy', d: 'Frank broke the EBITDA row at 3 AM (#REF!). Fix row 12 in Excel — FY and all four quarters (E12:H12) — or type the FY number here.', input: 'FY27 EBITDA ($K)', ph: 'e.g. 1,234', num: true,
       where: [W.file('bud_board', 'Budget_FY27_BOARD.xls')],
       hints: ["It's not one cell. The FY column and all four quarters say #REF!. Excel only ticks it when the whole row adds up. (Or type the FY number here.)", 'Gross profit minus SG&A, Rent & leases and Other opex. In C12 type =C7-C9-C10-C11, then the same in E12:H12.', '40,000 − 31,200 − 4,850 − 420 − 400 = 3,130.'] },
-    { id: 'dscr', level: 2, t: 'Prove the bank covenant (DSCR)', d: 'The bank wants the Q3 covenant certificate. Fill in the DSCR in Excel (it ticks itself) or type it here.', input: 'DSCR (x)', ph: 'e.g. 1.40',
-      where: [W.folder('bank', 'My Documents › Bank'), W.mail("Karen's email", 'm_karen_capex')],
+    { id: 'dscr', level: 2, t: 'Prove the bank covenant (DSCR)', d: 'The bank wants the Q3 covenant certificate. Fill in the DSCR in Excel (it ticks itself) or type it here.', input: 'DSCR (x)', ph: 'e.g. 1.40', num: true,
+      where: [W.folder('bank', 'My Documents › Bank'), W.mail("Karen's email", 'm_karen_capex'), W.file('passwords', 'passwords.txt (desktop)')],
       hints: ["Bank.zip needs a password. Open Budget_FY27_BOARD.xls: the yellow note Frank left next to the EBITDA row tells you which cell holds it (passwords.txt on the desktop says the same).", "Section 6.1: capex that wasn't financed by a loan comes off EBITDA first. Karen's email says what was paid in cash.", '(2,860 − 110) ÷ (450 + 1,750) = 1.25x. Just.'] },
     { id: 'cash', level: 3, t: 'Find the first week cash drops below $250K', d: "Frank kept a REAL cash forecast the Board never saw. Find it, add payroll, and pick the first week cash falls below $250K.", pick: 'weeks',
       where: [W.folder('boardroot', 'My Documents › BOARD'), W.mail("Rachel's email", 'm_rachel_payroll'), W.site('careers.html', 'Careers page')],
       hints: ["The REAL VERSION folder is hidden. In any folder window: Tools › Folder Options › View › Show hidden files and folders.", "The payroll row is empty. Rachel has the amount per run; the Careers page says how often Packa pays.", '$196K every other Friday from Oct 23 → weeks 1, 3, 5… Week 5 ends at $110K.'] },
-    { id: 'bridge', level: 3, t: 'Close the Q3 EBITDA bridge', d: 'Two bars are missing. Fill both in Excel until the check says TIES — or type the Freight bar here.', input: 'Freight ($K)', ph: 'e.g. -25',
-      where: [W.folder('board', 'Board Meeting Oct 20'), W.mail('The mill letter', 'm_ozark'), W.site('products.html', 'Products page')],
+    { id: 'bridge', level: 3, t: 'Close the Q3 EBITDA bridge', d: 'Two bars are missing. Fill both in Excel until the check says TIES — or type the Freight bar here.', input: 'Freight ($K)', ph: 'e.g. -25', num: true,
+      where: [W.folder('board', 'Board Meeting Oct 20'), W.mail('The mill letter', 'm_ozark'), W.site('products.html', FR.mobile ? 'Products page (first paragraph)' : 'Products page')],   // (F12: a long page on a phone)
       hints: ["Open Q3_EBITDA_Bridge.xls. Frank's rule: never plug a bar you can calculate. Work out containerboard first.", "The mill letter gives $ per ton. How many tons Packa runs a quarter is on the Products page.", '$40 × 1,500 tons = $60K more cost, so −60. Then −160 − (−120 + 80 − 20 − 60) = −40.'] },
     { id: 'forboard', level: 4, t: 'Open FOR THE BOARD', d: "The locked file on Frank's desktop is his emergency plan. The survival package depends on it.", auto: true,
       where: [W.folder('forboard_dir', 'FOR THE BOARD folder'), W.file('realnotes', 'NOTES_to_whoever_finds_this.txt'), W.file('changelog', 'CHANGE_LOG_do_not_share.xls')],
@@ -422,6 +422,13 @@
     F.append(it('logoff', 'Log Off', '', () => FR.dialog({ icon: 'question', title: 'Log Off Windows', message: 'Are you sure you want to log off? Your progress is saved.', buttons: ['Log Off', 'Cancel'] }).then(r => { if (r.button === 'Log Off') { FR.sound.play('logoff'); FR.save(); document.querySelectorAll('.fr-balloon, .fr-ctx').forEach(x => x.remove()); setTimeout(login, 600); } })),
       it('shutdown', 'Turn Off Computer', '', shutdown));
     el.appendChild(m); startMenu = m;
+    // (F16, round 4) phones: when the menu is taller than the screen (sideways), a "more below" shade at its bottom edge
+    // says it scrolls; it goes once the end is in view
+    if (FR.mobile) {
+      m.appendChild($('<div class="fr-start-hint" aria-hidden="true">&#9660; more below</div>'));
+      const more = () => m.classList.toggle('fr-start-more', m.scrollHeight - m.scrollTop - m.clientHeight > 6);
+      m.addEventListener('scroll', more, { passive: true }); requestAnimationFrame(more);
+    }
   }
   function closeStart() { if (startMenu) startMenu.remove(); startMenu = null; document.querySelectorAll('.fr-startbtn').forEach(b => b.classList.remove('on')); }
 
@@ -453,7 +460,7 @@
       <h3>How to play</h3><p>Open <b>Board Pack — TO DO</b> (desktop or the clipboard in the tray) to see where you stand. Items unlock one by one. The orange dots show how hard each one is. Each one has <b>Look in</b> shortcuts that open the right folder, email or web page. Some items tick themselves when you crack something in Excel or Outlook; others ask you to pick or type an answer.</p>
       ${FR.mobile ? `<p>Tap to open files and folders. Long-press a file (on the desktop too) for Properties. In Excel, tap a cell, then tap it again (or tap the formula bar) to type; Enter or ✓ puts it in. A cell with a red triangle has a note: tap it to read it. Switch windows with the buttons on the taskbar.</p>` : `<p>Double-click to open files and folders. Right-click files (on the desktop too) for Properties. Excel works like Excel: type formulas, and select cells to see their Sum in the status bar.</p>`}
       <h3>Where are the clues?</h3><p>In Frank's email, his Excel files, his folders (some are hidden), his Recycle Bin, and on <a href="${CONFIG.siteUrl}" target="_blank" rel="noopener">www.packacorp.com</a> — the company website. Keep it open in another tab.</p>
-      <h3>Stuck?</h3><p>Emily from finance installed a Datarails FinanceOS trial on Frank's machine (day 13 of 14). Every checklist item has an <b>Ask FinanceOS</b> button with three hints, from a gentle nudge to the full answer.</p><h3>Score</h3><p>${esc(FR.score.rulesLine())}.${FR.score.available() ? ' Signed-in players are ranked on <b>Board Pack Rescue - Who Covered for Frank?</b> on Packa\'s intranet (the shortcut on the desktop); your first finished game is the one that counts.' : ''}</p>
+      <h3>Stuck?</h3><p>Emily from finance installed a Datarails FinanceOS trial on Frank's machine (day 13 of 14). Every checklist item has an <b>Ask FinanceOS</b> button with three hints, from a gentle nudge to the full answer.</p><h3>Score</h3><p>${esc(FR.score.rulesLine())}.${FR.score.available() ? ' Signed-in players are ranked on <b>Board Pack Rescue - Who Covered for Frank?</b> on Packa\'s intranet (the shortcut on the desktop);  ' + esc(FR.score.boardRule) : ''}</p>
       <h3>Progress</h3><p>Your progress saves in this browser. Log off and come back any time.</p></div>` });
   }
 
@@ -542,8 +549,17 @@
           FR.state.answers = FR.state.answers || {}; FR.state.answers[it.id] = shown || value; FR.save();
           FR.puzzle.solve(it.id); return true;
         }
+        // (F19) a number is asked and what came isn't one ("banana"): say so, and it isn't a wrong guess (no points
+        // off, no step toward the Blue Screen); a real number that is wrong still is
+        if (it.num && ok == null && isNaN(FR.puzzle.num(value))) {
+          FR.sound.play('error');
+          fb.className = 'ck-fb bad ck-fb-nan'; fb.textContent = `That's not a number. Type the ${it.input} as a number (${it.ph}). This one doesn't count as a wrong answer.`;
+          return false;
+        }
         FR.puzzle.miss(); FR.sound.play('error');
         fb.className = 'ck-fb bad'; fb.textContent = WRONG[it.id] ? WRONG[it.id](value) : 'Not quite. Check the numbers again.';
+        // (N1) what a wrong answer costs, right where it happens
+        fb.appendChild($(`<span class="ck-fb-pts"> (−${FR.score.rules.PER_WRONG} points)</span>`));
         row.classList.remove('fr-shake'); void row.offsetWidth; row.classList.add('fr-shake');
         return false;
       };
@@ -589,7 +605,7 @@
           const c = $(`<button class="ck-sus"><span class="ck-sus-ph"><svg viewBox="0 0 40 44"><circle cx="20" cy="15" r="9" fill="#9fb0cc"/><path d="M3 44c1-11 8-17 17-17s16 6 17 17z" fill="#9fb0cc"/></svg></span><b></b><small></small></button>`);
           c.querySelector('b').textContent = sp.n; c.querySelector('small').textContent = sp.r;
           if (sp.photo && FR.data.images && FR.data.images.kristians) c.querySelector('.ck-sus-ph').innerHTML = `<img src="${FR.data.images.kristians}" alt="">`;
-          const go = () => { if (!tryAnswer(sp.n, sp.n, sp.id === 'kristians')) { c.classList.add('ck-x'); fb.textContent = SUSPECT_NO[sp.id]; } };
+          const go = () => { if (!tryAnswer(sp.n, sp.n, sp.id === 'kristians')) { c.classList.add('ck-x'); fb.textContent = SUSPECT_NO[sp.id]; fb.appendChild($(`<span class="ck-fb-pts"> (−${FR.score.rules.PER_WRONG} points)</span>`)); } };
           c.onclick = () => FR.mobile ? confirmPick(pk, c, sp.n, go) : go();
           pk.appendChild(c);
         });
@@ -675,20 +691,21 @@
     const it = ITEMS.find(i => i.id === id);
     const n = ITEMS.filter(i => FR.puzzle.isSolved(i.id)).length;
     const nxt = ITEMS.find(i => !FR.puzzle.isSolved(i.id));
-    if (it && id !== 'login') setTimeout(() => FR.balloon(`Board Pack: ${n} of ${ITEMS.length} done`, `<b>${esc(it.t)}</b> — done.${REACT[id] ? `<br><i>${esc(REACT[id])}</i>` : ''}${nxt ? `<br>Next up: ${esc(nxt.t)}` : ''}`, () => openChecklist(), { silent: true, act: 'Open the checklist', still: () => !nxt || !FR.puzzle.isSolved(nxt.id) }), 900);
+    // (phones) the 10/10 toast would sit over the end of Frank's reply, which opens right after: the ending says it
+    if (it && id !== 'login' && !(FR.mobile && id === 'frank')) setTimeout(() => FR.balloon(`Board Pack: ${n} of ${ITEMS.length} done`, `<b>${esc(it.t)}</b> — done.${REACT[id] ? `<br><i>${esc(REACT[id])}</i>` : ''}${nxt ? `<br>Next up: ${esc(nxt.t)}` : ''}`, () => openChecklist(), { silent: true, act: 'Open the checklist', still: () => !nxt || !FR.puzzle.isSolved(nxt.id) }), 900);
     if (id === 'frank') {
       FR.state.finishedAt = FR.state.finishedAt || Date.now();
       if (FR.state.finishPlayMs == null) FR.state.finishPlayMs = FR.clock.playMs();
       FR.save();
-      // let the player read Frank's reply first: open it, and roll the ending when it's closed (or after 30 s)
+      // (F6) let the player read Frank's reply first: it opens by itself, and the ending rolls only when they are done
+      // with it: they close it (or leave it for another message), or tap "See how it ended" at its end. Never on a timer
+      // while they are reading.
       setTimeout(() => {
         if (FR.mail && FR.mail.open) FR.mail.open('x_frank_reveal');
         const w = FR.wm.wins.get('oe-msg-x_frank_reveal');
-        if (!w) return setTimeout(ending, 6000);
-        const oc = w.opts.onClose;
-        w.opts.onClose = () => { const r = oc ? oc() : undefined; if (r !== false && !endShown) setTimeout(ending, 400); return r; };
+        if (!w) return setTimeout(() => { if (!endShown) ending(); }, 6000);
+        revealDone(w);
       }, 3200);
-      setTimeout(() => { if (!endShown) ending(); }, 30000);
     }
   });
   FR.bus.on('play-tick', ms => { const t = document.querySelector('.ck-wrap .ck-time'); if (t) { const s = FR.clock.dur(ms); if (t.textContent !== s) t.textContent = s; } });
@@ -709,6 +726,20 @@
 
   /* =========================================================== ENDING */
   let endShown = false;
+  // Frank's reply is the last thing to read: the ending waits for the player to finish it (see 'solved' above)
+  function revealDone(w) {
+    if (w._frRevealHooked) return;
+    w._frRevealHooked = true;
+    w._frNoTips = true;   // (phones: no toast over the last lines and the button while it's being read; they wait)
+    const oc = w.opts.onClose;
+    w.opts.onClose = () => { const r = oc ? oc() : undefined; if (r !== false && !endShown) setTimeout(ending, 400); return r; };
+    const body = w.body.querySelector('.oe-mbody');
+    if (body && !body.querySelector('.fr-end-go')) {
+      const bar = $(`<div class="fr-end-gobar"><button class="fr-end-go">See how it ended &#9656;</button></div>`);
+      bar.querySelector('button').onclick = () => { FR.sound.play('click'); if (!endShown) ending(); };
+      body.appendChild(bar);
+    }
+  }
   function ending() {
     if (document.querySelector('.fr-end')) return;
     endShown = true;
@@ -721,6 +752,7 @@
       <h1>Packa Corp is saved.<br>Frank is in Vegas.</h1>
       <p>You rebuilt Packa's numbers from a pile of "FINAL" files, a hidden folder, a change log and one man's head. The Board saw the real runway, the bank got a true covenant certificate, and the emergency plan passed.</p>
       <div class="fr-end-stats"><div class="fr-end-score"><b>${FR.score.fmt(sc.score)}</b><span>Score</span></div><div><b>${t}</b><span>Time at Frank's desk</span></div><div><b>${hints}</b><span>Hints used</span></div><div><b>${FR.state.wrong || 0}</b><span>Wrong guesses</span></div><div class="fr-end-bonus"><b>+${FR.score.fmt(sc.bonus || 0)}</b><span>Bonus</span></div></div>
+      <p class="fr-end-calc">${esc(FR.score.breakdown(sc))}</p>
       <p class="fr-end-rank"></p>
       <div class="fr-end-line"></div>
       <p><b style="color:#fff">Packa doesn't run on Datarails.</b> So when Frank walked through the wall, the truth nearly went with him.</p>
@@ -737,9 +769,17 @@
     // where this game landed on the board (or how to get on it)
     const rankEl = e.querySelector('.fr-end-rank');
     if (FR.score.available() && !(FR.account && FR.account.user)) rankEl.textContent = "Playing without an account, so this score isn't on the leaderboard.";
-    else if (FR.score.available()) FR.score.fetch().then(d => {
-      if (d.me) rankEl.innerHTML = `You're <b>#${d.me.rank}</b> of ${FR.score.fmt(d.players)} ${d.players === 1 ? 'person who has' : 'people who have'} covered for Frank${d.me.score !== sc.score ? ` with your first finished game (${FR.score.fmt(d.me.score)} points)` : ''}.`;
-    }, () => {});
+    else if (FR.score.available()) {
+      // one score everywhere: the board follows this game (bonus included); only a replay shows a different number,
+      // and then it says why. The same game with a different number = the board hasn't caught up yet: ask again.
+      const rank = (tries = 0) => FR.score.fetch().then(d => {
+        if (!d.me || !rankEl.isConnected) return;
+        const other = FR.score.otherGame(d.me);
+        if (!other && d.me.score !== FR.score.now().score && tries < 3) return setTimeout(() => rank(tries + 1), 2000);
+        rankEl.innerHTML = `You're <b>#${d.me.rank}</b> of ${FR.score.fmt(d.players)} ${d.players === 1 ? 'person who has' : 'people who have'} covered for Frank${other ? ` with your first finished game (${FR.score.fmt(d.me.score)} points; a replay doesn't change it)` : ` with ${FR.score.fmt(d.me.score)} points`}.`;
+      }, () => {});
+      rank();
+    }
     e.querySelector('[data-a=again]').onclick = () => confirmStartOver();
     // phones: it comes up by itself, so a tap already on its way (meant for the taskbar, a window) must not press
     // anything on it (1.5 s); "Play again" sits apart, never in the bottom strip where the taskbar was (mobile.css),

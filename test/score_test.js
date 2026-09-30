@@ -88,9 +88,45 @@ ok(R.rankValue({ score: 5000, timeMs: 9e12 }) > R.rankValue({ score: 4950, timeM
   // a bogus bonus id in a save changes nothing
   await c('save', 'PUT', { state: st(5, {}, 2, { playMs: 1000, bonus: { steve_margin: { solvedAt: 7 }, free_money: { solvedAt: 1, pts: 1e6 } } }), rev: 2 });
   r = await c('scores'); ok(r.data.me.score === cara0.score + R.BONUS.steve_margin, 'a made-up bonus id in the save earns nothing on the board');
-  // after the first finished game the entry (bonus included) is locked
+  // a replay's bonus never changes the entry of the first finished game
   await a('save', 'PUT', { state: st(10, {}, 0, { finishedAt: 9, finishPlayMs: 60000, bonus: allB }), rev: 4 });
-  r = await a('scores'); ok(r.data.me.score === 9750 && r.data.me.bonus === 0, 'bonus earned after the first finished game does not change the locked entry');
+  r = await a('scores'); ok(r.data.me.score === 9750 && r.data.me.bonus === 0 && r.data.me.game === 5, 'bonus earned in a replay does not change the first finished game\'s entry');
+
+  // (F4, round 4) ONE SCORE: the first finished game keeps counting after the ending, in the same game
+  const d = browser('1.0.0.4');
+  await d('register', 'POST', { username: 'Dana', password: 'dana-pw' });
+  const fin = extra => st(10, {}, 4, { finishedAt: 777, finishPlayMs: 3474000, ...extra });
+  const b8 = Object.fromEntries(['rotary_be', 'brenda_disc', 'vending_ci', 'dale_var', 'steve_margin', 'it_audit', 'intern_accrual', 'mum_fx'].map(id => [id, { solvedAt: 3 }]));
+  await d('save', 'PUT', { state: fin({ bonus: b8 }), rev: 0 });
+  const game = R.calc(fin({ bonus: b8 }));
+  r = await d('scores');
+  ok(game.score === 10950 && r.data.me.score === game.score && r.data.me.bonus === 1150, `the round-4 player's game: the board shows what the game shows (${r.data.me.score} = ${game.score}, incl. +${r.data.me.bonus})`);
+  ok(r.data.me.game === 777 && r.data.me.finished, 'the entry knows which game it is (finishedAt)');
+  const withEgg = { ...b8, tom_comm: { solvedAt: 9 }, eggs: { solvedAt: 10 } };
+  await d('save', 'PUT', { state: fin({ bonus: withEgg }), rev: 1 });
+  r = await d('scores'); ok(r.data.me.score === R.calc(fin({ bonus: withEgg })).score && r.data.me.score === 10950 + R.BONUS.tom_comm + R.BONUS.eggs, `a bonus request and the Easter eggs after the ending still count: ${r.data.me.score}`);
+  await d('save', 'PUT', { state: fin({ bonus: withEgg, wrong: 5 }), rev: 2 });
+  r = await d('scores'); ok(r.data.me.score === R.calc(fin({ bonus: withEgg, wrong: 5 })).score, 'a wrong guess after the ending (same game) shows on the board too: the numbers never drift apart');
+  const locked = r.data.me.score;
+  await d('save', 'PUT', { state: st(0), rev: 3 });
+  await d('save', 'PUT', { state: st(10, {}, 0, { finishedAt: 888, finishPlayMs: 60000, bonus: allB }), rev: 4 });
+  r = await d('scores'); ok(r.data.me.score === locked && r.data.me.game === 777, 'Start over + a perfect replay: the first finished game stays on the board');
+
+  // an entry locked before entries remembered their game (no "game" field) follows the same game only
+  const L = require('../api/_lib');
+  const e = browser('1.0.0.5');
+  await e('register', 'POST', { username: 'Eve', password: 'eve-pw1' });
+  const legacyState = st(10, {}, 4, { finishedAt: 555, finishPlayMs: 3000000 });
+  await e('save', 'PUT', { state: legacyState, rev: 0 });
+  const info = JSON.parse(await L.redis('HGET', L.K.boardInfo, 'eve')); delete info.game; delete info.bonus;
+  await L.redis('HSET', L.K.boardInfo, 'eve', JSON.stringify(info));
+  await e('save', 'PUT', { state: { ...legacyState, bonus: b8 }, rev: 1 });
+  r = await e('scores'); ok(r.data.me.score === 9800 + 1150 && r.data.me.game === 555, `an old entry (no game id) picks up bonus from the same game: ${r.data.me.score}`);
+  const info2 = JSON.parse(await L.redis('HGET', L.K.boardInfo, 'eve')); delete info2.game;
+  await L.redis('HSET', L.K.boardInfo, 'eve', JSON.stringify(info2));
+  await e('save', 'PUT', { state: st(0), rev: 2 });
+  await e('save', 'PUT', { state: st(10, {}, 0, { finishedAt: 999, finishPlayMs: 60000 }), rev: 3 });
+  r = await e('scores'); ok(r.data.me.score === 10950, 'an old entry is not replaced by a replay');
 
   // play-clock-only saves don't touch the board (cheap saves)
   const before = (await anon('scores')).data.top.find(e => e.name === 'Cara');

@@ -5,7 +5,9 @@ landscape and on a small phone. The same on a Pixel 7 and on an iPhone SE (320x5
 (S1: nothing invisible over a property sheet's OK/Cancel/Apply; S2: toasts open up, never vanish under a finger and a tap
 where one just vanished doesn't go through; S4 Submit label; S5 comment marker; S6 formula bar; S7/S8 Notepad), and round-3b
 checks (r3b_checks: tips never under a finger / over the window list, pass-through, fading tip, stale tips, comment pop-ups,
-checklist footer, one window per file, one-tap mail on 320 px, Start menu, leaderboard, edits kept after a reload).
+checklist footer, one window per file, one-tap mail on 320 px, Start menu, leaderboard, edits kept after a reload),
+and round-4 checks (r4_checks + in the playthrough: F1 Prev/Next, F2 zip reopen, F3 toast placement, F4 one score, F5/F6
+ending, F7-F19, N3).
 Screenshots go to OUT (default test/out).
 Usage: python3 test/mobile_play.py      (Playwright + Chromium, like test/play.py; CHROMIUM=path to use another binary)"""
 import os, re, sys
@@ -417,6 +419,21 @@ def playthrough(p, b, devname):
     shot(pg, 'dscr')
     for d in range(pg.locator('.fr-dialog').count()): dlg_btn(pg, 'OK')
     closeall(pg)
+    # (F2, round 4) the covenant again from the zip: no password prompt any more, but a box saying so, where the prompt
+    # was: the player's tap "on the password field" and "3130" + Enter land in that box, never in a cell of the sheet
+    xl0 = pg.evaluate("() => JSON.stringify((FR.state.xl || {}).covenant || {})")
+    pg.evaluate("() => FR.apps.explorer('bank')"); pg.wait_for_timeout(700)   # (item 5 is done: no chip any more)
+    ex_tap(pg, 'bankzip'); ex_tap(pg, 'covenant', 150)
+    pg.wait_for_selector('.fr-dialog', timeout=4000)
+    msg2 = pg.inner_text('.fr-dialog .fr-dlg-msg')
+    d2 = pg.locator('.fr-dialog .fr-dlg-msg').bounding_box(); pg.wait_for_timeout(600)
+    pg.touchscreen.tap(d2['x'] + d2['width'] / 2, d2['y'] + d2['height'] - 6); pg.wait_for_timeout(200)
+    pg.keyboard.type('3130', delay=20); pg.keyboard.press('Enter'); pg.wait_for_timeout(1200)
+    xl1 = pg.evaluate("() => JSON.stringify((FR.state.xl || {}).covenant || {})")
+    act2 = pg.evaluate("() => FR.wm.active && FR.wm.active.id")
+    ok('already unlocked' in msg2 and pg.locator('.fr-dialog').count() == 0 and act2 == 'xl-covenant' and xl0 == xl1,
+       f'F2 ({msg2[:40]!r}, {pg.locator(".fr-dialog").count()}, {act2}, {xl0 == xl1}): reopening the zipped covenant: a "Bank.zip is already unlocked" box takes the tap + "3130" + Enter (Enter = Open), nothing typed into the sheet')
+    closeall(pg)
 
     # ---- 6 cash: Tools > Folder Options by tap, hidden folder, payroll, pick the week
     pg.wait_for_timeout(3000)
@@ -514,6 +531,11 @@ def playthrough(p, b, devname):
         row = pg.locator(TOP + ' tr[data-id]', has_text=subj).first
         tap(pg, row, 700)
         if not narrow(pg): tap(pg, row, 700)
+        if subj == 'Next thing':   # (F1, round 4) Previous / Next always on screen, and still in the same place in the next message
+            nx = lambda: pg.evaluate("() => { const b = document.querySelector('.fr-win:not(.fr-inactive) .oe-tbb[data-a=next]'), p = document.querySelector('.fr-win:not(.fr-inactive) .oe-tbb[data-a=prev]'); if (!b || !p) return null; const r = b.getBoundingClientRect(), q = p.getBoundingClientRect(); return [Math.round(r.left), r.right <= innerWidth && q.left >= 0, document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2) && b.contains(document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)), FR.wm.active.id]; }")
+            f1a = nx(); pg.touchscreen.tap(f1a[0] + 20, pg.locator(TOP + ' .oe-tbb[data-a=next]').bounding_box()['y'] + 20); pg.wait_for_timeout(900)
+            f1b = nx()
+            ok(bool(f1a) and f1a[1] and f1a[2] and bool(f1b) and f1b[1] and f1b[0] == f1a[0] and f1b[3] != f1a[3], f'F1: Previous / Next on screen without swiping the toolbar; after Next the next message has them in the same place {f1a} -> {f1b}')
         task(pg, 'Inbox')
     ok(pg.evaluate("() => [...FR.wm.wins.keys()].filter(k => /^oe-msg-/.test(k)).length") == 1, 'P3: one message window at a time on a phone')
     tap(pg, pg.locator('.fr-switch'), 400)
@@ -539,8 +561,20 @@ def playthrough(p, b, devname):
     tap(pg, ck(pg).locator('.ck-sus', has_text='Kristians'), 600); tap(pg, ck(pg).locator('.ck-conf-ok'), 500)
     ok('frank' in solved(pg), '10 frank by touch')
     pg.wait_for_timeout(4200); shot(pg, 'reveal')
-    close_top(pg)
+    # (F6, round 4) Frank's reply opens and stays: no ending on a timer while it's being read, no 10/10 toast over it
+    ok(pg.evaluate("() => FR.wm.active && FR.wm.active.id") == 'oe-msg-x_frank_reveal' and pg.locator('.fr-balloon').count() == 0, "F6: Frank's reply opens, no toast over it")
+    pg.wait_for_timeout(9000)
+    ok(pg.locator('.fr-end').count() == 0 and pg.evaluate("() => FR.wm.active && FR.wm.active.id") == 'oe-msg-x_frank_reveal', 'F6: 13 s later the ending still waits (the player is reading)')
+    if FILL[0]:   # Pixel: the "See how it ended" button at the end of the mail (reached by a swipe)
+        tap(pg, pg.locator(TOP + ' .fr-end-go'), 300)
+    else:
+        close_top(pg)
     pg.wait_for_selector('.fr-end', timeout=8000)
+    # (F5) opaque: nothing of the desktop / the mail shows through
+    ok(pg.evaluate("() => { const c = getComputedStyle(document.querySelector('.fr-end')).backgroundColor; return /rgb\(/.test(c) || c === 'rgba(0, 0, 0, 0)' ? true : false; }") and pg.evaluate("() => !/rgba\([^)]*0\.[0-8]/.test(getComputedStyle(document.querySelector('.fr-end')).backgroundImage)"), 'F5: the ending is opaque')
+    # (F4) one score: the ending, its breakdown and the checklist footer say the same number
+    f4 = pg.evaluate("() => [document.querySelector('.fr-end-score b').textContent, document.querySelector('.fr-end-calc').textContent, FR.score.breakdown(), (document.querySelector('.ck-foot .ck-score') || {}).textContent || '', FR.score.fmt(FR.score.now().score)]")
+    ok(f4[0] == f4[4] and f4[1] == f4[2] and f4[1].endswith('= ' + f4[0]) and ('Score: ' + f4[0]) in f4[3], f'F4: ending score = breakdown = checklist footer {f4}')
     b0 = pg.locator('.fr-end [data-a=again]').bounding_box()
     pg.touchscreen.tap(b0['x'] + b0['width'] / 2, b0['y'] + b0['height'] / 2); pg.wait_for_timeout(300)   # a stray tap just as it appears
     ok(pg.locator('.fr-dialog').count() == 0, 'Q2: a tap in the first moment of the end screen does nothing (no "Start over?")')
@@ -667,8 +701,9 @@ def r3b_checks(p, b, devname):
     st = pg.evaluate(TIPST)
     ok(st['cur'] and st['cur']['title'] == 'T-hold' and st['cur']['state'] == 'shown', f'R3b S4: its time is up, but it does not fade within 1.5 s of a touch {st["cur"]} {[e[1] for e in st["log"][-6:]]}')
     pg.wait_for_function("() => !document.querySelector('.fr-balloon')", timeout=8000, polling=20)
+    nb0 = pg.evaluate("() => document.querySelector('.fr-win:not(.fr-inactive) .xl-nb-in').value")
     pg.touchscreen.tap(x[0], x[1]); pg.wait_for_timeout(300)
-    ok(pg.evaluate("() => document.querySelector('.fr-win:not(.fr-inactive) .xl-zoomb').textContent") == fit0, 'R3b S4: a tap where a tip just faded out is swallowed (Fit under its ✕ not toggled)')
+    ok(pg.evaluate("() => document.querySelector('.fr-win:not(.fr-inactive) .xl-zoomb').textContent") == fit0 and pg.evaluate("() => document.querySelector('.fr-win:not(.fr-inactive) .xl-nb-in').value") == nb0, 'R3b S4: a tap where a tip just faded out is swallowed (nothing under its ✕ pressed or selected)')
     pg.evaluate("() => Object.assign(FR.tips.TIP, { MIN: 5000, MAX: 12000, BASE: 2500 })")
 
     # S3: no tip while the window list is open; the tap on its last row switches window; the tip comes afterwards
@@ -750,11 +785,136 @@ def r3b_checks(p, b, devname):
     ctx.close()
 
 
+def r4_checks(p, b, devname):
+    """round 4 (iPhone 13 player): toasts never over Excel's sheet tabs / Fit or the checklist footer, one pop-up at a time,
+    "banana" isn't a wrong guess, DONE stamp on its own line, the passwords.txt chip, 44 px Properties tabs, the IT survey
+    says press-and-hold, Paint's tools / swatches / Fonts bar, more inbox rows and rows that stay put when mail arrives,
+    the boarding pass fits, ERP tabs wrap, the change log opens at column A, Find on an IE page (F3 F7 F8 F9 F10 F11 F12
+    F13 F14 F15 F17 F18 F19 N3)"""
+    dev = dict(p.devices[devname]); dev.pop('default_browser_type', None)
+    PFX[0] = 'r4_' + devname.replace(' ', '') + '_'
+    print('== round 4 checks on', devname, flush=True)
+    ctx = b.new_context(**dev); ctx.route(re.compile(r'https?://(www\.)?packacorp\.com/.*'), site)
+    pg = ctx.new_page()
+    pg.on('console', lambda m: logs.append(m.type + ': ' + m.text) if m.type in ('error', 'warning') and '404' not in m.text else None)
+    pg.on('pageerror', lambda e: logs.append('PAGEERROR ' + str(e)))
+    pg.goto(URL + '?dev=1&solve=ebitda'); pg.wait_for_selector('.fr-desktop'); pg.wait_for_timeout(900)
+    pg.evaluate(MUTE)
+
+    # F3: over Excel the toast sits above the sheet tabs + Fit / Fill…; over the checklist, above its footer
+    pg.evaluate("() => FR.openFile('bud_v5ut')"); pg.wait_for_timeout(1000); pg.evaluate(MUTE)
+    pg.evaluate("() => FR.balloon('T-xl', 'a toast over Excel', () => FR.apps.mail(null), { act: 'Open it' })")
+    pg.wait_for_selector('.fr-balloon:has-text("over Excel")', timeout=6000); pg.wait_for_timeout(400)
+    f3 = pg.evaluate("""() => { const b = document.querySelector('.fr-balloon').getBoundingClientRect(), w = document.querySelector('.fr-win:not(.fr-inactive)'), t = w.querySelector('.xl-tabbar').getBoundingClientRect(), z = w.querySelector('.xl-zoomb').getBoundingClientRect();
+      return [Math.round(b.bottom), Math.round(t.top), b.bottom <= t.top + 1 && !(z.top < b.bottom && z.bottom > b.top)]; }""")
+    ok(f3[2], f'F3: the toast sits above Excel\'s sheet tabs and Fit, never over them {f3}')
+    shot(pg, 'toast_excel')
+    tabsel = TOP + ' .xl-tab:not(.xl-tab-on)'; tabname = pg.locator(tabsel).first.inner_text()
+    tap(pg, pg.locator(tabsel).first, 400)
+    ok(pg.evaluate("() => document.querySelector('.fr-win:not(.fr-inactive) .xl-tab-on').innerText") == tabname and pg.evaluate("() => FR.wm.active.id") == 'xl-bud_v5ut', f'F3: a tap on a sheet tab while a toast is up switches the tab (it never opens the toast\'s e-mail) ({tabname})')
+    pg.evaluate("() => FR.tips.clear()")
+    # F14: one pop-up at a time: no toast while a cell's note / full-text box is open; it comes when that closes
+    tap(pg, pg.locator(TOP + ' .xl-tab', has_text='P&L').first, 300)
+    tap(pg, pg.locator(TOP + ' .xl-grid td.xl-hascm').first, 400)
+    pg.evaluate("() => FR.balloon('T-note', 'waits for the note')"); pg.wait_for_timeout(3000)
+    ok(pg.locator('.fr-balloon').count() == 0 and pg.locator(TOP + ' .xl-cmtip .xl-cm').count() == 1, 'F14: no toast while a cell note is open')
+    tap(pg, pg.locator(TOP + ' .xl-grid td[data-r="6"][data-c="2"]'), 300)
+    pg.wait_for_selector('.fr-balloon:has-text("waits for the note")', timeout=6000); ok(True, 'F14: the toast comes once the note is closed')
+    pg.evaluate("() => FR.tips.clear()"); closeall(pg)
+    ck(pg)
+    pg.evaluate("() => FR.balloon('T-ck', 'a toast over the checklist')")
+    pg.wait_for_selector('.fr-balloon:has-text("over the checklist")', timeout=6000)
+    ok(pg.evaluate("() => document.querySelector('.fr-balloon').getBoundingClientRect().bottom <= FR.wm.wins.get('checklist').el.querySelector('.ck-foot').getBoundingClientRect().top + 1"), 'F3: over the checklist the toast sits above its footer (score link, How to play)')
+    pg.evaluate("() => FR.tips.clear()")
+
+    # N3: item 5 points at passwords.txt on the desktop
+    ok('passwords' in (chip(pg, 'passwords.txt') or ''), 'N3: item 5 has a "passwords.txt (desktop)" chip that opens it')
+    closeall(pg)
+    # F19: "banana" is not a number: said so, no wrong guess, no step to the Blue Screen; a wrong number still costs 50
+    item = ck(pg); w0 = pg.evaluate("() => [FR.state.wrong || 0, FR.state.missStreak || 0]")
+    tap(pg, item.locator('.ck-ans input'), 150); pg.keyboard.type('banana'); tap(pg, item.locator('.ck-ans button'), 400)
+    fb1 = pg.inner_text(TOP + ' .ck-item.open .ck-fb'); w1 = pg.evaluate("() => [FR.state.wrong || 0, FR.state.missStreak || 0]")
+    ok("not a number" in fb1 and w1 == w0, f'F19: "banana" gets "That\'s not a number" and is not a wrong guess ({fb1!r}, wrong/streak {w0} -> {w1})')
+    tap(pg, item.locator('.ck-ans input'), 150); pg.keyboard.type('1.3'); tap(pg, item.locator('.ck-ans button'), 400)
+    fb2 = pg.inner_text(TOP + ' .ck-item.open .ck-fb'); w2 = pg.evaluate("() => FR.state.wrong || 0")
+    ok(w2 == w0[0] + 1 and '(−50 points)' in fb2 and 'Section 6.1' in fb2, f'F19/N1: a wrong number still counts, and says what it cost ({fb2!r})')
+    # F13: the DONE stamp on its own line under the item's title
+    pg.evaluate("() => FR.puzzle.solve('dscr')"); pg.wait_for_timeout(300)
+    f13 = pg.evaluate("() => { const st = document.querySelector('.ck-stamp'); if (!st) return null; const t = st.closest('.ck-main').querySelector('.ck-t').getBoundingClientRect(), r = st.getBoundingClientRect(); return [r.top >= t.bottom - 3, Math.round(r.top), Math.round(t.bottom)]; }")
+    ok(bool(f13) and f13[0], f'F13: the DONE stamp sits under the title, not over it {f13}')
+    pg.evaluate(MUTE)
+
+    # F8: Properties tabs 44 px, sharing the strip
+    pg.evaluate("() => FR.apps.properties('model47')"); pg.wait_for_timeout(700)
+    f8 = pg.evaluate("() => [...document.querySelectorAll('.sh-sheetwin .sh-sheet [role=tab]')].map(t => Math.round(t.getBoundingClientRect().height))")
+    ok(f8 and min(f8) >= 44, f'F8: Properties tabs are 44 px tall {f8}')
+    tap(pg, pg.locator('.sh-sheet [role=tab]', has_text='Summary'), 300)
+    ok(pg.evaluate("() => document.querySelector('.sh-sheet [role=tab][aria-selected=true]').textContent") == 'Summary', 'F8: one tap on "Summary" opens it')
+    tap(pg, pg.locator('.sh-sheet .sh-cancel'), 400)
+    # F7: the IT disk survey says press-and-hold on a phone
+    pg.evaluate("() => FR.bonus.deliver('it_audit', true)"); pg.wait_for_timeout(300)
+    body = pg.evaluate("() => (FR.mail.messages().find(m => m.id === 'bn_it_audit') || {}).body || ''")
+    ok('Press and hold the file' in body and 'Right-click' not in body, 'F7: the IT survey says "press and hold" on a phone')
+
+    # F9 / F10: Paint: every tool on screen, big swatches, the Fonts bar docked above the picture, only with the Text tool
+    closeall(pg); pg.evaluate("() => FR.apps.paint()"); pg.wait_for_timeout(1000)
+    f10 = pg.evaluate("""() => { const w = document.querySelector('.fr-win:not(.fr-inactive)'), ts = [...w.querySelectorAll('.pt-tool')], sw = w.querySelector('.pt-sw').getBoundingClientRect();
+      const bad = ts.filter(t => { const r = t.getBoundingClientRect(), h = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return r.right > innerWidth + 1 || r.left < 0 || !(h && t.contains(h)); }).map(t => t.dataset.t);
+      return [ts.length, bad, Math.round(sw.width), Math.round(sw.height)]; }""")
+    ok(not f10[1] and f10[2] >= 28 and f10[3] >= 26, f'F10: all {f10[0]} Paint tools on screen and tappable, swatches {f10[2]}x{f10[3]} px {f10[1]}')
+    tap(pg, pg.locator(TOP + ' .pt-tool[data-t=text]'), 300)
+    f9 = pg.evaluate("() => { const w = document.querySelector('.fr-win:not(.fr-inactive)'), f = w.querySelector('.pt-fontbar'), ws = w.querySelector('.pt-ws'); const r = f.getBoundingClientRect(), s = ws.getBoundingClientRect(); return [f.classList.contains('on'), r.bottom <= s.top + 1, Math.round(r.bottom), Math.round(s.top)]; }")
+    ok(f9[0] and f9[1], f'F9: with the Text tool the Fonts bar is docked above the picture, not over it {f9}')
+    tap(pg, pg.locator(TOP + ' .pt-tool[data-t=pencil]'), 300)
+    ok(pg.evaluate("() => getComputedStyle(document.querySelector('.fr-win:not(.fr-inactive) .pt-fontbar')).display") == 'none', 'F9: another tool: no Fonts bar')
+    shot(pg, 'paint')
+    closeall(pg)
+
+    # F11: Outlook: more rows in portrait; a new mail doesn't move the rows under the finger
+    pg.evaluate("() => FR.apps.mail(null)"); pg.wait_for_timeout(1000); pg.evaluate(MUTE)
+    f11 = pg.evaluate("() => { const l = document.querySelector('.fr-win:not(.fr-inactive) .oe-list'), r = l.querySelector('tbody tr'); return [Math.floor((l.clientHeight - l.querySelector('thead').offsetHeight) / r.offsetHeight), document.querySelector('.fr-win:not(.fr-inactive) .oe-prev').offsetHeight]; }")
+    ok(f11[0] >= (6 if narrow(pg) else 8), f'F11: the inbox shows {f11[0]} rows (no empty preview pane until a message is picked)')
+    tops = pg.evaluate("""() => { const l = document.querySelector('.fr-win:not(.fr-inactive) .oe-list'); l.scrollTop = 80; return new Promise(ok => setTimeout(() => {
+      const rows = [...l.querySelectorAll('tr[data-id]')].slice(2, 6).map(r => [r.dataset.id, Math.round(r.getBoundingClientRect().top)]);
+      FR.mail.incoming({ from: { name: 'Test Sender', email: 'test@example.com' }, subject: 'T-new arrives', body: 'x' }, false);
+      setTimeout(() => { const after = rows.map(([id]) => Math.round(l.querySelector('tr[data-id="' + id + '"]').getBoundingClientRect().top)); const p = document.querySelector('.oe-newpill'), h = l.querySelector('thead th').getBoundingClientRect();
+        ok([rows.map(r => r[1]), after, !!p, p ? p.getBoundingClientRect().bottom <= h.bottom + 1 : false]); }, 200); }, 150)); }""")
+    ok(tops[0] == tops[1] and tops[2] and tops[3], f'F11: a new mail arriving leaves the rows where they were; "New message" shows over the headers {tops}')
+    pg.wait_for_timeout(700); tap(pg, pg.locator('.oe-newpill'), 700)
+    ok(pg.evaluate("() => document.querySelector('.fr-win:not(.fr-inactive) .oe-list').scrollTop") < 4 and pg.locator('.oe-newpill').count() == 0, 'F11: tapping "New message" scrolls up to it')
+    closeall(pg)
+
+    # F15: the boarding pass fits the screen with Wrap off (when that stays readable)
+    pg.evaluate("() => FR.openFile('boarding')"); pg.wait_for_timeout(700)
+    f15 = pg.evaluate("() => { const t = document.querySelector('.fr-win:not(.fr-inactive) .np-ta'); return [t.classList.contains('np-nowrap'), t.classList.contains('np-fit'), t.scrollWidth <= t.clientWidth + 1, parseFloat(getComputedStyle(t).fontSize)]; }")
+    ok(f15[0] and ((f15[1] and f15[2] and f15[3] >= 8.5) or (narrow(pg) and not f15[1])), f'F15: the ASCII boarding pass fits the screen unwrapped {f15}')
+    closeall(pg)
+    # F17: ShowMe ERP's module tabs wrap (nothing runs off the right edge)
+    pg.evaluate("() => FR.apps.erp()"); pg.wait_for_timeout(700)
+    f17 = pg.evaluate("() => { const n = document.querySelector('.fr-win:not(.fr-inactive) .erp-nav'); return [n.scrollWidth <= n.clientWidth + 1, Math.max(...[...n.querySelectorAll('.erp-n')].map(e => e.getBoundingClientRect().right)) <= innerWidth + 1]; }")
+    ok(f17[0] and f17[1], f'F17: ERP module tabs all on screen {f17}')
+    closeall(pg)
+    # F18: the change log opens at its first columns (date, who), on row 17
+    pg.evaluate("() => FR.openFile('changelog')"); pg.wait_for_timeout(900)
+    f18 = pg.evaluate("() => { const w = document.querySelector('.fr-win:not(.fr-inactive)'); return [w.querySelector('.xl-scroll').scrollLeft, w.querySelector('.xl-nb-in').value]; }")
+    ok(f18[0] == 0 and f18[1] == 'A17', f'F18: the change log opens at column A (row 17) {f18}')
+    closeall(pg)
+    # F12: Find on an IE page
+    pg.evaluate("() => FR.apps.ie('http://championship.example/schedule')"); pg.wait_for_timeout(1200)
+    tap(pg, pg.locator(TOP + ' .fr-mi', has_text='Edit'), 300); tap(pg, pg.locator('.fr-menu-item', has_text='Find (on This Page)'), 500)
+    dlg_type(pg, 'Pool', 'Find Next'); pg.wait_for_timeout(300)
+    ok(pg.locator(TOP + ' mark.ie-hit').count() >= 1, 'F12: Edit › Find (on This Page) marks the matches on the page')
+    ctx.close()
+
+
 os.makedirs(OUT, exist_ok=True)
 with sync_playwright() as p:
     kw = {'executable_path': os.environ['CHROMIUM']} if os.environ.get('CHROMIUM') else {}
     b = p.chromium.launch(**kw)
-    for devname in DEVICES: r3b_checks(p, b, devname)
+    for devname in (DEVICES if not os.environ.get('PLAY_ONLY') else []): r4_checks(p, b, devname)   # (PLAY_ONLY=1: developers, just the playthroughs)
+    if os.environ.get('R4_ONLY'):   # (developers: only the round-4 checks)
+        print('\n'.join(logs) or 'no console errors'); print('ALL PASS' if not fails[0] and not logs else f'{fails[0]} FAILED'); sys.exit(1 if fails[0] or logs else 0)
+    for devname in (DEVICES if not os.environ.get('PLAY_ONLY') else []): r3b_checks(p, b, devname)
     if os.environ.get('R3B_ONLY'):   # (developers: only the round-3b checks)
         print('\n'.join(logs) or 'no console errors'); print('ALL PASS' if not fails[0] and not logs else f'{fails[0]} FAILED'); sys.exit(1 if fails[0] or logs else 0)
     for devname in DEVICES: playthrough(p, b, devname)
@@ -798,6 +958,14 @@ with sync_playwright() as p:
         p2.screenshot(path=f'{OUT}/mobile_{PFX[0]}outlook_msg.png')
         tap(p2, p2.locator('.fr-startbtn'), 500)
         ok(p2.evaluate("() => { const m = document.querySelector('.fr-start'); const r = m.getBoundingClientRect(); return r.top >= 0 && m.scrollHeight >= m.clientHeight; }"), 'landscape Start menu fits (scrolls)')
+        f16 = p2.evaluate("() => { const m = document.querySelector('.fr-start'), h = m.querySelector('.fr-start-hint'); return [m.scrollHeight > m.clientHeight + 6, !!h && getComputedStyle(h).display !== 'none']; }")
+        ok(f16[0] == f16[1], f'F16: landscape Start menu: "more below" shows exactly when there is more below {f16}')
+        if f16[0]:
+            sb = p2.locator('.fr-start').bounding_box()
+            for _ in range(4):
+                if p2.evaluate("() => { const m = document.querySelector('.fr-start'); return m.scrollHeight - m.scrollTop - m.clientHeight <= 6; }"): break
+                swipe(p2, sb['x'] + 80, sb['y'] + sb['height'] - 30, sb['x'] + 80, sb['y'] + 30)
+            ok(p2.evaluate("() => getComputedStyle(document.querySelector('.fr-start .fr-start-hint')).display") == 'none', 'F16: scrolled to the end, the hint goes')
         p2.screenshot(path=f'{OUT}/mobile_{PFX[0]}start.png')
         ctx2.close()
 

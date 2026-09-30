@@ -2628,7 +2628,8 @@
         early: "Password accepted.<br><br>Excel: this file is linked to files you haven't rebuilt yet. Finish Frank's checklist up to the bridge, then open it.",
         decoys: { '43182': 'Right numbers. Wrong order. What they told the Board comes first. —F', '18251': 'The formula said 51. Nobody believed the formula either. What is true today (10/16) is in the change log. —F', '182': 'That is what they told the Board. And then what is true. —F', '43': 'That is what is true. What they told the Board comes first. —F', '225': 'Not a sum. =CONCAT. —F' } });
       case 'bp_q1': case 'bp_q2': case 'bp_q3': case 'bp_q4': return openWorkbook(packBook(node.id), Object.assign(o, node.id === 'bp_q4' ? { startSheet: 'Cash Runway', startCell: 'B30' } : {}));
-      case 'changelog': return openWorkbook(changelogBook(), Object.assign(o, { startCell: 'H17' }));
+      // (F18, round 4) phones: row 17 from its first column (the date, who, which file), not scrolled over to H's note
+      case 'changelog': return openWorkbook(changelogBook(), Object.assign(o, { startCell: FR.mobile ? 'A17' : 'H17' }));
       case 'model47': return openWorkbook(model47Book(), o);
       case 'k_ranked': return openWorkbook(rankedBook(), o);
       case 'copybudget':

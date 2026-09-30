@@ -19,7 +19,8 @@ def computer(b):
     """a fresh browser profile = another computer"""
     ctx = b.new_context(viewport={'width': 1366, 'height': 800})
     pg = ctx.new_page()
-    # expected: signed-out /api/me (401), the stale-computer save (409), the simulated dropped connection (ERR_FAILED)
+    # expected: the wrong-password sign-in (401), the stale-computer save (409), the simulated dropped connection (ERR_FAILED).
+    # (a signed-out /api/me is a plain 200 {user: null} since round 4: new players see no red 401 at start)
     pg.on('console', lambda m: m.type == 'error' and not any(c in m.text for c in ('401', '409', 'ERR_FAILED')) and errors.append(m.text))
     pg.on('pageerror', lambda e: errors.append(str(e)))
     pg.route('https://www.packacorp.com/**', lambda r: r.fulfill(status=200, content_type='text/html', body='<h1>Packa</h1>'))

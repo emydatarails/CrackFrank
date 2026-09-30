@@ -99,13 +99,16 @@
     if (!ONLINE) return Promise.resolve();
     return api('me').then(r => {
       if (r.ok && r.data.user) { A.available = true; adopt(r.data); return; }
-      if (r.status === 401) { A.available = true; return store.get(GUEST) ? null : A.screen('new'); }
+      // signed out: {user: null} (older servers answered 401)
+      if ((r.ok && r.data && 'user' in r.data) || r.status === 401) { A.available = true; return store.get(GUEST) ? null : A.screen('new'); }
       // 404 (static host) / 503 (storage not set up) / anything else: browser-only saves, as before
     }, () => {});
   };
 
   // send any unsaved progress now (the leaderboard page calls this before loading)
-  A.sync = () => flush(false);
+  // (a save already on its way may not have the latest change in it: wait for it, then send what's left)
+  const syncAll = (n = 0) => busy && n < 3 ? Promise.resolve(busy).then(() => syncAll(n + 1), () => syncAll(n + 1)) : flush(false);
+  A.sync = () => syncAll();
 
   A.signOut = () => Promise.resolve(flush(false))
     .then(() => api('logout', 'POST', {}).catch(() => {}))

@@ -403,7 +403,7 @@
   /* =====================================================================================
      session prefs (shared by every Paint window this session)
      ===================================================================================== */
-  const PREF = { fg: [0, 0, 0], bg: [255, 255, 255], pal: PAL0.slice(), tool: 'pencil', line: 1, brush: 'r4', eraser: 8, air: 1, mode: 0, mag: 4, opaque: true,
+  const PREF = { fg: [0, 0, 0], bg: [255, 255, 255], pal: PAL0.slice(), tool: 'pencil', line: 1, brush: 'r4', eraser: 8, air: 1, mode: 0, mag: 4, opaque: true, textOpaque: false,
     font: { family: 'Arial', size: 12, bold: false, italic: false, underline: false }, toolbox: true, colorbox: true, status: true, textbar: true, grid: false };
   let CLIP = null;     // Paint's own clipboard (ImageData)
   let S = null;        // the open Paint window
@@ -622,7 +622,12 @@
     const o = S.root.querySelector('.pt-opts'), t = S.tool;
     let h = '';
     const it = (k, v, on, inner) => `<div class="pt-o${on ? ' on' : ''}" data-k="${k}" data-v="${v}">${inner}</div>`;
-    if (t === 'select' || t === 'free' || t === 'text') {
+    // (F21, round 4) the Text tool has its own Opaque / Transparent choice, transparent to start with: a text box no longer
+    // blanks out the drawing under it (the selection tools keep Draw Opaque, as before)
+    if (t === 'text') {
+      h = it('topaque', 1, PREF.textOpaque, `<svg viewBox="0 0 30 18"><rect x="3" y="2" width="12" height="12" fill="#ff0" stroke="#000"/><path d="M10 6h14v10H10z" fill="#08f" stroke="#000"/></svg>`)
+        + it('topaque', 0, !PREF.textOpaque, `<svg viewBox="0 0 30 18"><rect x="3" y="2" width="12" height="12" fill="#ff0" stroke="#000"/><path d="M10 6h14v10H10z" fill="none" stroke="#000"/></svg>`);
+    } else if (t === 'select' || t === 'free') {
       h = it('opaque', 1, PREF.opaque, `<svg viewBox="0 0 30 18"><rect x="3" y="2" width="12" height="12" fill="#ff0" stroke="#000"/><path d="M10 6h14v10H10z" fill="#08f" stroke="#000"/></svg>`)
         + it('opaque', 0, !PREF.opaque, `<svg viewBox="0 0 30 18"><rect x="3" y="2" width="12" height="12" fill="#ff0" stroke="#000"/><path d="M10 6h14v10H10z" fill="none" stroke="#000"/></svg>`);
     } else if (t === 'eraser') {
@@ -974,7 +979,7 @@
   function styleText() {
     const t = S && S.txt; if (!t) return;
     const f = curFont(), z = S.zoom;
-    Object.assign(t.ta.style, { font: fontCss({ ...f, px: f.px * z }), lineHeight: Math.round(f.px * 1.2) * z + 'px', color: rgb2hex(PREF.fg), background: PREF.opaque ? rgb2hex(PREF.bg) : 'transparent', textDecoration: f.underline ? 'underline' : 'none' });
+    Object.assign(t.ta.style, { font: fontCss({ ...f, px: f.px * z }), lineHeight: Math.round(f.px * 1.2) * z + 'px', color: rgb2hex(PREF.fg), background: PREF.textOpaque ? rgb2hex(PREF.bg) : 'transparent', textDecoration: f.underline ? 'underline' : 'none' });
   }
   function placeText() {
     const t = S && S.txt; if (!t) return;
@@ -989,7 +994,7 @@
     if (!commit || !v) return;
     pushUndo();
     const R = new Raster(snap()), f = curFont(), lh = Math.round(f.px * 1.2), fg = U(PREF.fg);
-    if (PREF.opaque) for (let y = t.y; y < t.y + t.h; y++) R.span(t.x, t.x + t.w - 1, y, U(PREF.bg));
+    if (PREF.textOpaque) for (let y = t.y; y < t.y + t.h; y++) R.span(t.x, t.x + t.w - 1, y, U(PREF.bg));
     const clipR = new Raster(new ImageData(t.w, t.h));
     wrapLines(v, f, t.w - 4).forEach((ln, i) => textInto(clipR, ln, 2, 2 + i * lh, f, 1));
     for (let j = 0; j < t.h; j++) for (let i = 0; i < t.w; i++) if (clipR.px[j * t.w + i]) R.set(t.x + i, t.y + j, fg);
@@ -1285,6 +1290,7 @@
       const k = o.dataset.k, v = o.dataset.v;
       if (k === 'mag') { setZoom(v === 'fit' ? baseZoom() : +v); if (v !== 'fit') PREF.mag = +v; }
       else if (k === 'opaque') { PREF.opaque = v === '1'; renderFloat(); styleText(); }
+      else if (k === 'topaque') { PREF.textOpaque = v === '1'; styleText(); }
       else if (k === 'brush') PREF.brush = v;
       else PREF[k] = +v;
       renderOpts();

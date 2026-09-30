@@ -96,6 +96,8 @@ How it works:
 - Each save has a revision number. If a player continues on another computer, the older tab gets "This game was
   continued somewhere else" and reloads instead of overwriting the newer save. A change made while offline stays in
   the browser and is sent when the server is reachable again.
+- `GET /api/me` answers `{user: null}` (200) when nobody is signed in: asking "who am I?" isn't an error, so a new
+  player's console stays clean. `/api/save` without a session is still 401.
 - Sign-up is limited to 10 per IP per hour; sign-in to 10 tries per player name and 30 per IP per 15 minutes.
 - There is no password reset (no email is collected). Player names are 3–20 letters, numbers, `.`, `-` or `_`,
   unique regardless of case.
@@ -106,6 +108,9 @@ Run it locally without Vercel or a database:
 ```bash
 python3 build.py && node test/local_server.js 8000    # http://localhost:8000/ with an in-memory database
 ```
+
+The local server serves `dist/` fresh on every request and reloads `api/*.js` and `src/score_rules.js` when they change
+(a long-running server once kept pre-bonus scoring code and put a different score on the board than the game showed).
 
 ### Score and leaderboard
 
@@ -130,10 +135,16 @@ the numbers in `src/score_rules.js` only (`BONUS` is the bonus table): the game 
 - It lists the top 50 by points, ties broken by less time at the desk, with medals for the top three. The signed-in
   player's row is highlighted, and shown under the list if they're outside the top 50. Without the account server the
   shortcut is hidden and the page says the intranet is offline.
-- Only signed-in players are on the board, under their player name. The board follows a player's game until they
-  finish it; their **first finished game** is then locked in, so replaying with the answers known doesn't count.
-  Starting over before finishing takes them off the board until they solve a riddle again. Bonus points count while the
-  game is being played; bonus earned after the first finished game doesn't change the locked entry.
+- **One score everywhere**: the checklist footer, the ending screen and the leaderboard always show the same number
+  (all three use `src/score_rules.js`). The ending adds how it's made up ("10 × 1,000 − 4 wrong × 50 + 1,150 bonus =
+  10,950") and the leaderboard page opens with a "How points work" box; both are written from the rules file, never
+  typed in twice. A wrong answer's message says what it cost ("(−50 points)"); an answer that isn't a number where a
+  number is asked ("banana") gets "That's not a number" and costs nothing.
+- Only signed-in players are on the board, under their player name. The board follows a player's game, and their
+  **first finished game** stays their entry: it keeps following *that game* after the ending (bonus requests answered
+  and Easter eggs found later still count), but a replay after "Start over", with the answers known, never changes it.
+  A game is known by its `finishedAt` (stored in the entry as `game`). Starting over before finishing takes them off the
+  board until they solve a riddle again.
 - The server computes the score from the saved game (`api/_lib.js` → `updateBoard`), not from a number the browser
   sends. The save itself comes from the browser, so a determined player could still forge one; this is a campaign
   game, not a tournament.
@@ -217,7 +228,7 @@ python3 test/features_play.py            # Blue Screen, Norton, bonus requests, 
 | `mum_fx` | Linda Warmington, Frank's mum | log-on | $500 at 1.36 CAD per USD | C$680 | +100 |
 | `intern_accrual` | Kaylee Brooks, the new intern | item 2 | accrue October of a $27,900 Oct–Dec utility bill | $9,300 | +150 |
 | `it_audit` | Packa IT Asset Audit (a script) | item 2 | size of `Packa_Corp_Model_FY26_v47…xls` (Properties) | 4.7 MB | +100 |
-| `steve_margin` | Steve Packa (typed by Linda) | item 3 | margin on a 25% markup | 20% | +200 |
+| `steve_margin` | Steve Packa (typed by Barb at the front desk) | item 3 | margin on a 25% markup | 20% | +200 |
 | `dale_var` | Dale Hutchins, Shipping | item 4 | $5,000 spent on a $4,000 budget, % of budget | 25% over | +100 |
 | `rotary_be` | Harold Voss, Sedalia Rotary | item 5 | break-even tickets: $8 ticket, $3 a plate, $600 fixed | 120 | +150 |
 | `brenda_disc` | Brenda Pruitt, AP at Hawthorn Foods | item 6 | $12,000 invoice, 2/10 net 30, paid early | $11,760 | +100 |

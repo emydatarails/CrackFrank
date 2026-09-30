@@ -457,7 +457,10 @@ FR.apps = FR.apps || {};
         if (FR.mobile) FR.wm.fitDialog(w, true);
         let done = false;
         const inp = content.querySelector('input');
-        function finish(button) { if (done) return; done = true; shade.remove(); w.el.remove(); w.tb.remove(); wins.delete(w.id);
+        // o.enterKey: Enter presses the default button wherever the focus is (even after a tap on the message text)
+        const enterK = e => { if (e.key === 'Enter' && !done && FR.wm.topDialog() === w && !(e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName))) { e.preventDefault(); e.stopPropagation(); finish(btns[o.def || 0]); } };
+        if (o.enterKey) document.addEventListener('keydown', enterK, true);
+        function finish(button) { if (done) return; done = true; document.removeEventListener('keydown', enterK, true); shade.remove(); w.el.remove(); w.tb.remove(); wins.delete(w.id);
           if (!FR.wm.topDialog()) dn = 0;
           // give focus back to the window that was active before the dialog (or the top-most one)
           let back = null;
@@ -527,8 +530,8 @@ FR.apps = FR.apps || {};
   const tipLog = ev => { tips.log.push([Date.now(), ev]); if (tips.log.length > 60) tips.log.shift(); };
   const typingNow = () => { const a = document.activeElement; return !!a && (/^(INPUT|TEXTAREA)$/.test(a.tagName) && !a.readOnly) && !!a.closest('#fr-root'); };
   // something is up that the strip must not cover or interrupt (independent of touches)
-  const tipBlocked = () => document.documentElement.classList.contains('fr-kb') || !!FR.wm.topDialog() || typingNow()
-    || !!document.querySelector('.fr-swlist, .fr-start, .fr-ctx, .fr-menu-drop, .sh-pop, .sh-sheetwin:not(.fr-inactive):not(.fr-closing), .fr-win:not(.fr-inactive) .ck-confirm');
+  const tipBlocked = () => document.documentElement.classList.contains('fr-kb') || !!FR.wm.topDialog() || typingNow() || !!(FR.wm.active && FR.wm.active._frNoTips)
+    || !!document.querySelector('.fr-swlist, .fr-start, .fr-ctx, .fr-menu-drop, .sh-pop, .sh-sheetwin:not(.fr-inactive):not(.fr-closing), .fr-win:not(.fr-inactive) .ck-confirm, .fr-win:not(.fr-inactive) .xl-cmtip:not(:empty)');   // (F14: one at a time: not while a cell note / full-text box is open)
   // (a tip the player asked for, e.g. by tapping Kristians' face in the tray, only waits for the finger to lift)
   const tipQuiet = t => !touching && sinceTouch() >= (t && t.opts.asked ? 350 : TIP.QUIET) && !tipBlocked();
   function tipQueue(title, text, onClick, opts) {
@@ -566,6 +569,7 @@ FR.apps = FR.apps || {};
     // opened up, the toast shows what a tap on it does as a real button (e.g. "Open the checklist")
     if (onClick) { const go = $(`<div class="fr-balloon-acts"><button class="fr-balloon-go"></button></div>`); go.firstChild.textContent = opts.act || 'Open'; b.appendChild(go); }
     document.body.appendChild(b);
+    tipPlace(b);
     const c = tips.cur = { t, b, state: 'arriving', shownAt: Date.now(), timer: 0 };
     tipLog('shown ' + title);
     const bb = b.querySelector('.fr-balloon-b'), bt = b.querySelector('.fr-balloon-t b');
@@ -608,6 +612,20 @@ FR.apps = FR.apps || {};
       const away = e => { if (tips.cur !== c) return document.removeEventListener('touchstart', away, true); if (!b.contains(e.target) && c.state !== 'arriving') tipGone(c, 'away'); };
       c.away = away; document.addEventListener('touchstart', away, { capture: true, passive: true });
     }, 1200);
+  }
+  // (F3, round 4) the strip sits just above the taskbar, but never over the controls an app keeps at the bottom of its
+  // window (Excel's sheet tabs + Fit / Fill…, the checklist footer, Notepad's Wrap bar, Solitaire's Deal / Undo): over
+  // the active full-screen window it goes just above them, so a tap aimed at a tab or at Fit can never land on the
+  // strip, and a tap where the strip was a moment ago lands on grid, not on a button. (IE keeps it over its bottom
+  // bars: under the strip there, the tap guard can still catch a stray tap; over the framed web page it could not.)
+  const TIP_BARS = '.xl-tabbar, .ck-foot, .np-mbar, .so-tools';
+  function tipPlace(b) {
+    const w = FR.wm.active;
+    if (!w || w.min || !w.el || w.el.classList.contains('fr-dialog')) return;
+    const tbar = document.querySelector('.fr-taskbar'), floor = tbar ? tbar.getBoundingClientRect().top : innerHeight;
+    let top = floor;
+    w.el.querySelectorAll(TIP_BARS).forEach(e => { const r = e.getBoundingClientRect(); if (r.width && r.height && r.bottom > floor - 120 && r.top < floor) top = Math.min(top, r.top); });
+    if (top < floor - 1) b.style.bottom = Math.round(innerHeight - top + 3) + 'px';
   }
   // why: timeout (faded out: ghost 1 s), closed / tapped / away (ghost 0.6 s), suspended (back in the queue, no ghost),
   // typing (a text field got focus: back in the queue)

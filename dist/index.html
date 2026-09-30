@@ -215,6 +215,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
 .ck-ans input { width: 190px; }
 .ck-ans .ck-fb { font-size: 11px; }
 .ck-fb.bad { color: #b3140a; }
+.ck-fb .ck-fb-pts { color: #7a5a50; white-space: nowrap; }
 .ck-fb.good { color: #1d7a1d; font-weight: 700; }
 .ck-hint { margin-top: 6px; background: #ffffe1; border: 1px solid #d6d29c; padding: 5px 7px; border-radius: 3px; color: #3d3a14; line-height: 1.4; }
 .ck-hint + .ck-hint { margin-top: 4px; }
@@ -353,6 +354,8 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
 #fr-root .ck-hbtn { display: inline-flex; align-items: center; gap: 5px; }
 #fr-root .ck-hbtn:disabled .ck-fos-mark { filter: grayscale(1); opacity: .5; }
 .fr-login-fos { margin-top: 6px; padding-top: 5px; border-top: 1px solid #e3dfb0; font-size: 10px; color: #555; }
+.fr-end-gobar { margin: 18px 0 8px; padding-top: 10px; border-top: 1px dashed #b8b8b8; white-space: normal; }
+.fr-end-go { font: bold 12px Tahoma, sans-serif; padding: 5px 16px; }
 .fr-end-fos { font-size: 12px !important; color: #9fb0d9 !important; margin-top: 18px !important; }
 
 /* player sign-in screen (src/account.js) — reuses the intro's case-file folder */
@@ -394,6 +397,10 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
 .st-t td { padding: 5px 8px; border: 1px solid #d6cfbf; vertical-align: middle; }
 .st-t tbody tr:nth-child(even) td { background: #faf8f3; }
 .st-rules { margin: 14px 0; padding: 8px 10px; background: #fff; border: 1px solid #d6cfbf; border-left: 4px solid #a33a1e; }
+.st-rules.st-howto { margin: 0 0 12px; line-height: 1.45; }
+.st-howto ul { margin: 4px 0 4px; padding-left: 18px; }
+.st-howto li { margin: 1px 0; }
+.st-howto span { color: #555; font-size: 11px; }
 .st-foot { color: #777; font-size: 10px; }
 .st-mine { background: #fff6d6; border: 1px solid #e3cf6a; padding: 6px 10px; margin: 0 0 12px; font-size: 12px; }
 .st-t td, .st-t th { white-space: nowrap; }
@@ -427,6 +434,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
 .ck-foot .ck-bonus { font-weight: 400; color: #1d6b3a; }
 .fr-end-card p.fr-end-rank { font-size: 14px; color: #fff; min-height: 1em; margin: -6px auto 8px; }
 .fr-end-card p.fr-end-rank:empty { display: none; }
+.fr-end-card p.fr-end-calc { font-size: 12px; color: #c9d3e6; margin: -4px auto 10px; }
 /* desktop shortcut to the leaderboard: the little Windows shortcut arrow */
 .fr-dicon-lnk .fr-ico { position: relative; }
 .fr-dicon-lnk .fr-ico::after { content: ''; position: absolute; left: 0; bottom: 0; width: 11px; height: 11px; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11 11'%3E%3Cpath d='M2.5 8.5C3 5.5 4.5 4 7.5 4V2l2.5 2.8-2.5 2.7V5.6C5.5 5.6 4 6.4 2.5 8.5z' fill='%230b3fa8'/%3E%3C/svg%3E") center / 11px no-repeat; border: 1px solid #7a7a7a; box-sizing: border-box; }
@@ -2050,6 +2058,64 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   html.fr-m #fr-root .np-ta.np-nowrap { font-size: 11px !important; line-height: 15px; }
 }
 
+/* ===== Round 4 (iPhone 13 player) ===== */
+@media (max-width: 760px), (pointer: coarse) and (max-width: 1100px) {
+  /* (F3) the strip fades in where it stays (no slide up from below: it never passes over the sheet tabs under it) */
+  html.fr-m .fr-balloon { animation-name: frTipIn; }
+  @keyframes frTipIn { from { opacity: 0; } to { opacity: 1; } }
+  /* (F5) the ending is opaque: Frank's e-mail no longer shows through the stats and paragraphs */
+  html.fr-m #fr-root .fr-end { background: radial-gradient(ellipse at 50% 20%, #1a203c, #05080f 75%) #05080f; }
+  html.fr-m .fr-end-card p.fr-end-calc { font-size: 12px; margin: -6px auto 8px; }
+  /* (with the breakdown line) the ending a little tighter, so its main button is still on the first screen */
+  html.fr-m .fr-end-card h1 { margin: 8px 0 10px; }
+  html.fr-m .fr-end-card p { line-height: 1.45; margin-bottom: 10px; }
+  html.fr-m .fr-end-stats { margin: 14px 0; gap: 8px; }
+  html.fr-m .fr-end-stats div { padding: 8px 6px; }
+  html.fr-m .fr-end-line { margin: 12px auto; }
+  /* (F6) the way on from Frank's last e-mail */
+  html.fr-m .fr-end-gobar { margin-top: 20px; }
+  html.fr-m .fr-end-go { min-height: 44px; padding: 0 20px; font-size: 14px; }
+  /* (F11) Outlook: no "Inbox" banner over the folder strip (it says the same); no empty preview pane until a message
+     is picked; the "New message" pill when one arrived above the rows in view */
+  html.fr-m .oe-fbar { display: none; }
+  html.fr-m .oe-right.oe-nosel .oe-prev, html.fr-m .oe-right.oe-nosel .oe-prev-split { display: none !important; }
+  html.fr-m .oe-right.oe-nosel .oe-list { flex: 1 1 auto; }
+  html.fr-m .oe-right { position: relative; }
+  html.fr-m .oe-newpill { position: absolute; top: 1px; right: 6px; z-index: 3; height: 25px; min-height: 0; min-width: 0; padding: 0 12px; border-radius: 13px; border: 1px solid #316ac5; background: #316ac5; color: #fff; font: 700 12px Tahoma, sans-serif; box-shadow: 0 1px 4px rgba(0,0,0,.3); }   /* over the column headers, never over a message row */
+  /* (F9) Paint: the Fonts bar is docked above the picture (never over it), shown with the Text tool only */
+  html.fr-m .pt.pt-mob .pt-wsw { flex-direction: column; }
+  html.fr-m .pt.pt-mob .pt-fontbar { position: static; order: -1; flex: none; flex-wrap: nowrap; border: 0; border-bottom: 1px solid #aca899; box-shadow: none; padding: 3px 4px; }
+  /* (F10) Paint: every tool on screen (the row wraps), the options pop up under them, bigger colour swatches */
+  html.fr-m .pt.pt-mob .pt-tools { flex-wrap: wrap; overflow: visible; }
+  html.fr-m .pt.pt-mob .pt-opts { top: calc(100% + 2px); }
+  html.fr-m .pt.pt-mob .pt-colors { overflow: visible; }
+  html.fr-m .pt.pt-mob .pt-pal { flex: 1 1 auto; gap: 2px; grid-template-rows: 28px 28px; grid-template-columns: repeat(14, minmax(0, 1fr)); }
+}
+@media (max-width: 760px), (pointer: coarse) and (max-width: 1100px) {
+  /* (F8) Properties / Folder Options tabs: 44 px tall and sharing the whole strip (a tap on the strip is a tap on a tab) */
+  html.fr-m .sh-sheet menu[role=tablist] { display: flex; }
+  html.fr-m .sh-sheet menu[role=tablist] button { min-height: 44px; flex: 1 1 auto; }
+  /* (F13) the checklist's DONE stamp on its own line, under the item (not over the end of its title) */
+  html.fr-m .ck-stamp { position: static; display: inline-block; margin-top: 6px; transform: rotate(-5deg); }
+  /* (F15) Notepad: small ASCII art (the boarding pass) shrunk to fit the screen with Wrap off (size set by shell.js) */
+  html.fr-m #fr-root .np-ta.np-nowrap.np-fit { font-size: var(--np-fit) !important; line-height: 1.32 !important; }
+  /* (F16) the Start menu says when there is more below (sideways it's taller than the screen) */
+  html.fr-m .fr-start-hint { display: none; position: sticky; bottom: 0; flex: none; height: 30px; margin-top: -30px; pointer-events: none; text-align: center; font: 700 12px/34px Tahoma, sans-serif; color: #fff; text-shadow: 0 1px 2px #000; background: linear-gradient(rgba(10,36,106,0), rgba(10,36,106,.85)); }
+  html.fr-m .fr-start.fr-start-more .fr-start-hint { display: block; }
+}
+/* (F8) sideways: the tabs a notch slimmer (the pinned OK / Cancel need the height) */
+@media (max-height: 500px) { html.fr-m .sh-sheet menu[role=tablist] button { min-height: 40px; } }
+/* (F17) ShowMe ERP on a narrow phone: the module tabs wrap onto a second row instead of running off the right edge */
+@media (max-width: 560px) {
+  html.fr-m .erp-nav { flex-wrap: wrap; overflow: visible; gap: 3px; }
+  html.fr-m #fr-root .erp-n { padding: 0 8px; min-height: 34px; line-height: 32px; font-size: 12.5px; }
+}
+/* portrait phones: Outlook's list gets most of the height (about 8 rows instead of 5); Paint's 28 colours in 4 rows of 7 */
+@media (max-width: 760px) and (min-height: 501px), (pointer: coarse) and (max-width: 1100px) and (min-height: 501px) {
+  html.fr-m .oe-list { flex-basis: 66%; }
+  html.fr-m .pt.pt-mob .pt-pal { grid-template-rows: repeat(4, 30px); grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
+}
+
 </style>
 <script>
 /* FRANK'S COMPUTER — core: state, bus, window manager, dialogs, sound, clock, puzzle engine */
@@ -2511,7 +2577,10 @@ FR.apps = FR.apps || {};
         if (FR.mobile) FR.wm.fitDialog(w, true);
         let done = false;
         const inp = content.querySelector('input');
-        function finish(button) { if (done) return; done = true; shade.remove(); w.el.remove(); w.tb.remove(); wins.delete(w.id);
+        // o.enterKey: Enter presses the default button wherever the focus is (even after a tap on the message text)
+        const enterK = e => { if (e.key === 'Enter' && !done && FR.wm.topDialog() === w && !(e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName))) { e.preventDefault(); e.stopPropagation(); finish(btns[o.def || 0]); } };
+        if (o.enterKey) document.addEventListener('keydown', enterK, true);
+        function finish(button) { if (done) return; done = true; document.removeEventListener('keydown', enterK, true); shade.remove(); w.el.remove(); w.tb.remove(); wins.delete(w.id);
           if (!FR.wm.topDialog()) dn = 0;
           // give focus back to the window that was active before the dialog (or the top-most one)
           let back = null;
@@ -2581,8 +2650,8 @@ FR.apps = FR.apps || {};
   const tipLog = ev => { tips.log.push([Date.now(), ev]); if (tips.log.length > 60) tips.log.shift(); };
   const typingNow = () => { const a = document.activeElement; return !!a && (/^(INPUT|TEXTAREA)$/.test(a.tagName) && !a.readOnly) && !!a.closest('#fr-root'); };
   // something is up that the strip must not cover or interrupt (independent of touches)
-  const tipBlocked = () => document.documentElement.classList.contains('fr-kb') || !!FR.wm.topDialog() || typingNow()
-    || !!document.querySelector('.fr-swlist, .fr-start, .fr-ctx, .fr-menu-drop, .sh-pop, .sh-sheetwin:not(.fr-inactive):not(.fr-closing), .fr-win:not(.fr-inactive) .ck-confirm');
+  const tipBlocked = () => document.documentElement.classList.contains('fr-kb') || !!FR.wm.topDialog() || typingNow() || !!(FR.wm.active && FR.wm.active._frNoTips)
+    || !!document.querySelector('.fr-swlist, .fr-start, .fr-ctx, .fr-menu-drop, .sh-pop, .sh-sheetwin:not(.fr-inactive):not(.fr-closing), .fr-win:not(.fr-inactive) .ck-confirm, .fr-win:not(.fr-inactive) .xl-cmtip:not(:empty)');   // (F14: one at a time: not while a cell note / full-text box is open)
   // (a tip the player asked for, e.g. by tapping Kristians' face in the tray, only waits for the finger to lift)
   const tipQuiet = t => !touching && sinceTouch() >= (t && t.opts.asked ? 350 : TIP.QUIET) && !tipBlocked();
   function tipQueue(title, text, onClick, opts) {
@@ -2620,6 +2689,7 @@ FR.apps = FR.apps || {};
     // opened up, the toast shows what a tap on it does as a real button (e.g. "Open the checklist")
     if (onClick) { const go = $(`<div class="fr-balloon-acts"><button class="fr-balloon-go"></button></div>`); go.firstChild.textContent = opts.act || 'Open'; b.appendChild(go); }
     document.body.appendChild(b);
+    tipPlace(b);
     const c = tips.cur = { t, b, state: 'arriving', shownAt: Date.now(), timer: 0 };
     tipLog('shown ' + title);
     const bb = b.querySelector('.fr-balloon-b'), bt = b.querySelector('.fr-balloon-t b');
@@ -2662,6 +2732,20 @@ FR.apps = FR.apps || {};
       const away = e => { if (tips.cur !== c) return document.removeEventListener('touchstart', away, true); if (!b.contains(e.target) && c.state !== 'arriving') tipGone(c, 'away'); };
       c.away = away; document.addEventListener('touchstart', away, { capture: true, passive: true });
     }, 1200);
+  }
+  // (F3, round 4) the strip sits just above the taskbar, but never over the controls an app keeps at the bottom of its
+  // window (Excel's sheet tabs + Fit / Fill…, the checklist footer, Notepad's Wrap bar, Solitaire's Deal / Undo): over
+  // the active full-screen window it goes just above them, so a tap aimed at a tab or at Fit can never land on the
+  // strip, and a tap where the strip was a moment ago lands on grid, not on a button. (IE keeps it over its bottom
+  // bars: under the strip there, the tap guard can still catch a stray tap; over the framed web page it could not.)
+  const TIP_BARS = '.xl-tabbar, .ck-foot, .np-mbar, .so-tools';
+  function tipPlace(b) {
+    const w = FR.wm.active;
+    if (!w || w.min || !w.el || w.el.classList.contains('fr-dialog')) return;
+    const tbar = document.querySelector('.fr-taskbar'), floor = tbar ? tbar.getBoundingClientRect().top : innerHeight;
+    let top = floor;
+    w.el.querySelectorAll(TIP_BARS).forEach(e => { const r = e.getBoundingClientRect(); if (r.width && r.height && r.bottom > floor - 120 && r.top < floor) top = Math.min(top, r.top); });
+    if (top < floor - 1) b.style.bottom = Math.round(innerHeight - top + 3) + 'px';
   }
   // why: timeout (faded out: ghost 1 s), closed / tapped / away (ghost 0.6 s), suspended (back in the queue, no ghost),
   // typing (a text field got focus: back in the queue)
@@ -3244,13 +3328,16 @@ FR.apps = FR.apps || {};
     if (!ONLINE) return Promise.resolve();
     return api('me').then(r => {
       if (r.ok && r.data.user) { A.available = true; adopt(r.data); return; }
-      if (r.status === 401) { A.available = true; return store.get(GUEST) ? null : A.screen('new'); }
+      // signed out: {user: null} (older servers answered 401)
+      if ((r.ok && r.data && 'user' in r.data) || r.status === 401) { A.available = true; return store.get(GUEST) ? null : A.screen('new'); }
       // 404 (static host) / 503 (storage not set up) / anything else: browser-only saves, as before
     }, () => {});
   };
 
   // send any unsaved progress now (the leaderboard page calls this before loading)
-  A.sync = () => flush(false);
+  // (a save already on its way may not have the latest change in it: wait for it, then send what's left)
+  const syncAll = (n = 0) => busy && n < 3 ? Promise.resolve(busy).then(() => syncAll(n + 1), () => syncAll(n + 1)) : flush(false);
+  A.sync = () => syncAll();
 
   A.signOut = () => Promise.resolve(flush(false))
     .then(() => api('logout', 'POST', {}).catch(() => {}))
@@ -3407,7 +3494,26 @@ FR.apps = FR.apps || {};
     // open the leaderboard in Frank's Internet Explorer (closing the ending screen, which sits on top of the desktop)
     open: () => { document.querySelectorAll('.fr-end').forEach(e => e.remove()); FR.apps.ie(URL_); },
     render,
-    rulesLine: () => `Each riddle solved +${fmt(R.PER_SOLVED)} · each wrong answer −${R.PER_WRONG} · ${R.FREE_HINTS} free hints, then −${R.PER_HINT} per hint · bonus requests and Easter eggs add up to +${fmt(R.BONUS_MAX)} on top`,
+    // the board entry is from another (earlier) game than the one on this computer (this one is a replay)
+    otherGame: me => !!(me && me.finished && (me.game ? me.game !== +FR.state.finishedAt : !FR.state.finishedAt)),
+    // the rules in words, every number from src/score_rules.js (never typed in twice)
+    rulesList: () => [
+      `Each checklist item done: +${fmt(R.PER_SOLVED)}`,
+      `Each wrong answer or wrong password: −${R.PER_WRONG} (an answer that isn't a number where a number is asked doesn't count)`,
+      `${R.FREE_HINTS} free hints, then −${R.PER_HINT} per hint`,
+      `Bonus requests and Easter eggs: up to +${fmt(R.BONUS_MAX)} on top, and they count on the leaderboard`,
+    ],
+    rulesLine: () => FR.score.rulesList().join(' · '),
+    // which game is on the board (the same wording everywhere)
+    boardRule: 'Your first finished Board Pack is your entry. Bonus requests and Easter eggs you finish later in that same game still add to it; a replay after "Start over" doesn\'t change it.',
+    // "10 × 1,000 − 4 wrong × 50 + 1,150 bonus = 10,950": how this game's score adds up
+    breakdown: (c = R.calc(FR.state)) => {
+      const parts = [`${c.solved} × ${fmt(R.PER_SOLVED)}`];
+      if (c.wrong) parts.push(`− ${c.wrong} wrong × ${R.PER_WRONG}`);
+      if (c.paidHints) parts.push(`− ${c.paidHints} paid hint${c.paidHints === 1 ? '' : 's'} × ${R.PER_HINT}`);
+      const floored = c.main === 0 && c.solved * R.PER_SOLVED > 0;
+      return `${parts.join(' ')}${floored ? ' (never below 0)' : ''}${c.bonus ? ` + ${fmt(c.bonus)} bonus` : ''} = ${fmt(c.score)}`;
+    },
   };
 
   // Packa's intranet, circa 2006: the company's own frame around the leaderboard
@@ -3417,9 +3523,9 @@ FR.apps = FR.apps || {};
     <div class="st-body">
       <div class="st-live"><i></i>LIVE</div>
       <h1>${esc(TITLE)}</h1>
-      <p class="st-sub">Frank is out of office (reason: unknown; hole behind poster: not discussed). The Board meets at 9:00 AM. These are the people who sat down at his desk and got the Board Pack out the door. Ranked by points, then by time at the desk.</p>
+      <p class="st-sub">Frank is out of office (reason: unknown; hole behind poster: not discussed). The Board meets at 9:00 AM. These are the people who sat down at his desk and got the Board Pack out the door.</p>
+      <div class="st-rules st-howto"><b>How points work</b><ul>${FR.score.rulesList().map(r => `<li>${esc(r)}</li>`).join('')}</ul><span>${esc(FR.score.boardRule)} Ranked by points, then by time at the desk.</span></div>
       ${inner}
-      <div class="st-rules"><b>Scoring.</b> ${esc(FR.score.rulesLine())}. Your first finished Board Pack is the one that counts.</div>
       <div class="st-foot">Updates live; press Refresh for the latest. Page owner: F. Warmington (out of office). Questions: IT (also out of office).</div>
     </div></div>`;
 
@@ -3432,7 +3538,7 @@ FR.apps = FR.apps || {};
   // fill an IE page element; isCurrent() is false once the player has navigated away (the answer arrives late)
   function render(page, isCurrent = () => true) {
     const c = FR.score.now();
-    const mine = c.solved ? `<div class="st-mine"><b>Your Board Pack right now:</b> ${fmt(c.score)} points${c.bonus ? ` (incl. +${fmt(c.bonus)} bonus)` : ''} &middot; ${c.solved}/${c.total} done &middot; ${c.hints} hint${c.hints === 1 ? '' : 's'} (${c.freeLeft} free left) &middot; ${c.wrong} wrong</div>` : '';
+    const mine = c.solved ? `<div class="st-mine"><b>Your Board Pack right now:</b> ${fmt(c.score)} points${c.bonus ? ` (incl. +${fmt(c.bonus)} bonus)` : ''} &middot; ${esc(FR.score.breakdown(c))} &middot; ${c.solved}/${c.total} done &middot; ${c.hints} hint${c.hints === 1 ? '' : 's'} (${c.freeLeft} free left) &middot; ${c.wrong} wrong</div>` : '';
     if (!FR.score.available()) {
       page.innerHTML = shell(`${mine}<div class="st-msg">The intranet is offline. (The server is also in Vegas.)<br><small>The leaderboard is in the online game, for players with a player account.</small></div>`);
       return;
@@ -3443,7 +3549,7 @@ FR.apps = FR.apps || {};
       const signedIn = !!(FR.account && FR.account.user);
       const note = !signedIn ? `<p class="st-note">You're playing without a visitor badge (no player account), so you're not on the list. Create a player on the start screen to get on it.</p>`
         : !d.me ? `<p class="st-note">You'll appear here once you've ticked off your first item.</p>`
-        : d.me.finished && !c.finished ? `<p class="st-note">Your place is from your first finished Board Pack: ${fmt(d.me.score)} points.</p>` : '';
+        : FR.score.otherGame(d.me) ? `<p class="st-note">Your place is from your first finished Board Pack: ${fmt(d.me.score)} points. This game is a replay, so it doesn't change it.</p>` : '';
       if (!d.top.length) { page.innerHTML = shell(`${mine}<div class="st-msg">Nobody has covered for Frank yet. Be the first.</div>${note}`); return; }
       const meRank = d.me ? d.me.rank : -1;
       page.innerHTML = shell(`${mine}<table class="st-t"><thead><tr><th>#</th><th>Player</th><th>Points</th><th title="Bonus requests and Easter eggs, included in Points">Bonus</th><th>Status</th><th>Hints</th><th>Wrong</th><th>Time</th></tr></thead><tbody>
@@ -6274,7 +6380,8 @@ FR.data.logo = {"mark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"380
         early: "Password accepted.<br><br>Excel: this file is linked to files you haven't rebuilt yet. Finish Frank's checklist up to the bridge, then open it.",
         decoys: { '43182': 'Right numbers. Wrong order. What they told the Board comes first. —F', '18251': 'The formula said 51. Nobody believed the formula either. What is true today (10/16) is in the change log. —F', '182': 'That is what they told the Board. And then what is true. —F', '43': 'That is what is true. What they told the Board comes first. —F', '225': 'Not a sum. =CONCAT. —F' } });
       case 'bp_q1': case 'bp_q2': case 'bp_q3': case 'bp_q4': return openWorkbook(packBook(node.id), Object.assign(o, node.id === 'bp_q4' ? { startSheet: 'Cash Runway', startCell: 'B30' } : {}));
-      case 'changelog': return openWorkbook(changelogBook(), Object.assign(o, { startCell: 'H17' }));
+      // (F18, round 4) phones: row 17 from its first column (the date, who, which file), not scrolled over to H's note
+      case 'changelog': return openWorkbook(changelogBook(), Object.assign(o, { startCell: FR.mobile ? 'A17' : 'H17' }));
       case 'model47': return openWorkbook(model47Book(), o);
       case 'k_ranked': return openWorkbook(rankedBook(), o);
       case 'copybudget':
@@ -7306,6 +7413,7 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
     el.querySelector('.oe-prev-split').style.display = root || !V.preview ? 'none' : '';
     el.querySelector('.oe-start').style.display = root ? '' : 'none';
     el.querySelector('.oe-list').classList.toggle('oe-list-full', !V.preview);
+    el.querySelector('.oe-right').classList.toggle('oe-nosel', !root && !selMsg());   // (phones: no preview pane until a message is picked)
     const f = FOLDERS.find(x => x.id === V.folder);
     const name = root ? 'Outlook Express' : f.name;
     el.querySelector('.oe-fbar-t').textContent = name;
@@ -7357,6 +7465,17 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
     V.el.querySelectorAll('.oe-tbl th .oe-arr').forEach(a => a.remove());
     const sth = V.el.querySelector(`.oe-tbl th[data-c="${V.sort.col}"]`);
     if (sth && V.sort.col !== 'pri' && V.sort.col !== 'att') sth.insertAdjacentHTML('beforeend', `<span class="oe-arr">${V.sort.dir < 0 ? '&#9660;' : '&#9650;'}</span>`);
+    // (F11, round 4) phones: a new message arriving at the top must not push the rows down under the player's finger:
+    // the row that was at the top of the list stays where it was, and a "New message" pill above says there's more
+    const listEl = V.el.querySelector('.oe-list'), lk = V.folder + '|' + V.sort.col + '|' + V.sort.dir;
+    let anchor = null;
+    const before = new Set([...tb.querySelectorAll('tr[data-id]')].map(r => r.dataset.id));
+    if (FR.mobile && V._lk === lk && listEl.offsetHeight) {
+      const hd = listEl.querySelector('thead'), top = listEl.getBoundingClientRect().top + (hd ? hd.offsetHeight : 0);
+      const tr = [...tb.querySelectorAll('tr[data-id]')].find(r => r.getBoundingClientRect().bottom > top + 2);
+      if (tr) anchor = { id: tr.dataset.id, y: tr.getBoundingClientRect().top, top };
+    }
+    V._lk = lk;
     tb.innerHTML = ms.length ? ms.map(m => {
       const r = isRead(m);
       const env = V.folder === 'drafts' ? SI.draft : outgoing ? SI.envSent : r ? SI.envOpen : SI.envClosed;
@@ -7365,6 +7484,12 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
         <td class="oe-from">${ico(env)}<span>${E(outgoing ? namesOf(m.to) : nameOf(m.from))}</span></td>
         <td>${E(m.subject || '(no subject)')}</td><td>${fmtShort(m.t)}</td></tr>`;
     }).join('') : `<tr class="oe-empty"><td colspan="5">There are no items in this view.</td></tr>`;
+    if (anchor) {
+      const n = tb.querySelector(`tr[data-id="${anchor.id}"]`);
+      if (n) { const d = n.getBoundingClientRect().top - anchor.y; if (Math.abs(d) > 1) listEl.scrollTop += d; }
+      const hidden = ms.filter(m => !before.has(m.id)).some(m => { const r = tb.querySelector(`tr[data-id="${m.id}"]`); return r && r.getBoundingClientRect().bottom <= anchor.top + 2; });
+      if (hidden) newPill(listEl);
+    }
     if (!tb.dataset.wired) {
       tb.dataset.wired = '1';
       const rowMsg = e => { const tr = e.target.closest('tr[data-id]'); return tr && byId(tr.dataset.id); };
@@ -7375,6 +7500,18 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
       tb.addEventListener('dblclick', e => { if (FR.mobile) return; const m = rowMsg(e); if (m) openRow(m); });
     }
     renderStart();
+  }
+  // phones: "▲ New message" over the top of the list when one arrived above the rows in view; a tap scrolls up to it
+  function newPill(listEl) {
+    let p = V.el.querySelector('.oe-newpill');
+    if (!p) {
+      p = $(`<button class="oe-newpill fr-guard">&#9650; New message</button>`);
+      p._frShown = Date.now(); p._frGuard = 600;   // (a finger already on its way to the headers doesn't press it)
+      p.onclick = () => { listEl.scrollTo({ top: 0, behavior: 'smooth' }); p.remove(); };
+      listEl.before(p);
+      const off = () => { if (listEl.scrollTop < 4) { p.remove(); listEl.removeEventListener('scroll', off); } };
+      listEl.addEventListener('scroll', off, { passive: true });
+    }
   }
   const openRow = m => (folderOf(m) === 'drafts' ? compose({ to: namesOf(m.to), subject: m.subject, body: m.body, draftOf: m.id }) : openMsg(m));
   function select(m) {
@@ -7474,9 +7611,13 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
     const tb = el.querySelector('.oe-tb');
     // (R3b S8) phones: a clear way back to the list, first in the toolbar
     if (FR.mobile) { const bk = $(`<button class="oe-tbb oe-tbb-back">${FR.icon('back', 20)}<span class="oe-tbl-l">Inbox</span></button>`); bk.onclick = () => w.close(); tb.appendChild(bk); }
-    [['reply', 'Reply', () => replyTo(m, false)], ['replyall', 'Reply All', () => replyTo(m, true)], ['forward', 'Forward', () => forward(m)], '|', ['print', 'Print', () => printMsg(m)], ['del', 'Delete', () => { moveToDeleted(m); w.close(); }], '|', ['prev', 'Previous', () => step(-1)], ['next', 'Next', () => step(1)], '|', ['addresses', 'Addresses', addressBook]].forEach(b => {
+    const TBM = { reply: ['reply', 'Reply', () => replyTo(m, false)], replyall: ['replyall', 'Reply All', () => replyTo(m, true)], forward: ['forward', 'Forward', () => forward(m)], print: ['print', 'Print', () => printMsg(m)], del: ['del', 'Delete', () => { moveToDeleted(m); w.close(); }], prev: ['prev', 'Previous', () => step(-1)], next: ['next', 'Next', () => step(1)], addresses: ['addresses', 'Addresses', addressBook] };
+    // (F1, round 4) phones: Previous / Next come right after "Inbox", so they are always on screen (the strip never has
+    // to be swiped to reach them, and a new message window opens with them in the same place); Print sits at the far end
+    const ORDER_TB = FR.mobile ? ['prev', 'next', '|', 'reply', 'replyall', 'forward', 'del', '|', 'print', 'addresses'] : ['reply', 'replyall', 'forward', '|', 'print', 'del', '|', 'prev', 'next', '|', 'addresses'];
+    ORDER_TB.map(k => k === '|' ? k : TBM[k]).forEach(b => {
       if (b === '|') { tb.appendChild($('<span class="oe-tb-sep"></span>')); return; }
-      const btn = $(`<button class="oe-tbb">${ico(TI[b[0]], 'oe-tbi')}<span class="oe-tbl-l">${b[1]}</span></button>`); btn.onclick = b[2]; tb.appendChild(btn);
+      const btn = $(`<button class="oe-tbb" data-a="${b[0]}">${ico(TI[b[0]], 'oe-tbi')}<span class="oe-tbl-l">${FR.mobile && b[0] === 'prev' ? 'Prev' : b[1]}</span></button>`); btn.onclick = b[2]; tb.appendChild(btn);
     });
     function step(d) {
       const f = folderOf(m); const rows = sorted(inFolder(f)); const i = rows.findIndex(x => x.id === m.id);
@@ -7671,7 +7812,7 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
     [P.drew.email]: s => ({ from: P.drew, subject: 'AUTO-REPLY: ' + s, body: `AUTO-REPLY. I AM IN LAS VEGAS ON COMPANY BUSINESS. THE BUSINESS IS FRANK.\n\nFor budget questions, contact Frank Warmington.\nFor questions about Frank, also contact Frank Warmington.\nFor questions about my Porsche, do not touch my Porsche.\n\nMAKE IT WORK.\n\nDREW HOLLIS\nVP FINANCE` }),
     [P.karen.email]: s => ({ from: P.karen, subject: 'Out of Office: ' + s, body: `I'm on the plant floor through third shift and I don't read e-mail on the plant floor, because forklifts.\n\nIf something is on fire, call ext. 214. If something is merely late, it can wait until morning.\n\nKaren Wills\nVP Operations` }),
     [P.tom.email]: s => ({ from: P.tom, subject: 'Out of Office: ' + s, body: `I'm visiting customers in Joplin and Springfield through Friday with limited access to e-mail.\n\nThe FY27 sales plan is $40.0M and it is locked. If you are writing to unlock it: no.\n\nTom Bracken\nSales Manager` }),
-    [P.steve.email]: s => ({ from: P.steve, subject: 'Re: ' + stripRe(s), body: `Hi, this is Linda at the front desk. Steve doesn't read e-mail after 6 PM. He also doesn't read e-mail before 6 PM. I print them for him in the morning.\n\nIf it's urgent, please call the front office after 7:30 AM.\n\nLinda, on behalf of Steve Packa` }),
+    [P.steve.email]: s => ({ from: P.steve, subject: 'Re: ' + stripRe(s), body: `Hi, this is Barb at the front desk. Steve doesn't read e-mail after 6 PM. He also doesn't read e-mail before 6 PM. I print them for him in the morning.\n\nIf it's urgent, please call the front office after 7:30 AM.\n\nBarb, on behalf of Steve Packa` }),
     [P.joshua.email]: s => ({ from: P.joshua, subject: reSub(s), body: `Wait. Who is this?\n\nFrank's computer is e-mailing me while I'm in Vegas looking for Frank. If this is Frank: CALL DIANE. If this isn't Frank: his checklist is on the desktop. Work through it in order.\n\nSix years. I work with Frank. I don't understand Frank. Good luck.\n\nJosh` }),
     [P.rachel.email]: s => ({ from: P.rachel, subject: reSub(s), body: `FRANK!!! ♥♥ Mīļais!! You're alive!!!\n\n...wait. Frank never writes to me first. Who is this?? Are you on his computer?? Is HE there with you?? You know who I mean. The one with the cheat sheets.\n\nIf you see Frank, tell him I still have the birthday card. The coaster one. Paldies.\n\nR ♥` }),
     [P.emily.email]: s => ({ from: P.emily, subject: reSub(s), body: `Hi! Whoever you are on Frank's computer: thank you for doing this.\n\nI started to explain to Drew what I would do differently with the cash file and he took my phone.\n\nI'll write later. From Joshua's phone, probably.\n\nEmily${SIG.emily}` }),
@@ -8137,7 +8278,7 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
   /* =====================================================================================
      session prefs (shared by every Paint window this session)
      ===================================================================================== */
-  const PREF = { fg: [0, 0, 0], bg: [255, 255, 255], pal: PAL0.slice(), tool: 'pencil', line: 1, brush: 'r4', eraser: 8, air: 1, mode: 0, mag: 4, opaque: true,
+  const PREF = { fg: [0, 0, 0], bg: [255, 255, 255], pal: PAL0.slice(), tool: 'pencil', line: 1, brush: 'r4', eraser: 8, air: 1, mode: 0, mag: 4, opaque: true, textOpaque: false,
     font: { family: 'Arial', size: 12, bold: false, italic: false, underline: false }, toolbox: true, colorbox: true, status: true, textbar: true, grid: false };
   let CLIP = null;     // Paint's own clipboard (ImageData)
   let S = null;        // the open Paint window
@@ -8356,7 +8497,12 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
     const o = S.root.querySelector('.pt-opts'), t = S.tool;
     let h = '';
     const it = (k, v, on, inner) => `<div class="pt-o${on ? ' on' : ''}" data-k="${k}" data-v="${v}">${inner}</div>`;
-    if (t === 'select' || t === 'free' || t === 'text') {
+    // (F21, round 4) the Text tool has its own Opaque / Transparent choice, transparent to start with: a text box no longer
+    // blanks out the drawing under it (the selection tools keep Draw Opaque, as before)
+    if (t === 'text') {
+      h = it('topaque', 1, PREF.textOpaque, `<svg viewBox="0 0 30 18"><rect x="3" y="2" width="12" height="12" fill="#ff0" stroke="#000"/><path d="M10 6h14v10H10z" fill="#08f" stroke="#000"/></svg>`)
+        + it('topaque', 0, !PREF.textOpaque, `<svg viewBox="0 0 30 18"><rect x="3" y="2" width="12" height="12" fill="#ff0" stroke="#000"/><path d="M10 6h14v10H10z" fill="none" stroke="#000"/></svg>`);
+    } else if (t === 'select' || t === 'free') {
       h = it('opaque', 1, PREF.opaque, `<svg viewBox="0 0 30 18"><rect x="3" y="2" width="12" height="12" fill="#ff0" stroke="#000"/><path d="M10 6h14v10H10z" fill="#08f" stroke="#000"/></svg>`)
         + it('opaque', 0, !PREF.opaque, `<svg viewBox="0 0 30 18"><rect x="3" y="2" width="12" height="12" fill="#ff0" stroke="#000"/><path d="M10 6h14v10H10z" fill="none" stroke="#000"/></svg>`);
     } else if (t === 'eraser') {
@@ -8708,7 +8854,7 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
   function styleText() {
     const t = S && S.txt; if (!t) return;
     const f = curFont(), z = S.zoom;
-    Object.assign(t.ta.style, { font: fontCss({ ...f, px: f.px * z }), lineHeight: Math.round(f.px * 1.2) * z + 'px', color: rgb2hex(PREF.fg), background: PREF.opaque ? rgb2hex(PREF.bg) : 'transparent', textDecoration: f.underline ? 'underline' : 'none' });
+    Object.assign(t.ta.style, { font: fontCss({ ...f, px: f.px * z }), lineHeight: Math.round(f.px * 1.2) * z + 'px', color: rgb2hex(PREF.fg), background: PREF.textOpaque ? rgb2hex(PREF.bg) : 'transparent', textDecoration: f.underline ? 'underline' : 'none' });
   }
   function placeText() {
     const t = S && S.txt; if (!t) return;
@@ -8723,7 +8869,7 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
     if (!commit || !v) return;
     pushUndo();
     const R = new Raster(snap()), f = curFont(), lh = Math.round(f.px * 1.2), fg = U(PREF.fg);
-    if (PREF.opaque) for (let y = t.y; y < t.y + t.h; y++) R.span(t.x, t.x + t.w - 1, y, U(PREF.bg));
+    if (PREF.textOpaque) for (let y = t.y; y < t.y + t.h; y++) R.span(t.x, t.x + t.w - 1, y, U(PREF.bg));
     const clipR = new Raster(new ImageData(t.w, t.h));
     wrapLines(v, f, t.w - 4).forEach((ln, i) => textInto(clipR, ln, 2, 2 + i * lh, f, 1));
     for (let j = 0; j < t.h; j++) for (let i = 0; i < t.w; i++) if (clipR.px[j * t.w + i]) R.set(t.x + i, t.y + j, fg);
@@ -9019,6 +9165,7 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
       const k = o.dataset.k, v = o.dataset.v;
       if (k === 'mag') { setZoom(v === 'fit' ? baseZoom() : +v); if (v !== 'fit') PREF.mag = +v; }
       else if (k === 'opaque') { PREF.opaque = v === '1'; renderFloat(); styleText(); }
+      else if (k === 'topaque') { PREF.textOpaque = v === '1'; styleText(); }
       else if (k === 'brush') PREF.brush = v;
       else PREF[k] = +v;
       renderOpts();
@@ -9333,6 +9480,7 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
       if (r.button !== 'OK') return false;
       const v = String(r.value || '').trim().replace(/[\s,$]/g, '');
       if (v && v === String(zipNode.password)) {
+        zipTypedNow = true;
         FR.flags.set('bankzipOpen', true); FR.sound.play('unlock');
         return true;
       }
@@ -9341,8 +9489,23 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
       await FR.dialog({ title: 'Compressed (zipped) Folders', icon: 'error', message: `The password is incorrect. Please try again.${fails + 1 >= 3 ? ZIP_HINT : ''}` });
     }
   }
+  const zipSeen = new Set();   // files opened from the zip in this session
+  let zipTypedNow = false;     // the zip's password was typed in this session (not just remembered from an earlier one)
   async function openZipChild(n) {
-    if (await zipUnlock(n.parent, n.name)) FR.openFile(n);
+    const known = FR.flags.get('bankzipOpen');
+    if (!(await zipUnlock(n.parent, n.name))) return;
+    // (F2, round 4) phones: opening a file from the zip AGAIN (or after a reload: the password was typed another time)
+    // says why no password is asked, in a box where the password box used to be, so a tap aimed at "the password field"
+    // and a typed password + Enter land in the box (Enter = Open), not in a cell of the workbook that would otherwise
+    // have opened under the finger. (The first open right after typing the password opens at once.)
+    const again = known && (zipSeen.has(n.id) || !zipTypedNow);
+    zipSeen.add(n.id);
+    if (again && FR.mobile) {
+      const r = await FR.dialog({ icon: 'key', title: 'Compressed (zipped) Folders', width: 400, buttons: ['Open', 'Cancel'], enterKey: true,
+        message: `Bank.zip is already unlocked: Windows remembered the password you typed earlier.<br><br>Open <b>${esc(n.name)}</b>?` });
+      if (r.button !== 'Open') return;
+    }
+    FR.openFile(n);
   }
 
   /* ======================================================================================
@@ -10366,6 +10529,21 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
     // (Format › Word Wrap still switches it). Plain prose keeps wrapping.
     const lines = ta.value.split('\n').filter(l => l.trim()), art = lines.filter(l => /\S {3,}\S|[|+=_\-]{4,}/.test(l)).length;
     setWrap(!(FR.mobile && lines.length && art / lines.length >= 0.2));
+    // (F15, round 4) phones: a small piece of ASCII art (the boarding pass: 70 columns) shrinks to fit the screen with
+    // Wrap off (no mush, nothing cut off), when that still leaves it readable (≥ 8.5 px); wider files scroll as before
+    if (FR.mobile && !S.wrap) {
+      const cols = Math.max(...ta.value.split('\n').map(l => l.length));
+      const fit = () => {
+        if (!ta.isConnected) return removeEventListener('resize', fit);
+        ta.classList.remove('np-fit');
+        const cs = getComputedStyle(ta), cx = document.createElement('canvas').getContext('2d');
+        cx.font = `100px ${cs.fontFamily}`;
+        const cw = cx.measureText('M').width / 100, room = ta.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 2;
+        const px = Math.floor(Math.min(parseFloat(cs.fontSize), room / (cols * cw)) * 2) / 2;
+        if (cols && px >= 8.5 && px < parseFloat(cs.fontSize)) { ta.style.setProperty('--np-fit', px + 'px'); ta.classList.add('np-fit'); }
+      };
+      setTimeout(fit, 30); addEventListener('resize', fit);
+    }
     setTimeout(() => { ta.focus(); ta.setSelectionRange(0, 0); ta.scrollTop = 0; }, 40);
     return win;
   }
@@ -10902,6 +11080,38 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
       if (FR.mobile) return FR.dialog({ title: 'View Source', icon: 'info', message: "Frank's IE can't show source. Opening the page in your phone's browser.<br><br>On Android (Chrome), put <b>view-source:</b> in front of the address. On an iPhone there's no View Source: a laptop is easiest (Ctrl+U)." });
       FR.dialog({ title: 'View Source', icon: 'info', width: 420, message: "Frank's IE can't show source. Opening the page in your real browser.<br><br>When it opens, press <b>Ctrl+U</b> (or <b>&#8984;+Option+U</b> on a Mac) to view the page source." });
     };
+    // (F12, round 4) Edit › Find (on This Page): Frank's own pages (the intranet leaderboard, the fan club, the
+    // championship…) are searched here: every hit is marked, the first one (then the next, on "Find Next") scrolled into
+    // view. packacorp.com is the live company site in a frame the game can't read; the browser's own Find can.
+    const findOnPage = async () => {
+      const r = cur();
+      if (r && r.kind === 'site') {
+        let doc = null; try { doc = page.querySelector('iframe').contentDocument; } catch (er) {}
+        if (!doc) return FR.dialog({ title: 'Find', icon: 'info', width: 420, message: `This page is on <b>www.packacorp.com</b>, the company's live website. Frank's Internet Explorer can't search inside it, but your own browser can:<br><br>${FR.mobile ? "the browser's menu › <b>Find in page</b> (Chrome), or <b>Share › Find on Page</b> (Safari)." : 'press <b>Ctrl+F</b> (<b>&#8984;+F</b> on a Mac).'}` });
+      }
+      const res = await FR.dialog({ title: 'Find', icon: 'question', message: 'Find what:', input: { label: '', type: 'text', value: S.lastFind || '' }, buttons: ['Find Next', 'Cancel'] });
+      if (res.button !== 'Find Next' || !res.value || !res.value.trim()) return;
+      const q = res.value.trim(); S.lastFind = q;
+      let root_ = page, doc = document;
+      if (r && r.kind === 'site') { try { doc = page.querySelector('iframe').contentDocument; root_ = doc.body; } catch (er) { return; } }
+      root_.querySelectorAll('mark.ie-hit').forEach(m => m.replaceWith(doc.createTextNode(m.textContent)));
+      root_.normalize();
+      const hits = [], ql = q.toLowerCase(), tw = doc.createTreeWalker(root_, NodeFilter.SHOW_TEXT);
+      const nodes = []; for (let n = tw.nextNode(); n; n = tw.nextNode()) if (n.parentElement && !n.parentElement.closest('script, style') && n.nodeValue.toLowerCase().includes(ql)) nodes.push(n);
+      nodes.forEach(n => {
+        let t = n;
+        for (let i = t.nodeValue.toLowerCase().indexOf(ql); i >= 0; i = t.nodeValue.toLowerCase().indexOf(ql)) {
+          const hit = t.splitText(i); t = hit.splitText(q.length);
+          const m = doc.createElement('mark'); m.className = 'ie-hit'; m.style.cssText = 'background:#ffef5a;color:inherit;outline:1px solid #c9a800';
+          hit.replaceWith(m); m.appendChild(hit); hits.push(m);
+        }
+      });
+      if (!hits.length) return FR.dialog({ title: 'Microsoft Internet Explorer', icon: 'info', message: `Finished searching the page. "${esc(q)}" was not found.` });
+      S.hitN = S.lastHitQ === q ? (S.hitN + 1) % hits.length : 0; S.lastHitQ = q;
+      hits[S.hitN].style.background = '#ff9632';
+      hits[S.hitN].scrollIntoView({ block: 'center' });
+      status(`Found ${hits.length} match${hits.length === 1 ? '' : 'es'} for "${q}"${hits.length > 1 ? ` (${S.hitN + 1} of ${hits.length}; Find again for the next)` : ''}`);
+    };
     const openReal = () => { const r = cur(); window.open(r && r.kind === 'site' ? r.url : (r ? r.url : SITE + '/'), '_blank', 'noopener'); };
     const menu = [
       { label: 'File', items: [
@@ -10913,7 +11123,7 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
         { label: 'Properties', action: () => { const r = cur(); FR.dialog({ title: 'Properties', icon: 'info', width: 420, message: `<b>${esc(r ? (PTITLE[r.path] || r.url) : '')}</b><br><br>Protocol: HyperText Transfer Protocol${r && r.url.startsWith('https') ? ' with Privacy' : ''}<br>Type: HTML Document<br>Connection: Not Encrypted (it's 2003 in here)<br>Address (URL): ${esc(r ? r.url : '')}<br>Zone: Internet` }); } },
         { label: 'Close', action: () => win.close() },
       ] },
-      { label: 'Edit', items: [{ label: 'Cut', disabled: true }, { label: 'Copy', disabled: true }, { label: 'Paste', disabled: true }, { sep: true }, { label: 'Select All', disabled: true }, { sep: true }, { label: 'Find (on This Page)...', disabled: true }] },
+      { label: 'Edit', items: [{ label: 'Cut', disabled: true }, { label: 'Copy', disabled: true }, { label: 'Paste', disabled: true }, { sep: true }, { label: 'Select All', disabled: true }, { sep: true }, { label: 'Find (on This Page)...', key: 'Ctrl+F', action: () => findOnPage() }] },
       { label: 'View', items: () => [
         { label: 'Toolbars', disabled: true }, { label: 'Status Bar', checked: true, disabled: true },
         { label: 'Explorer Bar: Favorites', checked: S.pane === 'favorites', action: () => { S.pane = S.pane === 'favorites' ? null : 'favorites'; renderPane(); } },
@@ -10951,6 +11161,7 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
       else if (a === 'print') printDlg();
     });
     addr.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); go(addr.value); } });
+    root.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f' && e.target !== addr) { e.preventDefault(); findOnPage(); } });
     addr.addEventListener('focus', () => addr.select());
     root.querySelector('.ie-addr .ex-go').onclick = () => go(addr.value);
     root.querySelector('.ie-addr .ex-addr-dd').addEventListener('mousedown', e => {
@@ -12342,17 +12553,17 @@ Packa IT`,
       check: v => { const x = num(v); if (near(x, 4.7, 0.051)) return true; if (x > 4000 && x < 5000) return 'VALUE LOOKS LIKE KILOBYTES. THE SCRIPT WANTS MEGABYTES. THE SCRIPT IS VERY LITERAL.'; return 'VALUE DOES NOT MATCH THE ASSET REGISTER. PLEASE CHECK FILE PROPERTIES AND TRY AGAIN.'; },
       hint: 'Packa IT: "HINT: on the desktop, right-click Packa_Corp_Model_FY26_v47... and read Size in Properties."',
       shown: '4.7 MB', right: 'THANK YOU. RECORDED: 4.7 MB.\nRECOMMENDED ACTION: DELETE VERSIONS 1–46.\nRECOMMENDATION DECLINED BY USER IN 2024, 2025 AND 2026.\n\nPacka IT' },
-    { id: 'steve_margin', after: 'unlock', from: { name: 'Steve Packa', email: 'steve.packa@packacorp.com' }, subject: 'Rotary question (typed by Linda)', q: 'Gross margin (%)', ph: 'e.g. 12%',
-      body: `Frank, this is Linda at the front desk, typing for Steve. He is dictating.
+    { id: 'steve_margin', after: 'unlock', from: { name: 'Steve Packa', email: 'steve.packa@packacorp.com' }, subject: 'Rotary question (typed by Barb)', q: 'Gross margin (%)', ph: 'e.g. 12%',
+      body: `Frank, this is Barb at the front desk, typing for Steve. He is dictating.
 
 "Frank. The Rotary asked me our margin on the new pizza box. Tom says we mark it up 25% on cost. So our margin is 25%. Right?
 
 I say it at lunch tomorrow. Give me the real gross margin, in percent, so I don't embarrass the company in front of the Lions Club. They're at the lunch too."
 
-— Steve (and Linda)`,
-      check: v => { const x = num(v); if (near(x, 20, 0.05) || near(x, 0.2, 0.0005)) return true; if (near(x, 25, 0.05) || near(x, 0.25, 0.0005)) return 'Linda here. Steve says "that\'s what Tom said", and "that\'s why I asked you".'; if (near(x, 33.3, 0.1) || near(x, 0.333, 0.001)) return 'Linda here. Steve says that sounds like more than Tom said. Steve likes it. Steve does not believe it.'; return 'Linda here. Steve says "hm." He only says "hm" when a number is wrong.'; },
-      hint: 'Linda: "Steve says: say the price is $125 when the cost is $100. What part of the $125 is profit?"',
-      shown: '20%', right: 'Linda again. Steve says: "Twenty. Markup is on cost, margin is on price. I\'ll say it slowly."\n\nHe also says good work and to go home. He does not know what time it is.' },
+— Steve (and Barb)`,
+      check: v => { const x = num(v); if (near(x, 20, 0.05) || near(x, 0.2, 0.0005)) return true; if (near(x, 25, 0.05) || near(x, 0.25, 0.0005)) return 'Barb here. Steve says "that\'s what Tom said", and "that\'s why I asked you".'; if (near(x, 33.3, 0.1) || near(x, 0.333, 0.001)) return 'Barb here. Steve says that sounds like more than Tom said. Steve likes it. Steve does not believe it.'; return 'Barb here. Steve says "hm." He only says "hm" when a number is wrong.'; },
+      hint: 'Barb: "Steve says: say the price is $125 when the cost is $100. What part of the $125 is profit?"',
+      shown: '20%', right: 'Barb again. Steve says: "Twenty. Markup is on cost, margin is on price. I\'ll say it slowly."\n\nHe also says good work and to go home. He does not know what time it is.' },
     { id: 'dale_var', after: 'ebitda', from: { name: 'Dale Hutchins', email: 'dale.hutchins@packacorp.com' }, subject: 'forklift propane — how bad is it', q: 'Variance (% of budget)', ph: 'e.g. 5%',
       body: `Frank,
 
@@ -12412,6 +12623,10 @@ P.S. Somebody keeps buying all the Funyuns at 2 AM.`,
       shown: '$2,391', right: "$2,391. Huh. That's more than the machine.\n\nSend it \"after the Board\", like you said. Gary" },
   ];
   const BY = Object.fromEntries(TASKS.map(t => [t.id, t]));
+  // (F7, round 4) phones have no right-click: the IT survey says how to get to Properties there (desktop text unchanged)
+  BY.it_audit.mbody = BY.it_audit.body.replace('(Right-click the file on the desktop, then Properties.)', '(Press and hold the file on the desktop until its menu opens, then tap Properties.)');
+  BY.it_audit.mhint = BY.it_audit.hint.replace('right-click', 'press and hold');
+  const bodyOf = t => (FR.mobile && t.mbody) || t.body, hintOf = t => (FR.mobile && t.mhint) || t.hint;
   const pts = id => (R && R.BONUS && R.BONUS[id]) || 0;
   const solved = () => (FR.state.bonus && typeof FR.state.bonus === 'object') ? FR.state.bonus : {};
   const flags = () => FR.state.flags;
@@ -12428,7 +12643,7 @@ P.S. Somebody keeps buying all the Funyuns at 2 AM.`,
     const ms = mailSt();
     if (ms.at[id] != null || hasMail(id)) return false;
     ms.at[id] = FR.clock.playMs(); ms.last = FR.clock.playMs(); FR.save();
-    FR.mail.incoming({ id: mailId(id), from: t.from, subject: t.subject, body: t.body, bonus: id, read: false }, false);
+    FR.mail.incoming({ id: mailId(id), from: t.from, subject: t.subject, body: bodyOf(t), bonus: id, read: false }, false);
     if (!quiet) {
       FR.sound.play('mail');
       FR.balloon('New request from ' + t.from.name, `${esc(t.subject)}<br><small class="bn-bal-s">Optional bonus request &middot; +${pts(id)} points</small>`, () => FR.mail.open(mailId(id)), { act: 'Open it' });
@@ -12466,7 +12681,7 @@ P.S. Somebody keeps buying all the Funyuns at 2 AM.`,
     const r = t.check(String(value || '').trim());
     if (r === true) { award(id, `${t.from.name}: ${t.subject}`); return { ok: true }; }
     const n = addTry(id);
-    return { ok: false, msg: typeof r === 'string' ? r : 'Not quite.', hint: n >= 2 ? t.hint : '' };
+    return { ok: false, msg: typeof r === 'string' ? r : 'Not quite.', hint: n >= 2 ? hintOf(t) : '' };
   }
 
   /* ---------- the answer box inside the e-mail (Outlook calls mount for a message with m.bonus) ---------- */
@@ -13048,17 +13263,17 @@ I'm taking Thursday off.
       // phones have no hover: the first hint says "tap" there (mhints replaces hints[i] when FR.mobile)
       mhints: ["In the approved file, tap cell A1 (the one with the red triangle) to read Frank's note, or read its Notes tab."],
       hints: ['In the approved file, hover the red triangle in cell A1 (or read its Notes tab).', "Walter's seed money is in \"How We Got Started\" on About Us. The ISO year is on Quality & Safety.", '=SUM(2400, 2006) → 4406.'] },
-    { id: 'ebitda', level: 1, t: 'Repair FY27 EBITDA in the Board copy', d: 'Frank broke the EBITDA row at 3 AM (#REF!). Fix row 12 in Excel — FY and all four quarters (E12:H12) — or type the FY number here.', input: 'FY27 EBITDA ($K)', ph: 'e.g. 1,234',
+    { id: 'ebitda', level: 1, t: 'Repair FY27 EBITDA in the Board copy', d: 'Frank broke the EBITDA row at 3 AM (#REF!). Fix row 12 in Excel — FY and all four quarters (E12:H12) — or type the FY number here.', input: 'FY27 EBITDA ($K)', ph: 'e.g. 1,234', num: true,
       where: [W.file('bud_board', 'Budget_FY27_BOARD.xls')],
       hints: ["It's not one cell. The FY column and all four quarters say #REF!. Excel only ticks it when the whole row adds up. (Or type the FY number here.)", 'Gross profit minus SG&A, Rent & leases and Other opex. In C12 type =C7-C9-C10-C11, then the same in E12:H12.', '40,000 − 31,200 − 4,850 − 420 − 400 = 3,130.'] },
-    { id: 'dscr', level: 2, t: 'Prove the bank covenant (DSCR)', d: 'The bank wants the Q3 covenant certificate. Fill in the DSCR in Excel (it ticks itself) or type it here.', input: 'DSCR (x)', ph: 'e.g. 1.40',
-      where: [W.folder('bank', 'My Documents › Bank'), W.mail("Karen's email", 'm_karen_capex')],
+    { id: 'dscr', level: 2, t: 'Prove the bank covenant (DSCR)', d: 'The bank wants the Q3 covenant certificate. Fill in the DSCR in Excel (it ticks itself) or type it here.', input: 'DSCR (x)', ph: 'e.g. 1.40', num: true,
+      where: [W.folder('bank', 'My Documents › Bank'), W.mail("Karen's email", 'm_karen_capex'), W.file('passwords', 'passwords.txt (desktop)')],
       hints: ["Bank.zip needs a password. Open Budget_FY27_BOARD.xls: the yellow note Frank left next to the EBITDA row tells you which cell holds it (passwords.txt on the desktop says the same).", "Section 6.1: capex that wasn't financed by a loan comes off EBITDA first. Karen's email says what was paid in cash.", '(2,860 − 110) ÷ (450 + 1,750) = 1.25x. Just.'] },
     { id: 'cash', level: 3, t: 'Find the first week cash drops below $250K', d: "Frank kept a REAL cash forecast the Board never saw. Find it, add payroll, and pick the first week cash falls below $250K.", pick: 'weeks',
       where: [W.folder('boardroot', 'My Documents › BOARD'), W.mail("Rachel's email", 'm_rachel_payroll'), W.site('careers.html', 'Careers page')],
       hints: ["The REAL VERSION folder is hidden. In any folder window: Tools › Folder Options › View › Show hidden files and folders.", "The payroll row is empty. Rachel has the amount per run; the Careers page says how often Packa pays.", '$196K every other Friday from Oct 23 → weeks 1, 3, 5… Week 5 ends at $110K.'] },
-    { id: 'bridge', level: 3, t: 'Close the Q3 EBITDA bridge', d: 'Two bars are missing. Fill both in Excel until the check says TIES — or type the Freight bar here.', input: 'Freight ($K)', ph: 'e.g. -25',
-      where: [W.folder('board', 'Board Meeting Oct 20'), W.mail('The mill letter', 'm_ozark'), W.site('products.html', 'Products page')],
+    { id: 'bridge', level: 3, t: 'Close the Q3 EBITDA bridge', d: 'Two bars are missing. Fill both in Excel until the check says TIES — or type the Freight bar here.', input: 'Freight ($K)', ph: 'e.g. -25', num: true,
+      where: [W.folder('board', 'Board Meeting Oct 20'), W.mail('The mill letter', 'm_ozark'), W.site('products.html', FR.mobile ? 'Products page (first paragraph)' : 'Products page')],   // (F12: a long page on a phone)
       hints: ["Open Q3_EBITDA_Bridge.xls. Frank's rule: never plug a bar you can calculate. Work out containerboard first.", "The mill letter gives $ per ton. How many tons Packa runs a quarter is on the Products page.", '$40 × 1,500 tons = $60K more cost, so −60. Then −160 − (−120 + 80 − 20 − 60) = −40.'] },
     { id: 'forboard', level: 4, t: 'Open FOR THE BOARD', d: "The locked file on Frank's desktop is his emergency plan. The survival package depends on it.", auto: true,
       where: [W.folder('forboard_dir', 'FOR THE BOARD folder'), W.file('realnotes', 'NOTES_to_whoever_finds_this.txt'), W.file('changelog', 'CHANGE_LOG_do_not_share.xls')],
@@ -13421,6 +13636,13 @@ I'm taking Thursday off.
     F.append(it('logoff', 'Log Off', '', () => FR.dialog({ icon: 'question', title: 'Log Off Windows', message: 'Are you sure you want to log off? Your progress is saved.', buttons: ['Log Off', 'Cancel'] }).then(r => { if (r.button === 'Log Off') { FR.sound.play('logoff'); FR.save(); document.querySelectorAll('.fr-balloon, .fr-ctx').forEach(x => x.remove()); setTimeout(login, 600); } })),
       it('shutdown', 'Turn Off Computer', '', shutdown));
     el.appendChild(m); startMenu = m;
+    // (F16, round 4) phones: when the menu is taller than the screen (sideways), a "more below" shade at its bottom edge
+    // says it scrolls; it goes once the end is in view
+    if (FR.mobile) {
+      m.appendChild($('<div class="fr-start-hint" aria-hidden="true">&#9660; more below</div>'));
+      const more = () => m.classList.toggle('fr-start-more', m.scrollHeight - m.scrollTop - m.clientHeight > 6);
+      m.addEventListener('scroll', more, { passive: true }); requestAnimationFrame(more);
+    }
   }
   function closeStart() { if (startMenu) startMenu.remove(); startMenu = null; document.querySelectorAll('.fr-startbtn').forEach(b => b.classList.remove('on')); }
 
@@ -13452,7 +13674,7 @@ I'm taking Thursday off.
       <h3>How to play</h3><p>Open <b>Board Pack — TO DO</b> (desktop or the clipboard in the tray) to see where you stand. Items unlock one by one. The orange dots show how hard each one is. Each one has <b>Look in</b> shortcuts that open the right folder, email or web page. Some items tick themselves when you crack something in Excel or Outlook; others ask you to pick or type an answer.</p>
       ${FR.mobile ? `<p>Tap to open files and folders. Long-press a file (on the desktop too) for Properties. In Excel, tap a cell, then tap it again (or tap the formula bar) to type; Enter or ✓ puts it in. A cell with a red triangle has a note: tap it to read it. Switch windows with the buttons on the taskbar.</p>` : `<p>Double-click to open files and folders. Right-click files (on the desktop too) for Properties. Excel works like Excel: type formulas, and select cells to see their Sum in the status bar.</p>`}
       <h3>Where are the clues?</h3><p>In Frank's email, his Excel files, his folders (some are hidden), his Recycle Bin, and on <a href="${CONFIG.siteUrl}" target="_blank" rel="noopener">www.packacorp.com</a> — the company website. Keep it open in another tab.</p>
-      <h3>Stuck?</h3><p>Emily from finance installed a Datarails FinanceOS trial on Frank's machine (day 13 of 14). Every checklist item has an <b>Ask FinanceOS</b> button with three hints, from a gentle nudge to the full answer.</p><h3>Score</h3><p>${esc(FR.score.rulesLine())}.${FR.score.available() ? ' Signed-in players are ranked on <b>Board Pack Rescue - Who Covered for Frank?</b> on Packa\'s intranet (the shortcut on the desktop); your first finished game is the one that counts.' : ''}</p>
+      <h3>Stuck?</h3><p>Emily from finance installed a Datarails FinanceOS trial on Frank's machine (day 13 of 14). Every checklist item has an <b>Ask FinanceOS</b> button with three hints, from a gentle nudge to the full answer.</p><h3>Score</h3><p>${esc(FR.score.rulesLine())}.${FR.score.available() ? ' Signed-in players are ranked on <b>Board Pack Rescue - Who Covered for Frank?</b> on Packa\'s intranet (the shortcut on the desktop);  ' + esc(FR.score.boardRule) : ''}</p>
       <h3>Progress</h3><p>Your progress saves in this browser. Log off and come back any time.</p></div>` });
   }
 
@@ -13541,8 +13763,17 @@ I'm taking Thursday off.
           FR.state.answers = FR.state.answers || {}; FR.state.answers[it.id] = shown || value; FR.save();
           FR.puzzle.solve(it.id); return true;
         }
+        // (F19) a number is asked and what came isn't one ("banana"): say so, and it isn't a wrong guess (no points
+        // off, no step toward the Blue Screen); a real number that is wrong still is
+        if (it.num && ok == null && isNaN(FR.puzzle.num(value))) {
+          FR.sound.play('error');
+          fb.className = 'ck-fb bad ck-fb-nan'; fb.textContent = `That's not a number. Type the ${it.input} as a number (${it.ph}). This one doesn't count as a wrong answer.`;
+          return false;
+        }
         FR.puzzle.miss(); FR.sound.play('error');
         fb.className = 'ck-fb bad'; fb.textContent = WRONG[it.id] ? WRONG[it.id](value) : 'Not quite. Check the numbers again.';
+        // (N1) what a wrong answer costs, right where it happens
+        fb.appendChild($(`<span class="ck-fb-pts"> (−${FR.score.rules.PER_WRONG} points)</span>`));
         row.classList.remove('fr-shake'); void row.offsetWidth; row.classList.add('fr-shake');
         return false;
       };
@@ -13588,7 +13819,7 @@ I'm taking Thursday off.
           const c = $(`<button class="ck-sus"><span class="ck-sus-ph"><svg viewBox="0 0 40 44"><circle cx="20" cy="15" r="9" fill="#9fb0cc"/><path d="M3 44c1-11 8-17 17-17s16 6 17 17z" fill="#9fb0cc"/></svg></span><b></b><small></small></button>`);
           c.querySelector('b').textContent = sp.n; c.querySelector('small').textContent = sp.r;
           if (sp.photo && FR.data.images && FR.data.images.kristians) c.querySelector('.ck-sus-ph').innerHTML = `<img src="${FR.data.images.kristians}" alt="">`;
-          const go = () => { if (!tryAnswer(sp.n, sp.n, sp.id === 'kristians')) { c.classList.add('ck-x'); fb.textContent = SUSPECT_NO[sp.id]; } };
+          const go = () => { if (!tryAnswer(sp.n, sp.n, sp.id === 'kristians')) { c.classList.add('ck-x'); fb.textContent = SUSPECT_NO[sp.id]; fb.appendChild($(`<span class="ck-fb-pts"> (−${FR.score.rules.PER_WRONG} points)</span>`)); } };
           c.onclick = () => FR.mobile ? confirmPick(pk, c, sp.n, go) : go();
           pk.appendChild(c);
         });
@@ -13674,20 +13905,21 @@ I'm taking Thursday off.
     const it = ITEMS.find(i => i.id === id);
     const n = ITEMS.filter(i => FR.puzzle.isSolved(i.id)).length;
     const nxt = ITEMS.find(i => !FR.puzzle.isSolved(i.id));
-    if (it && id !== 'login') setTimeout(() => FR.balloon(`Board Pack: ${n} of ${ITEMS.length} done`, `<b>${esc(it.t)}</b> — done.${REACT[id] ? `<br><i>${esc(REACT[id])}</i>` : ''}${nxt ? `<br>Next up: ${esc(nxt.t)}` : ''}`, () => openChecklist(), { silent: true, act: 'Open the checklist', still: () => !nxt || !FR.puzzle.isSolved(nxt.id) }), 900);
+    // (phones) the 10/10 toast would sit over the end of Frank's reply, which opens right after: the ending says it
+    if (it && id !== 'login' && !(FR.mobile && id === 'frank')) setTimeout(() => FR.balloon(`Board Pack: ${n} of ${ITEMS.length} done`, `<b>${esc(it.t)}</b> — done.${REACT[id] ? `<br><i>${esc(REACT[id])}</i>` : ''}${nxt ? `<br>Next up: ${esc(nxt.t)}` : ''}`, () => openChecklist(), { silent: true, act: 'Open the checklist', still: () => !nxt || !FR.puzzle.isSolved(nxt.id) }), 900);
     if (id === 'frank') {
       FR.state.finishedAt = FR.state.finishedAt || Date.now();
       if (FR.state.finishPlayMs == null) FR.state.finishPlayMs = FR.clock.playMs();
       FR.save();
-      // let the player read Frank's reply first: open it, and roll the ending when it's closed (or after 30 s)
+      // (F6) let the player read Frank's reply first: it opens by itself, and the ending rolls only when they are done
+      // with it: they close it (or leave it for another message), or tap "See how it ended" at its end. Never on a timer
+      // while they are reading.
       setTimeout(() => {
         if (FR.mail && FR.mail.open) FR.mail.open('x_frank_reveal');
         const w = FR.wm.wins.get('oe-msg-x_frank_reveal');
-        if (!w) return setTimeout(ending, 6000);
-        const oc = w.opts.onClose;
-        w.opts.onClose = () => { const r = oc ? oc() : undefined; if (r !== false && !endShown) setTimeout(ending, 400); return r; };
+        if (!w) return setTimeout(() => { if (!endShown) ending(); }, 6000);
+        revealDone(w);
       }, 3200);
-      setTimeout(() => { if (!endShown) ending(); }, 30000);
     }
   });
   FR.bus.on('play-tick', ms => { const t = document.querySelector('.ck-wrap .ck-time'); if (t) { const s = FR.clock.dur(ms); if (t.textContent !== s) t.textContent = s; } });
@@ -13708,6 +13940,20 @@ I'm taking Thursday off.
 
   /* =========================================================== ENDING */
   let endShown = false;
+  // Frank's reply is the last thing to read: the ending waits for the player to finish it (see 'solved' above)
+  function revealDone(w) {
+    if (w._frRevealHooked) return;
+    w._frRevealHooked = true;
+    w._frNoTips = true;   // (phones: no toast over the last lines and the button while it's being read; they wait)
+    const oc = w.opts.onClose;
+    w.opts.onClose = () => { const r = oc ? oc() : undefined; if (r !== false && !endShown) setTimeout(ending, 400); return r; };
+    const body = w.body.querySelector('.oe-mbody');
+    if (body && !body.querySelector('.fr-end-go')) {
+      const bar = $(`<div class="fr-end-gobar"><button class="fr-end-go">See how it ended &#9656;</button></div>`);
+      bar.querySelector('button').onclick = () => { FR.sound.play('click'); if (!endShown) ending(); };
+      body.appendChild(bar);
+    }
+  }
   function ending() {
     if (document.querySelector('.fr-end')) return;
     endShown = true;
@@ -13720,6 +13966,7 @@ I'm taking Thursday off.
       <h1>Packa Corp is saved.<br>Frank is in Vegas.</h1>
       <p>You rebuilt Packa's numbers from a pile of "FINAL" files, a hidden folder, a change log and one man's head. The Board saw the real runway, the bank got a true covenant certificate, and the emergency plan passed.</p>
       <div class="fr-end-stats"><div class="fr-end-score"><b>${FR.score.fmt(sc.score)}</b><span>Score</span></div><div><b>${t}</b><span>Time at Frank's desk</span></div><div><b>${hints}</b><span>Hints used</span></div><div><b>${FR.state.wrong || 0}</b><span>Wrong guesses</span></div><div class="fr-end-bonus"><b>+${FR.score.fmt(sc.bonus || 0)}</b><span>Bonus</span></div></div>
+      <p class="fr-end-calc">${esc(FR.score.breakdown(sc))}</p>
       <p class="fr-end-rank"></p>
       <div class="fr-end-line"></div>
       <p><b style="color:#fff">Packa doesn't run on Datarails.</b> So when Frank walked through the wall, the truth nearly went with him.</p>
@@ -13736,9 +13983,17 @@ I'm taking Thursday off.
     // where this game landed on the board (or how to get on it)
     const rankEl = e.querySelector('.fr-end-rank');
     if (FR.score.available() && !(FR.account && FR.account.user)) rankEl.textContent = "Playing without an account, so this score isn't on the leaderboard.";
-    else if (FR.score.available()) FR.score.fetch().then(d => {
-      if (d.me) rankEl.innerHTML = `You're <b>#${d.me.rank}</b> of ${FR.score.fmt(d.players)} ${d.players === 1 ? 'person who has' : 'people who have'} covered for Frank${d.me.score !== sc.score ? ` with your first finished game (${FR.score.fmt(d.me.score)} points)` : ''}.`;
-    }, () => {});
+    else if (FR.score.available()) {
+      // one score everywhere: the board follows this game (bonus included); only a replay shows a different number,
+      // and then it says why. The same game with a different number = the board hasn't caught up yet: ask again.
+      const rank = (tries = 0) => FR.score.fetch().then(d => {
+        if (!d.me || !rankEl.isConnected) return;
+        const other = FR.score.otherGame(d.me);
+        if (!other && d.me.score !== FR.score.now().score && tries < 3) return setTimeout(() => rank(tries + 1), 2000);
+        rankEl.innerHTML = `You're <b>#${d.me.rank}</b> of ${FR.score.fmt(d.players)} ${d.players === 1 ? 'person who has' : 'people who have'} covered for Frank${other ? ` with your first finished game (${FR.score.fmt(d.me.score)} points; a replay doesn't change it)` : ` with ${FR.score.fmt(d.me.score)} points`}.`;
+      }, () => {});
+      rank();
+    }
     e.querySelector('[data-a=again]').onclick = () => confirmStartOver();
     // phones: it comes up by itself, so a tap already on its way (meant for the taskbar, a window) must not press
     // anything on it (1.5 s); "Play again" sits apart, never in the bottom strip where the taskbar was (mobile.css),

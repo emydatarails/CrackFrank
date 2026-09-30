@@ -558,3 +558,61 @@
   html.fr-m #fr-root .np-ta { font-size: 12px !important; line-height: 16px; }
   html.fr-m #fr-root .np-ta.np-nowrap { font-size: 11px !important; line-height: 15px; }
 }
+
+/* ===== Round 4 (iPhone 13 player) ===== */
+@media (max-width: 760px), (pointer: coarse) and (max-width: 1100px) {
+  /* (F3) the strip fades in where it stays (no slide up from below: it never passes over the sheet tabs under it) */
+  html.fr-m .fr-balloon { animation-name: frTipIn; }
+  @keyframes frTipIn { from { opacity: 0; } to { opacity: 1; } }
+  /* (F5) the ending is opaque: Frank's e-mail no longer shows through the stats and paragraphs */
+  html.fr-m #fr-root .fr-end { background: radial-gradient(ellipse at 50% 20%, #1a203c, #05080f 75%) #05080f; }
+  html.fr-m .fr-end-card p.fr-end-calc { font-size: 12px; margin: -6px auto 8px; }
+  /* (with the breakdown line) the ending a little tighter, so its main button is still on the first screen */
+  html.fr-m .fr-end-card h1 { margin: 8px 0 10px; }
+  html.fr-m .fr-end-card p { line-height: 1.45; margin-bottom: 10px; }
+  html.fr-m .fr-end-stats { margin: 14px 0; gap: 8px; }
+  html.fr-m .fr-end-stats div { padding: 8px 6px; }
+  html.fr-m .fr-end-line { margin: 12px auto; }
+  /* (F6) the way on from Frank's last e-mail */
+  html.fr-m .fr-end-gobar { margin-top: 20px; }
+  html.fr-m .fr-end-go { min-height: 44px; padding: 0 20px; font-size: 14px; }
+  /* (F11) Outlook: no "Inbox" banner over the folder strip (it says the same); no empty preview pane until a message
+     is picked; the "New message" pill when one arrived above the rows in view */
+  html.fr-m .oe-fbar { display: none; }
+  html.fr-m .oe-right.oe-nosel .oe-prev, html.fr-m .oe-right.oe-nosel .oe-prev-split { display: none !important; }
+  html.fr-m .oe-right.oe-nosel .oe-list { flex: 1 1 auto; }
+  html.fr-m .oe-right { position: relative; }
+  html.fr-m .oe-newpill { position: absolute; top: 1px; right: 6px; z-index: 3; height: 25px; min-height: 0; min-width: 0; padding: 0 12px; border-radius: 13px; border: 1px solid #316ac5; background: #316ac5; color: #fff; font: 700 12px Tahoma, sans-serif; box-shadow: 0 1px 4px rgba(0,0,0,.3); }   /* over the column headers, never over a message row */
+  /* (F9) Paint: the Fonts bar is docked above the picture (never over it), shown with the Text tool only */
+  html.fr-m .pt.pt-mob .pt-wsw { flex-direction: column; }
+  html.fr-m .pt.pt-mob .pt-fontbar { position: static; order: -1; flex: none; flex-wrap: nowrap; border: 0; border-bottom: 1px solid #aca899; box-shadow: none; padding: 3px 4px; }
+  /* (F10) Paint: every tool on screen (the row wraps), the options pop up under them, bigger colour swatches */
+  html.fr-m .pt.pt-mob .pt-tools { flex-wrap: wrap; overflow: visible; }
+  html.fr-m .pt.pt-mob .pt-opts { top: calc(100% + 2px); }
+  html.fr-m .pt.pt-mob .pt-colors { overflow: visible; }
+  html.fr-m .pt.pt-mob .pt-pal { flex: 1 1 auto; gap: 2px; grid-template-rows: 28px 28px; grid-template-columns: repeat(14, minmax(0, 1fr)); }
+}
+@media (max-width: 760px), (pointer: coarse) and (max-width: 1100px) {
+  /* (F8) Properties / Folder Options tabs: 44 px tall and sharing the whole strip (a tap on the strip is a tap on a tab) */
+  html.fr-m .sh-sheet menu[role=tablist] { display: flex; }
+  html.fr-m .sh-sheet menu[role=tablist] button { min-height: 44px; flex: 1 1 auto; }
+  /* (F13) the checklist's DONE stamp on its own line, under the item (not over the end of its title) */
+  html.fr-m .ck-stamp { position: static; display: inline-block; margin-top: 6px; transform: rotate(-5deg); }
+  /* (F15) Notepad: small ASCII art (the boarding pass) shrunk to fit the screen with Wrap off (size set by shell.js) */
+  html.fr-m #fr-root .np-ta.np-nowrap.np-fit { font-size: var(--np-fit) !important; line-height: 1.32 !important; }
+  /* (F16) the Start menu says when there is more below (sideways it's taller than the screen) */
+  html.fr-m .fr-start-hint { display: none; position: sticky; bottom: 0; flex: none; height: 30px; margin-top: -30px; pointer-events: none; text-align: center; font: 700 12px/34px Tahoma, sans-serif; color: #fff; text-shadow: 0 1px 2px #000; background: linear-gradient(rgba(10,36,106,0), rgba(10,36,106,.85)); }
+  html.fr-m .fr-start.fr-start-more .fr-start-hint { display: block; }
+}
+/* (F8) sideways: the tabs a notch slimmer (the pinned OK / Cancel need the height) */
+@media (max-height: 500px) { html.fr-m .sh-sheet menu[role=tablist] button { min-height: 40px; } }
+/* (F17) ShowMe ERP on a narrow phone: the module tabs wrap onto a second row instead of running off the right edge */
+@media (max-width: 560px) {
+  html.fr-m .erp-nav { flex-wrap: wrap; overflow: visible; gap: 3px; }
+  html.fr-m #fr-root .erp-n { padding: 0 8px; min-height: 34px; line-height: 32px; font-size: 12.5px; }
+}
+/* portrait phones: Outlook's list gets most of the height (about 8 rows instead of 5); Paint's 28 colours in 4 rows of 7 */
+@media (max-width: 760px) and (min-height: 501px), (pointer: coarse) and (max-width: 1100px) and (min-height: 501px) {
+  html.fr-m .oe-list { flex-basis: 66%; }
+  html.fr-m .pt.pt-mob .pt-pal { grid-template-rows: repeat(4, 30px); grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
+}

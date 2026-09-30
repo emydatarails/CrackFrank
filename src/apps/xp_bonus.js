@@ -73,17 +73,17 @@ Packa IT`,
       check: v => { const x = num(v); if (near(x, 4.7, 0.051)) return true; if (x > 4000 && x < 5000) return 'VALUE LOOKS LIKE KILOBYTES. THE SCRIPT WANTS MEGABYTES. THE SCRIPT IS VERY LITERAL.'; return 'VALUE DOES NOT MATCH THE ASSET REGISTER. PLEASE CHECK FILE PROPERTIES AND TRY AGAIN.'; },
       hint: 'Packa IT: "HINT: on the desktop, right-click Packa_Corp_Model_FY26_v47... and read Size in Properties."',
       shown: '4.7 MB', right: 'THANK YOU. RECORDED: 4.7 MB.\nRECOMMENDED ACTION: DELETE VERSIONS 1–46.\nRECOMMENDATION DECLINED BY USER IN 2024, 2025 AND 2026.\n\nPacka IT' },
-    { id: 'steve_margin', after: 'unlock', from: { name: 'Steve Packa', email: 'steve.packa@packacorp.com' }, subject: 'Rotary question (typed by Linda)', q: 'Gross margin (%)', ph: 'e.g. 12%',
-      body: `Frank, this is Linda at the front desk, typing for Steve. He is dictating.
+    { id: 'steve_margin', after: 'unlock', from: { name: 'Steve Packa', email: 'steve.packa@packacorp.com' }, subject: 'Rotary question (typed by Barb)', q: 'Gross margin (%)', ph: 'e.g. 12%',
+      body: `Frank, this is Barb at the front desk, typing for Steve. He is dictating.
 
 "Frank. The Rotary asked me our margin on the new pizza box. Tom says we mark it up 25% on cost. So our margin is 25%. Right?
 
 I say it at lunch tomorrow. Give me the real gross margin, in percent, so I don't embarrass the company in front of the Lions Club. They're at the lunch too."
 
-— Steve (and Linda)`,
-      check: v => { const x = num(v); if (near(x, 20, 0.05) || near(x, 0.2, 0.0005)) return true; if (near(x, 25, 0.05) || near(x, 0.25, 0.0005)) return 'Linda here. Steve says "that\'s what Tom said", and "that\'s why I asked you".'; if (near(x, 33.3, 0.1) || near(x, 0.333, 0.001)) return 'Linda here. Steve says that sounds like more than Tom said. Steve likes it. Steve does not believe it.'; return 'Linda here. Steve says "hm." He only says "hm" when a number is wrong.'; },
-      hint: 'Linda: "Steve says: say the price is $125 when the cost is $100. What part of the $125 is profit?"',
-      shown: '20%', right: 'Linda again. Steve says: "Twenty. Markup is on cost, margin is on price. I\'ll say it slowly."\n\nHe also says good work and to go home. He does not know what time it is.' },
+— Steve (and Barb)`,
+      check: v => { const x = num(v); if (near(x, 20, 0.05) || near(x, 0.2, 0.0005)) return true; if (near(x, 25, 0.05) || near(x, 0.25, 0.0005)) return 'Barb here. Steve says "that\'s what Tom said", and "that\'s why I asked you".'; if (near(x, 33.3, 0.1) || near(x, 0.333, 0.001)) return 'Barb here. Steve says that sounds like more than Tom said. Steve likes it. Steve does not believe it.'; return 'Barb here. Steve says "hm." He only says "hm" when a number is wrong.'; },
+      hint: 'Barb: "Steve says: say the price is $125 when the cost is $100. What part of the $125 is profit?"',
+      shown: '20%', right: 'Barb again. Steve says: "Twenty. Markup is on cost, margin is on price. I\'ll say it slowly."\n\nHe also says good work and to go home. He does not know what time it is.' },
     { id: 'dale_var', after: 'ebitda', from: { name: 'Dale Hutchins', email: 'dale.hutchins@packacorp.com' }, subject: 'forklift propane — how bad is it', q: 'Variance (% of budget)', ph: 'e.g. 5%',
       body: `Frank,
 
@@ -143,6 +143,10 @@ P.S. Somebody keeps buying all the Funyuns at 2 AM.`,
       shown: '$2,391', right: "$2,391. Huh. That's more than the machine.\n\nSend it \"after the Board\", like you said. Gary" },
   ];
   const BY = Object.fromEntries(TASKS.map(t => [t.id, t]));
+  // (F7, round 4) phones have no right-click: the IT survey says how to get to Properties there (desktop text unchanged)
+  BY.it_audit.mbody = BY.it_audit.body.replace('(Right-click the file on the desktop, then Properties.)', '(Press and hold the file on the desktop until its menu opens, then tap Properties.)');
+  BY.it_audit.mhint = BY.it_audit.hint.replace('right-click', 'press and hold');
+  const bodyOf = t => (FR.mobile && t.mbody) || t.body, hintOf = t => (FR.mobile && t.mhint) || t.hint;
   const pts = id => (R && R.BONUS && R.BONUS[id]) || 0;
   const solved = () => (FR.state.bonus && typeof FR.state.bonus === 'object') ? FR.state.bonus : {};
   const flags = () => FR.state.flags;
@@ -159,7 +163,7 @@ P.S. Somebody keeps buying all the Funyuns at 2 AM.`,
     const ms = mailSt();
     if (ms.at[id] != null || hasMail(id)) return false;
     ms.at[id] = FR.clock.playMs(); ms.last = FR.clock.playMs(); FR.save();
-    FR.mail.incoming({ id: mailId(id), from: t.from, subject: t.subject, body: t.body, bonus: id, read: false }, false);
+    FR.mail.incoming({ id: mailId(id), from: t.from, subject: t.subject, body: bodyOf(t), bonus: id, read: false }, false);
     if (!quiet) {
       FR.sound.play('mail');
       FR.balloon('New request from ' + t.from.name, `${esc(t.subject)}<br><small class="bn-bal-s">Optional bonus request &middot; +${pts(id)} points</small>`, () => FR.mail.open(mailId(id)), { act: 'Open it' });
@@ -197,7 +201,7 @@ P.S. Somebody keeps buying all the Funyuns at 2 AM.`,
     const r = t.check(String(value || '').trim());
     if (r === true) { award(id, `${t.from.name}: ${t.subject}`); return { ok: true }; }
     const n = addTry(id);
-    return { ok: false, msg: typeof r === 'string' ? r : 'Not quite.', hint: n >= 2 ? t.hint : '' };
+    return { ok: false, msg: typeof r === 'string' ? r : 'Not quite.', hint: n >= 2 ? hintOf(t) : '' };
   }
 
   /* ---------- the answer box inside the e-mail (Outlook calls mount for a message with m.bonus) ---------- */

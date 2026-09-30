@@ -967,6 +967,7 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
     el.querySelector('.oe-prev-split').style.display = root || !V.preview ? 'none' : '';
     el.querySelector('.oe-start').style.display = root ? '' : 'none';
     el.querySelector('.oe-list').classList.toggle('oe-list-full', !V.preview);
+    el.querySelector('.oe-right').classList.toggle('oe-nosel', !root && !selMsg());   // (phones: no preview pane until a message is picked)
     const f = FOLDERS.find(x => x.id === V.folder);
     const name = root ? 'Outlook Express' : f.name;
     el.querySelector('.oe-fbar-t').textContent = name;
@@ -1018,6 +1019,17 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
     V.el.querySelectorAll('.oe-tbl th .oe-arr').forEach(a => a.remove());
     const sth = V.el.querySelector(`.oe-tbl th[data-c="${V.sort.col}"]`);
     if (sth && V.sort.col !== 'pri' && V.sort.col !== 'att') sth.insertAdjacentHTML('beforeend', `<span class="oe-arr">${V.sort.dir < 0 ? '&#9660;' : '&#9650;'}</span>`);
+    // (F11, round 4) phones: a new message arriving at the top must not push the rows down under the player's finger:
+    // the row that was at the top of the list stays where it was, and a "New message" pill above says there's more
+    const listEl = V.el.querySelector('.oe-list'), lk = V.folder + '|' + V.sort.col + '|' + V.sort.dir;
+    let anchor = null;
+    const before = new Set([...tb.querySelectorAll('tr[data-id]')].map(r => r.dataset.id));
+    if (FR.mobile && V._lk === lk && listEl.offsetHeight) {
+      const hd = listEl.querySelector('thead'), top = listEl.getBoundingClientRect().top + (hd ? hd.offsetHeight : 0);
+      const tr = [...tb.querySelectorAll('tr[data-id]')].find(r => r.getBoundingClientRect().bottom > top + 2);
+      if (tr) anchor = { id: tr.dataset.id, y: tr.getBoundingClientRect().top, top };
+    }
+    V._lk = lk;
     tb.innerHTML = ms.length ? ms.map(m => {
       const r = isRead(m);
       const env = V.folder === 'drafts' ? SI.draft : outgoing ? SI.envSent : r ? SI.envOpen : SI.envClosed;
@@ -1026,6 +1038,12 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
         <td class="oe-from">${ico(env)}<span>${E(outgoing ? namesOf(m.to) : nameOf(m.from))}</span></td>
         <td>${E(m.subject || '(no subject)')}</td><td>${fmtShort(m.t)}</td></tr>`;
     }).join('') : `<tr class="oe-empty"><td colspan="5">There are no items in this view.</td></tr>`;
+    if (anchor) {
+      const n = tb.querySelector(`tr[data-id="${anchor.id}"]`);
+      if (n) { const d = n.getBoundingClientRect().top - anchor.y; if (Math.abs(d) > 1) listEl.scrollTop += d; }
+      const hidden = ms.filter(m => !before.has(m.id)).some(m => { const r = tb.querySelector(`tr[data-id="${m.id}"]`); return r && r.getBoundingClientRect().bottom <= anchor.top + 2; });
+      if (hidden) newPill(listEl);
+    }
     if (!tb.dataset.wired) {
       tb.dataset.wired = '1';
       const rowMsg = e => { const tr = e.target.closest('tr[data-id]'); return tr && byId(tr.dataset.id); };
@@ -1036,6 +1054,18 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
       tb.addEventListener('dblclick', e => { if (FR.mobile) return; const m = rowMsg(e); if (m) openRow(m); });
     }
     renderStart();
+  }
+  // phones: "▲ New message" over the top of the list when one arrived above the rows in view; a tap scrolls up to it
+  function newPill(listEl) {
+    let p = V.el.querySelector('.oe-newpill');
+    if (!p) {
+      p = $(`<button class="oe-newpill fr-guard">&#9650; New message</button>`);
+      p._frShown = Date.now(); p._frGuard = 600;   // (a finger already on its way to the headers doesn't press it)
+      p.onclick = () => { listEl.scrollTo({ top: 0, behavior: 'smooth' }); p.remove(); };
+      listEl.before(p);
+      const off = () => { if (listEl.scrollTop < 4) { p.remove(); listEl.removeEventListener('scroll', off); } };
+      listEl.addEventListener('scroll', off, { passive: true });
+    }
   }
   const openRow = m => (folderOf(m) === 'drafts' ? compose({ to: namesOf(m.to), subject: m.subject, body: m.body, draftOf: m.id }) : openMsg(m));
   function select(m) {
@@ -1135,9 +1165,13 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
     const tb = el.querySelector('.oe-tb');
     // (R3b S8) phones: a clear way back to the list, first in the toolbar
     if (FR.mobile) { const bk = $(`<button class="oe-tbb oe-tbb-back">${FR.icon('back', 20)}<span class="oe-tbl-l">Inbox</span></button>`); bk.onclick = () => w.close(); tb.appendChild(bk); }
-    [['reply', 'Reply', () => replyTo(m, false)], ['replyall', 'Reply All', () => replyTo(m, true)], ['forward', 'Forward', () => forward(m)], '|', ['print', 'Print', () => printMsg(m)], ['del', 'Delete', () => { moveToDeleted(m); w.close(); }], '|', ['prev', 'Previous', () => step(-1)], ['next', 'Next', () => step(1)], '|', ['addresses', 'Addresses', addressBook]].forEach(b => {
+    const TBM = { reply: ['reply', 'Reply', () => replyTo(m, false)], replyall: ['replyall', 'Reply All', () => replyTo(m, true)], forward: ['forward', 'Forward', () => forward(m)], print: ['print', 'Print', () => printMsg(m)], del: ['del', 'Delete', () => { moveToDeleted(m); w.close(); }], prev: ['prev', 'Previous', () => step(-1)], next: ['next', 'Next', () => step(1)], addresses: ['addresses', 'Addresses', addressBook] };
+    // (F1, round 4) phones: Previous / Next come right after "Inbox", so they are always on screen (the strip never has
+    // to be swiped to reach them, and a new message window opens with them in the same place); Print sits at the far end
+    const ORDER_TB = FR.mobile ? ['prev', 'next', '|', 'reply', 'replyall', 'forward', 'del', '|', 'print', 'addresses'] : ['reply', 'replyall', 'forward', '|', 'print', 'del', '|', 'prev', 'next', '|', 'addresses'];
+    ORDER_TB.map(k => k === '|' ? k : TBM[k]).forEach(b => {
       if (b === '|') { tb.appendChild($('<span class="oe-tb-sep"></span>')); return; }
-      const btn = $(`<button class="oe-tbb">${ico(TI[b[0]], 'oe-tbi')}<span class="oe-tbl-l">${b[1]}</span></button>`); btn.onclick = b[2]; tb.appendChild(btn);
+      const btn = $(`<button class="oe-tbb" data-a="${b[0]}">${ico(TI[b[0]], 'oe-tbi')}<span class="oe-tbl-l">${FR.mobile && b[0] === 'prev' ? 'Prev' : b[1]}</span></button>`); btn.onclick = b[2]; tb.appendChild(btn);
     });
     function step(d) {
       const f = folderOf(m); const rows = sorted(inFolder(f)); const i = rows.findIndex(x => x.id === m.id);
@@ -1332,7 +1366,7 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
     [P.drew.email]: s => ({ from: P.drew, subject: 'AUTO-REPLY: ' + s, body: `AUTO-REPLY. I AM IN LAS VEGAS ON COMPANY BUSINESS. THE BUSINESS IS FRANK.\n\nFor budget questions, contact Frank Warmington.\nFor questions about Frank, also contact Frank Warmington.\nFor questions about my Porsche, do not touch my Porsche.\n\nMAKE IT WORK.\n\nDREW HOLLIS\nVP FINANCE` }),
     [P.karen.email]: s => ({ from: P.karen, subject: 'Out of Office: ' + s, body: `I'm on the plant floor through third shift and I don't read e-mail on the plant floor, because forklifts.\n\nIf something is on fire, call ext. 214. If something is merely late, it can wait until morning.\n\nKaren Wills\nVP Operations` }),
     [P.tom.email]: s => ({ from: P.tom, subject: 'Out of Office: ' + s, body: `I'm visiting customers in Joplin and Springfield through Friday with limited access to e-mail.\n\nThe FY27 sales plan is $40.0M and it is locked. If you are writing to unlock it: no.\n\nTom Bracken\nSales Manager` }),
-    [P.steve.email]: s => ({ from: P.steve, subject: 'Re: ' + stripRe(s), body: `Hi, this is Linda at the front desk. Steve doesn't read e-mail after 6 PM. He also doesn't read e-mail before 6 PM. I print them for him in the morning.\n\nIf it's urgent, please call the front office after 7:30 AM.\n\nLinda, on behalf of Steve Packa` }),
+    [P.steve.email]: s => ({ from: P.steve, subject: 'Re: ' + stripRe(s), body: `Hi, this is Barb at the front desk. Steve doesn't read e-mail after 6 PM. He also doesn't read e-mail before 6 PM. I print them for him in the morning.\n\nIf it's urgent, please call the front office after 7:30 AM.\n\nBarb, on behalf of Steve Packa` }),
     [P.joshua.email]: s => ({ from: P.joshua, subject: reSub(s), body: `Wait. Who is this?\n\nFrank's computer is e-mailing me while I'm in Vegas looking for Frank. If this is Frank: CALL DIANE. If this isn't Frank: his checklist is on the desktop. Work through it in order.\n\nSix years. I work with Frank. I don't understand Frank. Good luck.\n\nJosh` }),
     [P.rachel.email]: s => ({ from: P.rachel, subject: reSub(s), body: `FRANK!!! ♥♥ Mīļais!! You're alive!!!\n\n...wait. Frank never writes to me first. Who is this?? Are you on his computer?? Is HE there with you?? You know who I mean. The one with the cheat sheets.\n\nIf you see Frank, tell him I still have the birthday card. The coaster one. Paldies.\n\nR ♥` }),
     [P.emily.email]: s => ({ from: P.emily, subject: reSub(s), body: `Hi! Whoever you are on Frank's computer: thank you for doing this.\n\nI started to explain to Drew what I would do differently with the cash file and he took my phone.\n\nI'll write later. From Joshua's phone, probably.\n\nEmily${SIG.emily}` }),

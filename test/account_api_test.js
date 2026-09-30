@@ -18,7 +18,7 @@ const ok = (cond, msg) => { console.log((cond ? 'ok   ' : 'FAIL ') + msg); if (!
   const a = browser('1.1.1.1'), b = browser('2.2.2.2');
   const state = (n) => ({ solved: { login: 1, version: 2 }, flags: { oe: { moved: {} } }, hintsUsed: { version: 1 }, playMs: n });
 
-  let r = await a('me'); ok(r.status === 401, 'signed out: /me is 401');
+  let r = await a('me'); ok(r.status === 200 && r.data.user === null, 'signed out: /me is 200 {user: null} (no console error for new players)');
   r = await a('register', 'POST', { username: 'ab', password: 'secret1' }); ok(r.status === 400 && r.data.error === 'username', 'short name rejected');
   r = await a('register', 'POST', { username: 'Emily', password: '123' }); ok(r.status === 400 && r.data.error === 'password', 'short password rejected');
   r = await a('register', 'POST', { username: 'Emily', password: 'secret1', state: state(5000) });
@@ -40,7 +40,7 @@ const ok = (cond, msg) => { console.log((cond ? 'ok   ' : 'FAIL ') + msg); if (!
   r = await a('save', 'PUT', undefined, { 'Content-Type': 'text/plain' }); ok(r.status === 415, 'non-JSON write rejected (no cross-site form posts)');
 
   r = await b('logout', 'POST', {}); ok(r.status === 200 && /Max-Age=0/.test(r.set), 'logout clears the cookie');
-  r = await b('me'); ok(r.status === 401, 'signed out after logout');
+  r = await b('me'); ok(r.status === 200 && r.data.user === null, 'signed out after logout');
   r = await b('save', 'PUT', { state: state(1), rev: 99 }); ok(r.status === 401, 'save needs a session');
   r = await a('me'); ok(r.status === 200, "other browser's session is unaffected");
 

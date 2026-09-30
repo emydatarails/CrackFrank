@@ -25,7 +25,26 @@
     // open the leaderboard in Frank's Internet Explorer (closing the ending screen, which sits on top of the desktop)
     open: () => { document.querySelectorAll('.fr-end').forEach(e => e.remove()); FR.apps.ie(URL_); },
     render,
-    rulesLine: () => `Each riddle solved +${fmt(R.PER_SOLVED)} · each wrong answer −${R.PER_WRONG} · ${R.FREE_HINTS} free hints, then −${R.PER_HINT} per hint · bonus requests and Easter eggs add up to +${fmt(R.BONUS_MAX)} on top`,
+    // the board entry is from another (earlier) game than the one on this computer (this one is a replay)
+    otherGame: me => !!(me && me.finished && (me.game ? me.game !== +FR.state.finishedAt : !FR.state.finishedAt)),
+    // the rules in words, every number from src/score_rules.js (never typed in twice)
+    rulesList: () => [
+      `Each checklist item done: +${fmt(R.PER_SOLVED)}`,
+      `Each wrong answer or wrong password: −${R.PER_WRONG} (an answer that isn't a number where a number is asked doesn't count)`,
+      `${R.FREE_HINTS} free hints, then −${R.PER_HINT} per hint`,
+      `Bonus requests and Easter eggs: up to +${fmt(R.BONUS_MAX)} on top, and they count on the leaderboard`,
+    ],
+    rulesLine: () => FR.score.rulesList().join(' · '),
+    // which game is on the board (the same wording everywhere)
+    boardRule: 'Your first finished Board Pack is your entry. Bonus requests and Easter eggs you finish later in that same game still add to it; a replay after "Start over" doesn\'t change it.',
+    // "10 × 1,000 − 4 wrong × 50 + 1,150 bonus = 10,950": how this game's score adds up
+    breakdown: (c = R.calc(FR.state)) => {
+      const parts = [`${c.solved} × ${fmt(R.PER_SOLVED)}`];
+      if (c.wrong) parts.push(`− ${c.wrong} wrong × ${R.PER_WRONG}`);
+      if (c.paidHints) parts.push(`− ${c.paidHints} paid hint${c.paidHints === 1 ? '' : 's'} × ${R.PER_HINT}`);
+      const floored = c.main === 0 && c.solved * R.PER_SOLVED > 0;
+      return `${parts.join(' ')}${floored ? ' (never below 0)' : ''}${c.bonus ? ` + ${fmt(c.bonus)} bonus` : ''} = ${fmt(c.score)}`;
+    },
   };
 
   // Packa's intranet, circa 2006: the company's own frame around the leaderboard
@@ -35,9 +54,9 @@
     <div class="st-body">
       <div class="st-live"><i></i>LIVE</div>
       <h1>${esc(TITLE)}</h1>
-      <p class="st-sub">Frank is out of office (reason: unknown; hole behind poster: not discussed). The Board meets at 9:00 AM. These are the people who sat down at his desk and got the Board Pack out the door. Ranked by points, then by time at the desk.</p>
+      <p class="st-sub">Frank is out of office (reason: unknown; hole behind poster: not discussed). The Board meets at 9:00 AM. These are the people who sat down at his desk and got the Board Pack out the door.</p>
+      <div class="st-rules st-howto"><b>How points work</b><ul>${FR.score.rulesList().map(r => `<li>${esc(r)}</li>`).join('')}</ul><span>${esc(FR.score.boardRule)} Ranked by points, then by time at the desk.</span></div>
       ${inner}
-      <div class="st-rules"><b>Scoring.</b> ${esc(FR.score.rulesLine())}. Your first finished Board Pack is the one that counts.</div>
       <div class="st-foot">Updates live; press Refresh for the latest. Page owner: F. Warmington (out of office). Questions: IT (also out of office).</div>
     </div></div>`;
 
@@ -50,7 +69,7 @@
   // fill an IE page element; isCurrent() is false once the player has navigated away (the answer arrives late)
   function render(page, isCurrent = () => true) {
     const c = FR.score.now();
-    const mine = c.solved ? `<div class="st-mine"><b>Your Board Pack right now:</b> ${fmt(c.score)} points${c.bonus ? ` (incl. +${fmt(c.bonus)} bonus)` : ''} &middot; ${c.solved}/${c.total} done &middot; ${c.hints} hint${c.hints === 1 ? '' : 's'} (${c.freeLeft} free left) &middot; ${c.wrong} wrong</div>` : '';
+    const mine = c.solved ? `<div class="st-mine"><b>Your Board Pack right now:</b> ${fmt(c.score)} points${c.bonus ? ` (incl. +${fmt(c.bonus)} bonus)` : ''} &middot; ${esc(FR.score.breakdown(c))} &middot; ${c.solved}/${c.total} done &middot; ${c.hints} hint${c.hints === 1 ? '' : 's'} (${c.freeLeft} free left) &middot; ${c.wrong} wrong</div>` : '';
     if (!FR.score.available()) {
       page.innerHTML = shell(`${mine}<div class="st-msg">The intranet is offline. (The server is also in Vegas.)<br><small>The leaderboard is in the online game, for players with a player account.</small></div>`);
       return;
@@ -61,7 +80,7 @@
       const signedIn = !!(FR.account && FR.account.user);
       const note = !signedIn ? `<p class="st-note">You're playing without a visitor badge (no player account), so you're not on the list. Create a player on the start screen to get on it.</p>`
         : !d.me ? `<p class="st-note">You'll appear here once you've ticked off your first item.</p>`
-        : d.me.finished && !c.finished ? `<p class="st-note">Your place is from your first finished Board Pack: ${fmt(d.me.score)} points.</p>` : '';
+        : FR.score.otherGame(d.me) ? `<p class="st-note">Your place is from your first finished Board Pack: ${fmt(d.me.score)} points. This game is a replay, so it doesn't change it.</p>` : '';
       if (!d.top.length) { page.innerHTML = shell(`${mine}<div class="st-msg">Nobody has covered for Frank yet. Be the first.</div>${note}`); return; }
       const meRank = d.me ? d.me.rank : -1;
       page.innerHTML = shell(`${mine}<table class="st-t"><thead><tr><th>#</th><th>Player</th><th>Points</th><th title="Bonus requests and Easter eggs, included in Points">Bonus</th><th>Status</th><th>Hints</th><th>Wrong</th><th>Time</th></tr></thead><tbody>

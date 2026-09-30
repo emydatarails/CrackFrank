@@ -166,6 +166,8 @@ with sync_playwright() as p:
     ok(px(pg, 460, 110) == [255, 255, 255], 'free-form selection deleted')
     tool(pg, 'text'); click(pg, 30, 200); pg.keyboard.type('HELLO FRANK')
     ok(pg.locator('.pt-ta').count() == 1 and pg.locator('.pt-fontbar.on').count() == 1, 'text tool: text box and Fonts toolbar')
+    # (F21, round 4) the text box is transparent to start with (it doesn't blank out the drawing); the Opaque option still works
+    ok(pg.evaluate("() => getComputedStyle(document.querySelector('.pt-ta')).backgroundColor") == 'rgba(0, 0, 0, 0)' and pg.locator('.pt-opts .pt-o.on[data-k=topaque][data-v="0"]').count() == 1, 'text box is transparent by default (Transparent option on)')
     tool(pg, 'pencil')
     ink = pg.evaluate("() => { const d = document.querySelector('.pt-cv').getContext('2d').getImageData(30, 200, 140, 24).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i] === 0 && d[i + 1] === 0 && d[i + 2] === 0) n++; return n; }")
     ok(ink > 60 and pg.locator('.pt-ta').count() == 0, f'text is typed onto the picture ({ink} px)')

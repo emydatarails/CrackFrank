@@ -17,7 +17,7 @@ const WHOLE = ['cock', 'cocks', 'dick', 'dicks', 'pussy', 'rape', 'raped', 'rapi
 const ALLOW = ['scunthorp', 'penistone', 'therapist', 'snigger', 'shitake', 'shiitake', 'retardant', 'cockburn',
   'pedometer', 'torpedo', 'speedo', 'pedal', 'pedro'];
 const RESERVED = ['admin', 'administrator', 'root', 'system', 'sysadmin', 'moderator', 'mod', 'support', 'staff', 'official',
-  'helpdesk', 'it', 'packa', 'packacorp', 'packacorporation', 'datarails', 'null', 'undefined', 'anonymous', 'guest'];
+  'helpdesk', 'it', 'packa', 'packacorp', 'packacorporation', 'datarails', 'null', 'undefined', 'anonymous'];
 
 const LEET = { 0: 'o', 1: 'i', 2: 'z', 3: 'e', 4: 'a', 5: 's', 6: 'g', 7: 't', 8: 'b', 9: 'g' };
 const collapse = s => s.replace(/(.)\1+/g, '$1');               // shiiit → shit

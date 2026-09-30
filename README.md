@@ -31,7 +31,7 @@ player accounts (`/api/*`, see below).
 | `vercel.json` | Vercel build settings (build command, `dist/` output, cache headers). |
 | `.github/workflows/ci.yml` | Builds and runs the spreadsheet-engine tests on every push and PR. |
 | `test/` | `excel_engine_test.js` (node, no deps), `play.py` (full Playwright playthrough; the tests can't reach the live packacorp.com, so `site_route.py` serves the copies in `test/site/`: the pages, a stand-in stylesheet and script, the real logo and stand-in photos), `account_api_test.js` + `account_play.py` (player accounts), `persist_play.py` (spreadsheet edits saved with the game), `local_server.js` + `fake_redis.js` (runs the game and `api/` locally with an in-memory database). |
-| `tools/` | `make_sounds.py` + the Windows XP sound pack, to regenerate `src/sounds.js`; `board_admin.js` (hide a player from the live leaderboard, see below). |
+| `tools/` | `make_sounds.py` + the Windows XP sound pack, to regenerate `src/sounds.js`; `board_admin.js` (hide a player from the live leaderboard, see below); `make_portraits.py` (the Solitaire face-card portraits → `src/portraits.js`). |
 | `VERSION` | The game's version number (see "Versions" below). |
 | `docs/` | `SPEC.md` (the design spec; later sections win), `API.md` (the `window.FR` API every app uses), `CANON_DECISIONS.md` (numbers and story facts that must stay consistent), `PACKA_SITE_GAME_CLUES.md` (what must exist on packacorp.com), `PLAYTEST_FPA.md`. |
 

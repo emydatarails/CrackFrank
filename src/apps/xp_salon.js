@@ -100,6 +100,8 @@
   const TITLES = { '': 'AL PACKA — Hair Design for the Discerning Alpaca', 'styles.html': 'Styles & Prices — AL PACKA', 'stories.html': 'Client Stories — AL PACKA', 'book.html': 'Book a Chair — AL PACKA', 'about.html': 'About Al — AL PACKA' };
 
   FR.ieFavs = (FR.ieFavs || []).concat([['Packa Holdings', [['AL Packa — Alpaca Hair Salon', URL0]]]]);
+  // and the last button on the Links toolbar (FR.ieLinks, src/apps/shell.js)
+  FR.ieLinks = (FR.ieLinks || []).concat([['AL Packa', URL0]]);
   FR.iePages = Object.assign(FR.iePages || {}, {
     [HOST]: {
       title: TITLES[''],

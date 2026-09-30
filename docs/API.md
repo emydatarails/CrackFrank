@@ -57,7 +57,7 @@ Test page: `dist/index.html?dev=1` skips intro/login (logged in, all items unloc
   numbers(text), taskOf(msg) (the request a message belongs to: `msg.bonus`, the sender's answers `msg.bonusRe`, or sender +
   subject), mount(el, msg), onReply(msg, orig) } with `FR.state.bonus = { id: { solvedAt, pts } }` (points come
   from `BONUS` in src/score_rules.js). Other files can add Run… commands (`FR.runCommands[name] = fn`), Internet Explorer
-  pages (`FR.iePages[host] = { title, html(url), onShow? }`) and Favorites (`FR.ieFavs.push([folder, [[title, url]]])`),
+  pages (`FR.iePages[host] = { title, html(url), onShow? }`), Favorites (`FR.ieFavs.push([folder, [[title, url]]])`) and Links toolbar buttons (`FR.ieLinks.push([title, url])`, after Packa's own),
   and built-in Paint pictures (a file node with `app: 'paint'` and `paintImage()` → ImageData, via `FR.fs.extra`).
 - `FR.balloon(title, html, onClick?, { act, silent, icon, cls })` — `icon` replaces the title icon (HTML), `cls` adds a class.
 - Events added: 'miss' (streak), 'bsod' (true/false), 'egg' ({id, n, total}), 'bonus' (id), 'bonus-mail' (id), 'desktop'

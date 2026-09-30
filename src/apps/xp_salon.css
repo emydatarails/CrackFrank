@@ -29,6 +29,7 @@
 .sa-star { font-size: 10px; color: #8a5a70; margin: 6px 0 12px; }
 .sa .sa-btn { display: inline-block; background: #6b2046; color: #fff; border: 2px outset #b9567f; padding: 5px 14px; font: bold 12px Verdana, sans-serif; text-decoration: none; cursor: pointer; }
 .sa .sa-btn:hover { background: #8a2b5b; }
+.sa-body a.sa-btn { color: #fff; text-decoration: none; }
 .sa-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
 .sa-box { background: #fff; border: 1px solid #e8a5c1; padding: 10px 12px; }
 .sa-box p { margin: 4px 0 6px; }

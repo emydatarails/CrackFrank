@@ -31,5 +31,10 @@
 - Phones/tablets: one media query, `FR.MOBILE_MQ` in `src/core.js` = `(max-width: 760px), (pointer: coarse) and (max-width: 1100px)`,
   sets `FR.mobile` and `<html class="fr-m">`; mobile CSS lives only in `src/mobile.css` (inside that query), mobile JS only behind
   `FR.mobile`. A desktop (fine pointer, 1100px+) must look and behave exactly as before. Test: `python3 test/mobile_play.py` (whole game by touch).
+- Testing: run only what the change needs. A contained change (one page, one app, text, images): build, then a short
+  check of just what changed (desktop, plus one phone if it touches layout). Shared code (window manager, balloons/tips,
+  scoring, saves, accounts): its node tests plus the one browser test that covers it. The full runs (`play.py`,
+  `mobile_play.py` on every phone, desktop screenshot comparisons) only for big cross-cutting changes or before a
+  release, and say so first with a rough time.
 - `?dev=1` / `?solve=<id>` shortcuts work only on file:// and localhost (see `LOCAL` in `src/boot.js`).
 - Deploys: Vercel (`vercel.json`: build → test → serve `dist/`). Pushing to `main` deploys production; `.github/workflows/ci.yml` builds and tests every push.

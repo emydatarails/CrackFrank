@@ -1863,6 +1863,8 @@
         { label: 'Add to Favorites...', disabled: true }, { label: 'Organize Favorites...', disabled: true }, { sep: true },
         ...LINKS.map(([t, u]) => ({ label: t, action: () => go(u) })), { sep: true },
         { label: "Kristians' Cheat Sheet Club", action: () => go(CLUB) }, { sep: true },
+        // the extras' favourites (src/apps/xp_*.js), in file order: Frank's karaoke bar, then AL Packa last
+        ...(FR.ieFavs || []).flatMap(([, list]) => list.map(([t, u]) => ({ label: t, action: () => go(u) }))), ...((FR.ieFavs || []).length ? [{ sep: true }] : []),
         { label: 'Tip: View > Source', action: tipSource },
       ] },
       { label: 'Tools', items: [

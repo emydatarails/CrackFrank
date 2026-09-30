@@ -41,6 +41,7 @@ Test page: `dist/index.html?dev=1` skips intro/login (logged in, all items unloc
   Wording built from the rules (never type the numbers in): `rulesList()` / `rulesLine()`, `breakdown(calc?)` ("10 × 1,000 − 4 wrong × 50 + 1,150 bonus requests = 10,950"; eggs as "+ n eggs × 10"), `bonusWord` ("bonus & eggs": the total of both, wherever it is shown on its own),
   `boardRule` (which game is on the board), `otherGame(me)` (the board entry is an earlier game than this one: a replay). `FR.account.sync()` sends unsaved progress
   (waits for a save already on its way). Server: `GET /api/me` → `{user: null}` when signed out; `GET /api/scores` → `{top, me (+ me.game = the entry's finishedAt), players, rules}`.
+- `FR.data.images.sa_<key>` (src/salon_images.js): the AL PACKA website photos; `mewc_<name>` (src/portraits.js): the Solitaire portraits.
 - `FR.version` (build.py, from `VERSION`): `{ version, build ('dev' or the short commit), date, full }`; shown in Help and Support and About Windows.
 - `FR.bus.on(evt, fn)`, `FR.bus.emit(evt, data)`. Events: 'solved' (id), 'flag' ({k,v}), 'login', 'fs-change'.
 - `FR.puzzle.solve(id)` — marks a checklist item solved (only if it's the current/unlocked one or earlier; else ignored and returns false),

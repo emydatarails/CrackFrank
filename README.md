@@ -230,6 +230,11 @@ python3 test/features_play.py            # Blue Screen, Norton, bonus requests, 
 
 ## Extras
 
+- **AL PACKA** (`src/apps/xp_salon.js`, `.css`): "Missouri's greatest alpaca hair salon", a Packa Holdings company, at
+  `http://www.alpacka.example/` in Frank's Internet Explorer: the last Favorite (sidebar folder "Packa Holdings" and the
+  Favorites menu). Five pages (home, Styles & Prices, Client Stories with a guestbook, a Book a Chair form that answers with
+  a message box, About Al) and ten photos made in Magnific (`src/salon_images.js`, packed by `tools/make_salon_images.py`;
+  a missing photo shows an empty frame). Pure fun: no puzzle numbers, no points, not an Easter egg.
 - **Blue Screen of Death** (`src/apps/xp_bsod.js`). Four wrong answers in a row (checklist answers, Excel and zip
   passwords; never the Windows log-on riddle, which calls `FR.puzzle.miss({ login: true })`) bring up a full-screen XP
   stop screen ("…shut down to prevent damage to your Board Pack", `*** STOP: 0x00000004 (TOO_MANY_WRONG_ANSWERS,

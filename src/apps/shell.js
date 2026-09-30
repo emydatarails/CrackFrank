@@ -1913,7 +1913,8 @@
         if (k === 'guestbook') { const h = [...page.querySelectorAll('h3')].find(x => /guestbook/i.test(x.textContent)); if (h) h.scrollIntoView({ block: 'start' }); else go(CLUB); return; }
         go(k === 'home' ? CLUB : CLUB + '/' + k); return;
       }
-      const lk = e.target.closest('.cc-lnk'); if (lk) { go(lk.dataset.url); return; }
+      // links inside a page (the club's, the extras' sites such as AL PACKA in src/apps/xp_salon.js)
+      const lk = e.target.closest('.cc-lnk, [data-url]'); if (lk && lk.dataset.url) { go(lk.dataset.url); return; }
       const l = e.target.closest('[data-ie]'); if (!l) return; if (l.dataset.ie === 'home') go(SITE + '/'); else render(); });
     go(url || SITE + '/');
     return win;

@@ -168,6 +168,7 @@ FR.apps = FR.apps || {};
       FR.state.solved[id] = Date.now(); FR.state.missStreak = 0; FR.save();
       FR.sound.play(id === 'frank' ? 'tada' : 'unlock');
       FR.bus.emit('solved', id);
+      FR.bus.emit('score');
       return true;
     },
     // a wrong guess anywhere (checklist, password boxes) counts toward the final score. Every one except the Windows
@@ -177,6 +178,7 @@ FR.apps = FR.apps || {};
       FR.state.wrong = (FR.state.wrong || 0) + 1;
       if (!(o && o.login)) FR.state.missStreak = (FR.state.missStreak || 0) + 1;
       FR.save();
+      FR.bus.emit('score');   // (R6 Q4) the checklist footer shows the −50 at once
       if (!(o && o.login)) FR.bus.emit('miss', FR.state.missStreak);
     },
     hit() { if (FR.state.missStreak) { FR.state.missStreak = 0; FR.save(); } },
@@ -585,7 +587,7 @@ FR.apps = FR.apps || {};
     const c = tips.cur = { t, b, state: 'arriving', shownAt: Date.now(), timer: 0 };
     tipLog('shown ' + title);
     const bb = b.querySelector('.fr-balloon-b'), bt = b.querySelector('.fr-balloon-t b');
-    if (bb.scrollHeight > bb.clientHeight + 1 || b.scrollHeight > b.clientHeight + 1 || (bt && bt.scrollWidth > bt.clientWidth + 1)) b.classList.add('fr-balloon-more');
+    if (bb.scrollHeight > bb.clientHeight + 1 || b.scrollHeight > b.clientHeight + 1 || (bt && bt.scrollWidth > bt.clientWidth + 1) || (b.classList.contains('fr-balloon-bar') && bb.scrollWidth > bb.clientWidth + 1)) b.classList.add('fr-balloon-more');
     // arriving: taps pass through for 400 ms (and for as long as a finger that came down meanwhile stays down)
     let touchedMeanwhile = false;
     const arrive = () => {
@@ -631,9 +633,28 @@ FR.apps = FR.apps || {};
   // strip, and a tap where the strip was a moment ago lands on grid, not on a button. (IE keeps it over its bottom
   // bars: under the strip there, the tap guard can still catch a stray tap; over the framed web page it could not.)
   const TIP_BARS = '.xl-tabbar, .ck-foot, .np-mbar, .so-tools';
+  // (R6 Q5) held sideways the screen is too short for a strip over the window (Excel shows about 8 rows): the tip is
+  // one compact line over the title bar's caption, left of its Menu / Minimize / Close buttons (the caption does
+  // nothing on a phone), so it covers no row, no formula bar and no bottom control. A tap on it still opens it up.
+  const tipSideways = () => innerWidth > innerHeight && innerHeight <= 500;
+  function tipPlaceBar(b, w) {
+    const tb = w.el.querySelector(':scope > .title-bar');
+    if (!tb) return false;
+    const r = tb.getBoundingClientRect();
+    if (!r.height || r.top > 4) return false;
+    let right = r.right;
+    tb.querySelectorAll(':scope > .fr-mbtn, :scope > .title-bar-controls').forEach(e => { const q = e.getBoundingClientRect(); if (q.width) right = Math.min(right, q.left); });
+    const left = r.left + 3, width = Math.round(right - 6 - left);
+    if (width < 200) return false;
+    b.classList.add('fr-balloon-bar');
+    b.querySelectorAll('.fr-balloon-b br').forEach(br => { const sep = document.createElement('span'); sep.className = 'fr-balloon-sep'; sep.textContent = ' · '; br.replaceWith(sep); });
+    b.style.top = Math.round(r.top + 1) + 'px'; b.style.left = Math.round(left) + 'px'; b.style.width = width + 'px'; b.style.height = Math.round(r.height - 2) + 'px';
+    return true;
+  }
   function tipPlace(b) {
     const w = FR.wm.active;
     if (!w || w.min || !w.el || w.el.classList.contains('fr-dialog')) return;
+    if (tipSideways() && tipPlaceBar(b, w)) return;
     const tbar = document.querySelector('.fr-taskbar'), floor = tbar ? tbar.getBoundingClientRect().top : innerHeight;
     let top = floor;
     w.el.querySelectorAll(TIP_BARS).forEach(e => { const r = e.getBoundingClientRect(); if (r.width && r.height && r.bottom > floor - 120 && r.top < floor) top = Math.min(top, r.top); });

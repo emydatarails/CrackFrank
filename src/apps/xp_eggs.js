@@ -44,6 +44,7 @@
     FR.save();
     toast(id, n);
     FR.bus.emit('egg', { id, n, total: EGGS.length });
+    FR.bus.emit('score');
     if (FR.checklistRender) FR.checklistRender();   // the footer's score and egg count
     return true;
   }

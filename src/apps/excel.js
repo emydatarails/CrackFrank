@@ -1529,6 +1529,29 @@
     }
   }
   XL.fmtNum = fmtNum;
+  // (R6 Q8) Excel's General format (no number format) when the number is wider than its column: as many decimals as
+  // fit (2391.23627 → 2391.236 → 2391.2 → 2391), then scientific (1.23457E+11 … 1E+11); "###" only when even that
+  // doesn't fit. Formatted numbers (0.0, %, dates …) never shrink, they show ### as in Excel. fits(text) → bool.
+  const FIXED_FMT = /^(n[012]|p[012]|x[12]|ms1|int|days|date|ymd|c[02])$/;
+  const isGeneral = f => !FIXED_FMT.test(f || '');
+  function fitGeneral(v, fits) {
+    const s0 = fmtNum(v).t;
+    if (fits(s0)) return s0;
+    if (typeof v !== 'number' || !isFinite(v)) return null;
+    const m = /^-?\d+\.(\d+)$/.exec(s0);
+    if (m) for (let d = m[1].length - 1; d >= 0; d--) {
+      const t = String(parseFloat(v.toFixed(d)));
+      if (+t === 0) break;   // every significant digit gone (0.0000123 → 0): scientific instead
+      if (fits(t)) return t;
+    }
+    for (let p = 5; p >= 0; p--) {
+      const [mant, ex] = v.toExponential(p).split('e');
+      const t = String(parseFloat(mant)) + 'E' + (ex[0] === '-' ? '-' : '+') + ex.replace(/^[+-]/, '').padStart(2, '0');
+      if (fits(t)) return t;
+    }
+    return null;
+  }
+  XL.fitGeneral = fitGeneral;
   const decFmt = (f, dir) => {
     const map = { n0: ['n1', 'n0'], n1: ['n2', 'n0'], n2: ['n2', 'n1'], p0: ['p1', 'p0'], p1: ['p2', 'p0'], p2: ['p2', 'p1'], x1: ['x2', 'x1'], x2: ['x2', 'x1'], c0: ['c2', 'c0'], c2: ['c2', 'c0'] };
     const m = map[f || ''] || ['n1', 'n0'];
@@ -1797,7 +1820,10 @@
           let cls = cl.cm ? 'xl-hascm' : '';
           let html;
           const w = colWd[c];
-          if (isNum && text && measure(text, sty) > w - 5) { text = '#'.repeat(Math.max(1, Math.floor((w - 5) / 7.4))); pad = false; }
+          if (isNum && text && measure(text, sty) > w - 5) {
+            const g = isGeneral(sty.f) ? fitGeneral(v, t => measure(t, sty) <= w - 5) : null;
+            text = g || '#'.repeat(Math.max(1, Math.floor((w - 5) / 7.4))); pad = false;
+          }
           if (!isNum && text && al === 'l' && !isErr(v)) {
             const tw = measure(text, sty) + 4 + (sty.ind ? sty.ind * 9 : 0);
             if (tw > w) {

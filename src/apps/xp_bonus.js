@@ -191,8 +191,9 @@ P.S. Somebody keeps buying all the Funyuns at 2 AM.`,
     FR.save();
     FR.sound.play('unlock');
     const sc = FR.score ? FR.score.now() : null;
-    FR.balloon(`Bonus: +${pts(id)} points`, `${esc(label || (BY[id] ? BY[id].from.name : 'Bonus'))}${sc ? `<br>Score now ${FR.score.fmt(sc.score)} (bonus ${FR.score.fmt(sc.bonus)})` : ''}`, null, { silent: true });
+    FR.balloon(`Bonus: +${pts(id)} points`, `${esc(label || (BY[id] ? BY[id].from.name : 'Bonus'))}${sc ? `<br>Score now ${FR.score.fmt(sc.score)} (+${FR.score.fmt(sc.bonus)} ${FR.score.bonusWord})` : ''}`, null, { silent: true });
     FR.bus.emit('bonus', id);
+    FR.bus.emit('score');
     return true;
   }
   // → { ok: true } | { ok: false, msg, hint? }

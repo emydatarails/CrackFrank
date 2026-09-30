@@ -473,10 +473,11 @@
   html.fr-m .ca-win > .fr-menubar { display: none; }
   /* Excel sideways: no menu bar, slimmer title bar, formula bar, tabs and taskbar (about 13 rows instead of 8) */
   html.fr-m .xl-win .fr-menubar { display: none; }
-  /* (R5 P6) where sideways hides the menu bar, a "Menu" button in the title bar brings it back (until a command is picked) */
-  html.fr-m #fr-root :is(.ie-win, .oe-win, .ca-win, .xl-win) > .title-bar > .fr-mbtn { display: block; flex: none; margin: 0 4px 0 auto; min-width: 0; min-height: 26px; padding: 0 12px; border: 1px solid rgba(255, 255, 255, .75); border-radius: 3px; background: rgba(255, 255, 255, .18); box-shadow: none; color: #fff; font: bold 13px Tahoma, sans-serif; text-shadow: none; }
+  /* (R5 P6) where sideways hides the menu bar, a "Menu" button in the title bar brings it back (until a command is picked)
+     (R6 Q3: Paint too) */
+  html.fr-m #fr-root :is(.ie-win, .oe-win, .ca-win, .xl-win, .pt-win) > .title-bar > .fr-mbtn { display: block; flex: none; margin: 0 4px 0 auto; min-width: 0; min-height: 26px; padding: 0 12px; border: 1px solid rgba(255, 255, 255, .75); border-radius: 3px; background: rgba(255, 255, 255, .18); box-shadow: none; color: #fff; font: bold 13px Tahoma, sans-serif; text-shadow: none; }
   html.fr-m #fr-root .fr-mshow > .title-bar > .fr-mbtn { background: #fff; color: #0a246a; }
-  html.fr-m #fr-root :is(.ie-win, .oe-win, .ca-win, .xl-win).fr-mshow > .fr-menubar { display: flex; }
+  html.fr-m #fr-root :is(.ie-win, .oe-win, .ca-win, .xl-win, .pt-win).fr-mshow > .fr-menubar { display: flex; }
   html.fr-m #fr-root .fr-win .title-bar { min-height: 28px; padding: 1px 4px; }
   html.fr-m #fr-root .fr-win .title-bar-controls button { min-width: 26px; min-height: 26px; }
   html.fr-m .xl-fbar { padding: 2px 3px; }
@@ -710,3 +711,55 @@
 @media (max-width: 360px) { html.fr-m .bs-txt { font-size: 11px; } }
 @media (max-height: 600px) and (max-width: 1100px) { html.fr-m .bs-txt .bs-long { display: none; } }
 @media (orientation: landscape) and (max-height: 500px) { html.fr-m .bs-txt { font-size: 10.5px; } html.fr-m .bs-txt p { margin-bottom: .5em; } }
+
+/* ===== Round 6 (iPhone SE player) ===== */
+@media (max-width: 760px), (pointer: coarse) and (max-width: 1100px) {
+  /* (Q1) the hint button stands apart: a tap on the line above it ("Ticks itself when you do it.", a chip, the
+     answer's feedback) is never taken as a tap on the button (browsers snap a near miss to the nearest button) */
+  html.fr-m .ck-hrow { margin-top: 18px; }
+  /* (Q6) the desktop icons when their columns don't fit the screen (boot.js fitIcons) */
+  html.fr-m .fr-icons.fr-icons-tight { gap: 0; padding: 4px 0; }
+  html.fr-m .fr-icons.fr-icons-tight .fr-dicon { width: 74px; padding: 3px 1px; }
+  html.fr-m .fr-icons.fr-icons-tight .fr-dicon .fr-dl { font-size: 11px; }
+  html.fr-m .fr-icons.fr-icons-scroll { right: 0; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
+}
+/* (Q5) sideways: a tip is one compact line over the title bar's caption (core.js tipPlaceBar), never over the grid,
+   the formula bar or the bottom controls; a tap opens it up (downwards) as before */
+@media (max-height: 500px) {
+  html.fr-m .fr-balloon.fr-balloon-bar { box-sizing: border-box; bottom: auto; right: auto !important; min-height: 0; max-height: none; padding: 0 38px 0 8px; display: flex; align-items: center; gap: 6px; white-space: nowrap; line-height: 16px; border-radius: 4px; box-shadow: 0 1px 6px rgba(0,0,0,.5); }
+  html.fr-m .fr-balloon.fr-balloon-bar .fr-balloon-t { flex: 0 1 auto; max-width: 52%; margin: 0; }
+  html.fr-m .fr-balloon.fr-balloon-bar .fr-balloon-b { display: block; flex: 1 1 0; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; -webkit-line-clamp: none; }
+  html.fr-m .fr-balloon.fr-balloon-bar .fr-balloon-b > small { font-size: 11px; }
+  html.fr-m .fr-balloon.fr-balloon-bar .fr-balloon-x { width: 36px; font-size: 14px; }
+  html.fr-m .fr-balloon.fr-balloon-bar.fr-balloon-more:not(.fr-balloon-open)::before { right: 37px; top: 0; bottom: 0; display: flex; align-items: center; padding: 0 6px 0 22px; }
+  html.fr-m .fr-balloon.fr-balloon-bar.fr-balloon-open { height: auto !important; display: block; white-space: normal; padding: 5px 44px 6px 9px; }
+  html.fr-m .fr-balloon.fr-balloon-bar.fr-balloon-open .fr-balloon-t { max-width: none; margin-bottom: 2px; }
+  html.fr-m .fr-balloon.fr-balloon-bar.fr-balloon-open .fr-balloon-b { white-space: normal; max-height: min(60vh, 220px); overflow-y: auto; }
+}
+@media (max-width: 760px), (pointer: coarse) and (max-width: 1100px) {
+  /* (Q7) Paint's Open / Save As on a 320 px phone: the form shrinks to the box (it was wider and scrolled sideways,
+     cutting off "Save in:" / "File name:"); labels a notch narrower */
+  html.fr-m .pt-dlgwin .fr-dlg-msg { flex: 1 1 auto; min-width: 0; }
+  html.fr-m .pt-dlgwin .pt-form { min-width: 0; }
+  html.fr-m .pt-dlgwin .pt-frow > span:first-child { min-width: 0; flex: 0 0 auto; }
+  html.fr-m .pt-dlgwin .fr-dlg-row { overflow-x: hidden; }
+}
+/* (Q3) Paint held sideways: the picture gets the height. The tools are a column on the left (2 x 8, their options
+   pop out to the right of it), the colours a column on the right (4 x 7 under the current colours), the menu bar
+   comes from the title bar's Menu button, no status bar; the Text tool's Fonts bar stays docked above the picture
+   (one slim row). iPhone SE: the picture area is about 380 x 258 px (it was a 20-55 px strip). */
+@media (max-height: 500px) {
+  html.fr-m .pt-win > .fr-menubar, html.fr-m .pt-win .status-bar { display: none; }
+  html.fr-m .pt.pt-mob { flex-direction: row; }
+  html.fr-m .pt.pt-mob .pt-main { flex-direction: row; min-width: 0; }
+  html.fr-m .pt.pt-mob .pt-left { flex-direction: column; width: auto; padding: 2px; border-bottom: 0; border-right: 1px solid #fff; box-shadow: 1px 0 #aca899; }
+  html.fr-m .pt.pt-mob .pt-tools { display: grid; grid-template-columns: repeat(2, 34px); grid-auto-rows: minmax(0, 36px); align-content: start; flex: 1 1 auto; min-height: 0; padding: 0; overflow: hidden; }
+  html.fr-m .pt.pt-mob .pt-tool { width: 34px; height: 100%; min-height: 26px; max-height: 36px; }
+  html.fr-m .pt.pt-mob .pt-opts { left: calc(100% + 2px); top: 2px; }
+  html.fr-m .pt.pt-mob .pt-fontbar { padding: 2px 4px; gap: 3px; }
+  html.fr-m #fr-root .pt.pt-mob .pt-fontbar select { height: 28px; }
+  html.fr-m .pt.pt-mob .pt-fb-b { width: 28px; height: 28px; }
+  html.fr-m .pt.pt-mob .pt-colors { flex-direction: column; align-items: stretch; width: 112px; padding: 3px 4px; gap: 4px; border-top: 0; box-shadow: -1px 0 #aca899; border-left: 1px solid #fff; overflow: hidden; }
+  html.fr-m .pt.pt-mob .pt-fgbg { width: 40px; height: 40px; align-self: flex-start; margin: 0; }
+  html.fr-m .pt.pt-mob .pt-pal { flex: 1 1 auto; min-height: 0; gap: 3px; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(7, minmax(0, 1fr)); }
+}

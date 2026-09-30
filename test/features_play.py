@@ -295,10 +295,10 @@ with sync_playwright() as p:
     pg.locator('.fr-pack').click(); pg.wait_for_timeout(400)
     foot = pg.inner_text('.ck-wrap .ck-foot')
     bn = st(pg, 'FR.score.now().bonus')
-    ok(f'(+{bn:,} bonus)' in foot, 'checklist footer: ' + foot.split('How to')[0].strip())
+    ok(f'(+{bn:,} bonus & eggs)' in foot, 'checklist footer: ' + foot.split('How to')[0].strip())
     st(pg, "(FR.puzzle.ORDER.forEach(id => FR.state.solved[id] = FR.state.solved[id] || Date.now()), FR.state.finishedAt = Date.now(), FR.state.finishPlayMs = FR.clock.playMs(), FR.save(), FR.ending())")
     pg.wait_for_selector('.fr-end', timeout=4000); pg.wait_for_timeout(500)
-    ok(pg.inner_text('.fr-end-bonus b') == f'+{bn:,}' and pg.inner_text('.fr-end-score b') == f"{st(pg, 'FR.score.now().score'):,}", f'ending: Score {pg.inner_text(".fr-end-score b")} and a separate "Bonus +{bn}"')
+    ok(pg.inner_text('.fr-end-bonus b') == f'+{bn:,}' and pg.inner_text('.fr-end-bonus span').lower() == 'bonus & eggs' and pg.inner_text('.fr-end-score b') == f"{st(pg, 'FR.score.now().score'):,}", f'ending: Score {pg.inner_text(".fr-end-score b")} and a separate "Bonus & eggs +{bn}"')
     pg.screenshot(path=f'{OUT}/features_ending.png')
     pg.context.close()
 
@@ -426,8 +426,8 @@ with sync_playwright() as p:
         pg.fill('.fr-win:not(.fr-inactive) .bn-inp', '25%'); pg.locator('.fr-win:not(.fr-inactive) .bn-go').click(); pg.wait_for_timeout(2500)
         closeall(pg); st(pg, 'FR.score.open()'); pg.wait_for_selector('.ie-page .st-t', timeout=8000)
         row = pg.locator('.st-t tr.st-me').inner_text().replace('\t', ' ')
-        ok(pg.locator('.st-t th', has_text='Bonus').count() == 1 and pg.locator('.st-t tr.st-me td.st-bonus').inner_text() == '+100' and '1,100' in row, 'leaderboard: a Bonus column, "+100", points 1,100 incl. the bonus (' + re.sub(r'\s+', ' ', row) + ')')
-        ok('incl. +100 bonus' in pg.inner_text('.st-mine'), 'and "Your Board Pack right now: … (incl. +100 bonus)"')
+        ok(pg.locator('.st-t th', has_text='Bonus & eggs').count() == 1 and pg.locator('.st-t tr.st-me td.st-bonus').inner_text() == '+100' and '1,100' in row, 'leaderboard: a Bonus column, "+100", points 1,100 incl. the bonus (' + re.sub(r'\s+', ' ', row) + ')')
+        ok('incl. +100 bonus & eggs' in pg.inner_text('.st-mine'), 'and "Your Board Pack right now: … (incl. +100 bonus & eggs)"')
         pg.screenshot(path=f'{OUT}/features_leaderboard.png')
         pg.context.close()
     finally:

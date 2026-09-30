@@ -245,11 +245,20 @@
     ];
     const box = el.querySelector('.fr-icons');
     const touch = matchMedia('(pointer: coarse)').matches;
+    const unselect = () => box.querySelectorAll('.sel').forEach(s => { s.classList.remove('sel'); s.style.marginBottom = ''; });
     icons.forEach(ic => {
       // long file names: allow breaks after _ and . ; two lines max (full name on hover / when selected)
       const d = $(`<div class="fr-dicon${ic.shortcut ? ' fr-dicon-lnk' : ''}" tabindex="0">${FR.icon(ic.i, 32)}<span class="fr-dl">${esc(ic.n).replace(/([_.])/g, '$1<wbr>')}</span></div>`);
       d.title = ic.n;
-      const select = () => { box.querySelectorAll('.sel').forEach(s => s.classList.remove('sel')); d.classList.add('sel'); };
+      // (R6 Q6) a selected icon shows its whole name OVER the icons under it (as in XP): its place in the column stays
+      // the same size, so a long name can't push the last icon of a full column into a new column (half off screen)
+      const select = () => {
+        unselect();
+        const h0 = d.offsetHeight;
+        d.classList.add('sel');
+        const grow = d.offsetHeight - h0;
+        if (grow > 0) d.style.marginBottom = -grow + 'px';
+      };
       // touch / phones: one tap opens; a double-tap (desktop habit) must not open it two or three times
       d.onclick = e => { e.stopPropagation(); select(); if ((touch || FR.mobile) && Date.now() > (d.tapGuard || 0)) { d.tapGuard = Date.now() + 600; ic.a(); } };
       d.oncontextmenu = e => {
@@ -262,7 +271,24 @@
       d.onkeydown = e => { if (e.key === 'Enter') ic.a(); };
       box.appendChild(d);
     });
-    el.querySelector('.fr-wall').onclick = () => box.querySelectorAll('.sel').forEach(s => s.classList.remove('sel'));
+    // (R6 Q6) phones: every icon stays on the visible desktop. When the columns don't fit (a short screen held
+    // sideways, a keyboard), the icons get tighter, and as a last resort the icon area scrolls sideways; checked again
+    // on every resize / rotation
+    if (FR.mobile) {
+      const fitIcons = () => {
+        if (!box.isConnected) return removeEventListener('resize', onRz);
+        const over = () => [...box.children].some(i => i.getBoundingClientRect().right > innerWidth - 1);
+        box.classList.remove('fr-icons-tight', 'fr-icons-scroll');
+        if (over()) box.classList.add('fr-icons-tight');
+        if (over()) box.classList.add('fr-icons-scroll');
+      };
+      let fitT = 0;
+      const onRz = () => { clearTimeout(fitT); fitT = setTimeout(fitIcons, 150); };
+      addEventListener('resize', onRz);
+      fitIcons();
+      FR.fitIcons = fitIcons;
+    }
+    el.querySelector('.fr-wall').onclick = unselect;
     el.querySelector('.fr-wall').oncontextmenu = e => { e.preventDefault(); ctxMenu(e.clientX, e.clientY, [
       { label: 'Arrange Icons By', disabled: true }, { label: 'Refresh', action: () => {} }, { sep: true },
       { label: 'New', disabled: true }, { sep: true },
@@ -357,12 +383,39 @@
   }
 
   // screensaver after 5 minutes idle on the desktop
-  let idleT = null;
+  const IDLE = 300000, IDLE_CAP = 1800000;
+  let idleT = null, idleSeen = Date.now(), overFrame = null, lastTouch = 0, lastMouse = null;
   const resetIdle = () => {
+    idleSeen = Date.now();
     clearTimeout(idleT);
-    idleT = setTimeout(() => { if (document.querySelector('.fr-desktop') && !document.querySelector('.fr-end') && !document.querySelector('.fr-dialog')) screensaver(); }, 300000);
+    idleT = setTimeout(idleUp, IDLE);
   };
+  // (R6 Q2) what the player does inside IE's framed web page (packacorp.com: another site, so its touches, swipes,
+  // wheel and mouse moves never reach this page) still counts as use: while the page has the focus (it was tapped or
+  // clicked into), while the mouse is over it, or on a touch screen while IE with the page is the window on top, the
+  // screensaver waits (up to 30 minutes after the last thing this page itself saw). A same-origin page reports its own
+  // events (FR.idle.poke, src/apps/shell.js).
+  const frameInUse = () => {
+    const w = FR.wm.active, f = w && !w.min && w.el && w.el.querySelector('.ie-frame');
+    if (!f) return false;
+    if (document.activeElement === f || overFrame === f || FR.mobile || Date.now() - lastTouch < IDLE_CAP) return true;
+    // the mouse went into the page: this page's last mouse position is at the page's edge (a browser says nothing to
+    // the game once the pointer is inside another site's frame)
+    const r = f.getBoundingClientRect(), m = lastMouse, M = 30;
+    return !!m && m.x >= r.left - M && m.x <= r.right + M && m.y >= r.top - M && m.y <= r.bottom + M;
+  };
+  function idleUp() {
+    if (!document.querySelector('.fr-desktop') || document.querySelector('.fr-end') || document.querySelector('.fr-dialog')) return;
+    if (frameInUse() && Date.now() - idleSeen < IDLE_CAP) { idleT = setTimeout(idleUp, 30000); return; }
+    screensaver();
+  }
   ['mousemove', 'mousedown', 'keydown', 'touchstart', 'wheel'].forEach(ev => document.addEventListener(ev, resetIdle, { passive: true }));
+  document.addEventListener('touchstart', () => { lastTouch = Date.now(); }, { passive: true, capture: true });
+  document.addEventListener('mousemove', e => { lastMouse = { x: e.clientX, y: e.clientY }; }, { passive: true, capture: true });
+  document.addEventListener('mouseover', e => { overFrame = e.target && e.target.classList && e.target.classList.contains('ie-frame') ? e.target : null; }, { passive: true });
+  FR.idle = { poke: resetIdle, frameInUse };
+  // (tests, file:// and localhost only) as if nothing had been seen for `ago` ms and the 5 minutes were up now
+  if (LOCAL) FR.idle._fire = ago => { if (ago != null) idleSeen = Date.now() - ago; clearTimeout(idleT); idleUp(); };
   resetIdle();
   function screensaver() {
     if (document.querySelector('.fr-saver')) return;
@@ -377,10 +430,21 @@
       img.style.transform = `translate(${x}px, ${y}px)`; raf = requestAnimationFrame(step);
     };
     step();
-    const quit = () => { cancelAnimationFrame(raf); sv.remove(); ['mousemove', 'mousedown', 'keydown', 'touchstart'].forEach(ev => document.removeEventListener(ev, quitH)); };
+    const quit = () => { cancelAnimationFrame(raf); sv.remove(); ['mousemove', 'mousedown', 'keydown', 'touchstart'].forEach(ev => document.removeEventListener(ev, quitH, true)); };
     let armed = false; setTimeout(() => (armed = true), 400);
-    const quitH = () => { if (armed) quit(); };
-    ['mousemove', 'mousedown', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, quitH));
+    // (R6) the tap / click / key that wakes the computer only wakes it (as in Windows): it never also opens the desktop
+    // icon or presses the button that was under the screensaver
+    const swallow = e => { e.preventDefault(); e.stopPropagation(); };
+    const quitH = e => {
+      if (!armed) return;
+      quit();
+      if (e.type !== 'mousemove') swallow(e);
+      // (a browser sends a mousemove just before the press of a mouse that has been still: a short window then)
+      const evs = ['click', 'dblclick', 'mousedown', 'mouseup', 'touchend', 'contextmenu', 'keyup', 'keypress'];
+      evs.forEach(ev => document.addEventListener(ev, swallow, true));
+      setTimeout(() => evs.forEach(ev => document.removeEventListener(ev, swallow, true)), e.type === 'mousemove' ? 250 : 700);
+    };
+    ['mousemove', 'mousedown', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, quitH, { capture: true, passive: false }));
   }
   FR.screensaver = screensaver;
   // Display Properties › Screen Saver (the one tab Frank left unlocked)
@@ -488,6 +552,16 @@
     "No ERP, no CRM, no HRIS connected. Just Frank's files. Here goes:",
     "One version of the truth would help here. Packa has five. So:",
   ];
+  // the footer's score line, on its own: (R6 Q4) it is refreshed on every change of the score (a wrong answer, a hint,
+  // an item, a bonus request, an egg) without redrawing the list (which would wipe the wrong answer's message)
+  function renderFoot(wrap, sc = FR.score.now()) {
+    const meta = wrap && wrap.querySelector('.ck-foot .ck-meta');
+    if (!meta) return;
+    meta.innerHTML = `${FR.score.available() ? '<a href="#" class="ck-score">' : '<b class="ck-score">'}Score: ${FR.score.fmt(sc.score)}${sc.bonus ? ` <span class="ck-bonus" title="Bonus requests and Easter eggs, included in the score: ${esc(FR.score.found(sc))}">(+${FR.score.fmt(sc.bonus)} ${FR.score.bonusWord})</span>` : ''}${FR.score.available() ? '</a>' : '</b>'} · ${sc.freeLeft ? `Free hints left: ${sc.freeLeft}` : `Hints: −${FR.score.rules.PER_HINT} each`} · Time: <span class="ck-time">${FR.clock.dur(FR.clock.playMs())}</span>`;
+    const scoreLink = meta.querySelector('a.ck-score');
+    if (scoreLink) scoreLink.onclick = e => { e.preventDefault(); FR.score.open(); };
+  }
+  FR.bus.on('score', () => { const w = FR.wm.wins.get('checklist'); if (w) renderFoot(w.body.querySelector('.ck-wrap')); });
   function renderChecklist(w) {
     const wrap = w.body.querySelector('.ck-wrap');
     if (!wrap) return;
@@ -500,12 +574,11 @@
     wrap.innerHTML = `<div class="ck-head">${FR.icon('checklist', 34)}<div><h2>BOARD PACK — due Tue 9:00 AM</h2><p>Frank's to-do list. Get all ten done and Packa survives.</p></div></div>
       <div class="ck-prog"><progress max="${ITEMS.length}" value="${done}"></progress><b>${done} of ${ITEMS.length} done</b>${FR.puzzle.isSolved('frank') ? '<a href="#" class="ck-endlink">See how it ended &#9656;</a>' : ''}</div>
       <div class="ck-list"></div>
-      <div class="ck-foot"><span class="ck-meta">${FR.score.available() ? '<a href="#" class="ck-score">' : '<b class="ck-score">'}Score: ${FR.score.fmt(sc.score)}${sc.bonus ? ` <span class="ck-bonus" title="Bonus requests and Easter eggs, included in the score: ${esc(FR.score.found(sc))}">(+${FR.score.fmt(sc.bonus)} bonus)</span>` : ''}${FR.score.available() ? '</a>' : '</b>'} · ${sc.freeLeft ? `Free hints left: ${sc.freeLeft}` : `Hints: −${FR.score.rules.PER_HINT} each`} · Time: <span class="ck-time">${FR.clock.dur(FR.clock.playMs())}</span></span><button class="ck-help">How to play</button></div>`;
+      <div class="ck-foot"><span class="ck-meta"></span><button class="ck-help">How to play</button></div>`;
     wrap.querySelector('.ck-help').onclick = openHelp;
     const endLink = wrap.querySelector('.ck-endlink');
     if (endLink) endLink.onclick = e => { e.preventDefault(); FR.sound.play('click'); ending(); };
-    const scoreLink = wrap.querySelector('a.ck-score');
-    if (scoreLink) scoreLink.onclick = e => { e.preventDefault(); FR.score.open(); };
+    renderFoot(wrap, sc);
     const list = wrap.querySelector('.ck-list');
     FR.state.unlockedAt = FR.state.unlockedAt || {};
     ITEMS.forEach((it, idx) => {
@@ -538,9 +611,12 @@
         if (n >= 3) return;
         const take = () => { FR.state.hintsUsed[it.id] = n + 1; FR.save(); FR.sound.play('ding'); renderChecklist(w); };
         // the free hints are gone: every hint now costs points, so ask first
-        const cost = FR.score.now().freeLeft ? '' : `You've used your ${FR.score.rules.FREE_HINTS} free hints. This one costs <b>${FR.score.rules.PER_HINT} points</b>.`;
-        if (n === 2 || cost) {
-          FR.dialog({ icon: 'question', title: 'FinanceOS Assist', message: [n === 2 ? "This one gives the answer away. FinanceOS won't judge. Emily might." : '', cost].filter(Boolean).join('<br><br>'), buttons: [n === 2 ? 'Show it' : 'Use a hint', 'Cancel'] })
+        const free = FR.score.now().freeLeft;
+        const cost = free ? '' : `You've used your ${FR.score.rules.FREE_HINTS} free hints. This one costs <b>${FR.score.rules.PER_HINT} points</b>.`;
+        // (R6 Q1) phones: a thumb slip near the button must never spend a hint, so every hint asks first, free or not
+        const phoneAsk = FR.mobile && free ? `Use a free hint? (${free} left)` : '';
+        if (n === 2 || cost || FR.mobile) {
+          FR.dialog({ icon: 'question', title: 'FinanceOS Assist', message: [phoneAsk, n === 2 ? "This one gives the answer away. FinanceOS won't judge. Emily might." : '', cost].filter(Boolean).join('<br><br>'), buttons: [n === 2 ? 'Show it' : 'Use a hint', 'Cancel'] })
             .then(r => { if (r.button === 'Show it' || r.button === 'Use a hint') take(); });
           return;
         }
@@ -617,7 +693,7 @@
       list.appendChild(row);
     });
     list.scrollTop = scrollTop;
-    if (keep && keep.id === FR.puzzle.current()) { const ni = list.querySelector('.ck-item.open .ck-ans input'); if (ni) { ni.value = keep.v; if (keep.f) ni.focus(); } }
+    if (keep && keep.id === FR.puzzle.current()) { const ni = list.querySelector('.ck-item.open .ck-ans input'); if (ni) { ni.value = keep.v; if (keep.f && FR.wm.active === w) ni.focus(); } }   // (focus only on top: a re-render behind another window must not bring the checklist forward)
     const focusRow = list.querySelector('.ck-just') || list.querySelector('.ck-item.open');
     if (focusRow && (!scrollTop || justSolved)) setTimeout(() => focusRow.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 0);
     if (justSolved) { const j = justSolved; setTimeout(() => { if (justSolved === j) justSolved = null; }, 1500); }
@@ -755,7 +831,7 @@
       <div class="fr-kicker">Board Pack delivered · Survival package approved</div>
       <h1>Packa Corp is saved.<br>Frank is in Vegas.</h1>
       <p>You rebuilt Packa's numbers from a pile of "FINAL" files, a hidden folder, a change log and one man's head. The Board saw the real runway, the bank got a true covenant certificate, and the emergency plan passed.</p>
-      <div class="fr-end-stats"><div class="fr-end-score"><b>${FR.score.fmt(sc.score)}</b><span>Score</span></div><div><b>${t}</b><span>Time at Frank's desk</span></div><div><b>${hints}</b><span>Hints used</span></div><div><b>${FR.state.wrong || 0}</b><span>Wrong guesses</span></div><div class="fr-end-bonus"><b>+${FR.score.fmt(sc.bonus || 0)}</b><span>Bonus</span></div></div>
+      <div class="fr-end-stats"><div class="fr-end-score"><b>${FR.score.fmt(sc.score)}</b><span>Score</span></div><div><b>${t}</b><span>Time at Frank's desk</span></div><div><b>${hints}</b><span>Hints used</span></div><div><b>${FR.state.wrong || 0}</b><span>Wrong guesses</span></div><div class="fr-end-bonus"><b>+${FR.score.fmt(sc.bonus || 0)}</b><span>Bonus &amp; eggs</span></div></div>
       <p class="fr-end-calc">${esc(FR.score.breakdown(sc))}</p>
       <p class="fr-end-rank"></p>
       <div class="fr-end-line"></div>

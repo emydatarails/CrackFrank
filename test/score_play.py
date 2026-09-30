@@ -118,7 +118,7 @@ try:
         foot = checklist(pg)
         ok(want == '10,100' and board.startswith(want) and ('Score: ' + want) in foot, f'bonus after the ending: game {want}, board {board.split(chr(10))[0]}, checklist "{foot.split(" ·")[0]}"')
         pg.evaluate('() => { document.querySelectorAll(".fr-end").forEach(e => e.remove()); FR.ending(); }'); pg.wait_for_timeout(2500)
-        ok(pg.inner_text('.fr-end-score b') == want and ('with ' + want + ' points') in pg.inner_text('.fr-end-rank') and '+ 200 bonus = ' + want in pg.inner_text('.fr-end-calc'), 'ending: ' + pg.inner_text('.fr-end-calc') + ' / ' + pg.inner_text('.fr-end-rank'))
+        ok(pg.inner_text('.fr-end-score b') == want and ('with ' + want + ' points') in pg.inner_text('.fr-end-rank') and '+ 200 bonus requests = ' + want in pg.inner_text('.fr-end-calc'), 'ending: ' + pg.inner_text('.fr-end-calc') + ' / ' + pg.inner_text('.fr-end-rank'))
         b.close()
 finally:
     server.terminate()

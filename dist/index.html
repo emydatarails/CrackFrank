@@ -1896,10 +1896,11 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   html.fr-m .ca-win > .fr-menubar { display: none; }
   /* Excel sideways: no menu bar, slimmer title bar, formula bar, tabs and taskbar (about 13 rows instead of 8) */
   html.fr-m .xl-win .fr-menubar { display: none; }
-  /* (R5 P6) where sideways hides the menu bar, a "Menu" button in the title bar brings it back (until a command is picked) */
-  html.fr-m #fr-root :is(.ie-win, .oe-win, .ca-win, .xl-win) > .title-bar > .fr-mbtn { display: block; flex: none; margin: 0 4px 0 auto; min-width: 0; min-height: 26px; padding: 0 12px; border: 1px solid rgba(255, 255, 255, .75); border-radius: 3px; background: rgba(255, 255, 255, .18); box-shadow: none; color: #fff; font: bold 13px Tahoma, sans-serif; text-shadow: none; }
+  /* (R5 P6) where sideways hides the menu bar, a "Menu" button in the title bar brings it back (until a command is picked)
+     (R6 Q3: Paint too) */
+  html.fr-m #fr-root :is(.ie-win, .oe-win, .ca-win, .xl-win, .pt-win) > .title-bar > .fr-mbtn { display: block; flex: none; margin: 0 4px 0 auto; min-width: 0; min-height: 26px; padding: 0 12px; border: 1px solid rgba(255, 255, 255, .75); border-radius: 3px; background: rgba(255, 255, 255, .18); box-shadow: none; color: #fff; font: bold 13px Tahoma, sans-serif; text-shadow: none; }
   html.fr-m #fr-root .fr-mshow > .title-bar > .fr-mbtn { background: #fff; color: #0a246a; }
-  html.fr-m #fr-root :is(.ie-win, .oe-win, .ca-win, .xl-win).fr-mshow > .fr-menubar { display: flex; }
+  html.fr-m #fr-root :is(.ie-win, .oe-win, .ca-win, .xl-win, .pt-win).fr-mshow > .fr-menubar { display: flex; }
   html.fr-m #fr-root .fr-win .title-bar { min-height: 28px; padding: 1px 4px; }
   html.fr-m #fr-root .fr-win .title-bar-controls button { min-width: 26px; min-height: 26px; }
   html.fr-m .xl-fbar { padding: 2px 3px; }
@@ -2134,6 +2135,58 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
 @media (max-height: 600px) and (max-width: 1100px) { html.fr-m .bs-txt .bs-long { display: none; } }
 @media (orientation: landscape) and (max-height: 500px) { html.fr-m .bs-txt { font-size: 10.5px; } html.fr-m .bs-txt p { margin-bottom: .5em; } }
 
+/* ===== Round 6 (iPhone SE player) ===== */
+@media (max-width: 760px), (pointer: coarse) and (max-width: 1100px) {
+  /* (Q1) the hint button stands apart: a tap on the line above it ("Ticks itself when you do it.", a chip, the
+     answer's feedback) is never taken as a tap on the button (browsers snap a near miss to the nearest button) */
+  html.fr-m .ck-hrow { margin-top: 18px; }
+  /* (Q6) the desktop icons when their columns don't fit the screen (boot.js fitIcons) */
+  html.fr-m .fr-icons.fr-icons-tight { gap: 0; padding: 4px 0; }
+  html.fr-m .fr-icons.fr-icons-tight .fr-dicon { width: 74px; padding: 3px 1px; }
+  html.fr-m .fr-icons.fr-icons-tight .fr-dicon .fr-dl { font-size: 11px; }
+  html.fr-m .fr-icons.fr-icons-scroll { right: 0; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
+}
+/* (Q5) sideways: a tip is one compact line over the title bar's caption (core.js tipPlaceBar), never over the grid,
+   the formula bar or the bottom controls; a tap opens it up (downwards) as before */
+@media (max-height: 500px) {
+  html.fr-m .fr-balloon.fr-balloon-bar { box-sizing: border-box; bottom: auto; right: auto !important; min-height: 0; max-height: none; padding: 0 38px 0 8px; display: flex; align-items: center; gap: 6px; white-space: nowrap; line-height: 16px; border-radius: 4px; box-shadow: 0 1px 6px rgba(0,0,0,.5); }
+  html.fr-m .fr-balloon.fr-balloon-bar .fr-balloon-t { flex: 0 1 auto; max-width: 52%; margin: 0; }
+  html.fr-m .fr-balloon.fr-balloon-bar .fr-balloon-b { display: block; flex: 1 1 0; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; -webkit-line-clamp: none; }
+  html.fr-m .fr-balloon.fr-balloon-bar .fr-balloon-b > small { font-size: 11px; }
+  html.fr-m .fr-balloon.fr-balloon-bar .fr-balloon-x { width: 36px; font-size: 14px; }
+  html.fr-m .fr-balloon.fr-balloon-bar.fr-balloon-more:not(.fr-balloon-open)::before { right: 37px; top: 0; bottom: 0; display: flex; align-items: center; padding: 0 6px 0 22px; }
+  html.fr-m .fr-balloon.fr-balloon-bar.fr-balloon-open { height: auto !important; display: block; white-space: normal; padding: 5px 44px 6px 9px; }
+  html.fr-m .fr-balloon.fr-balloon-bar.fr-balloon-open .fr-balloon-t { max-width: none; margin-bottom: 2px; }
+  html.fr-m .fr-balloon.fr-balloon-bar.fr-balloon-open .fr-balloon-b { white-space: normal; max-height: min(60vh, 220px); overflow-y: auto; }
+}
+@media (max-width: 760px), (pointer: coarse) and (max-width: 1100px) {
+  /* (Q7) Paint's Open / Save As on a 320 px phone: the form shrinks to the box (it was wider and scrolled sideways,
+     cutting off "Save in:" / "File name:"); labels a notch narrower */
+  html.fr-m .pt-dlgwin .fr-dlg-msg { flex: 1 1 auto; min-width: 0; }
+  html.fr-m .pt-dlgwin .pt-form { min-width: 0; }
+  html.fr-m .pt-dlgwin .pt-frow > span:first-child { min-width: 0; flex: 0 0 auto; }
+  html.fr-m .pt-dlgwin .fr-dlg-row { overflow-x: hidden; }
+}
+/* (Q3) Paint held sideways: the picture gets the height. The tools are a column on the left (2 x 8, their options
+   pop out to the right of it), the colours a column on the right (4 x 7 under the current colours), the menu bar
+   comes from the title bar's Menu button, no status bar; the Text tool's Fonts bar stays docked above the picture
+   (one slim row). iPhone SE: the picture area is about 380 x 258 px (it was a 20-55 px strip). */
+@media (max-height: 500px) {
+  html.fr-m .pt-win > .fr-menubar, html.fr-m .pt-win .status-bar { display: none; }
+  html.fr-m .pt.pt-mob { flex-direction: row; }
+  html.fr-m .pt.pt-mob .pt-main { flex-direction: row; min-width: 0; }
+  html.fr-m .pt.pt-mob .pt-left { flex-direction: column; width: auto; padding: 2px; border-bottom: 0; border-right: 1px solid #fff; box-shadow: 1px 0 #aca899; }
+  html.fr-m .pt.pt-mob .pt-tools { display: grid; grid-template-columns: repeat(2, 34px); grid-auto-rows: minmax(0, 36px); align-content: start; flex: 1 1 auto; min-height: 0; padding: 0; overflow: hidden; }
+  html.fr-m .pt.pt-mob .pt-tool { width: 34px; height: 100%; min-height: 26px; max-height: 36px; }
+  html.fr-m .pt.pt-mob .pt-opts { left: calc(100% + 2px); top: 2px; }
+  html.fr-m .pt.pt-mob .pt-fontbar { padding: 2px 4px; gap: 3px; }
+  html.fr-m #fr-root .pt.pt-mob .pt-fontbar select { height: 28px; }
+  html.fr-m .pt.pt-mob .pt-fb-b { width: 28px; height: 28px; }
+  html.fr-m .pt.pt-mob .pt-colors { flex-direction: column; align-items: stretch; width: 112px; padding: 3px 4px; gap: 4px; border-top: 0; box-shadow: -1px 0 #aca899; border-left: 1px solid #fff; overflow: hidden; }
+  html.fr-m .pt.pt-mob .pt-fgbg { width: 40px; height: 40px; align-self: flex-start; margin: 0; }
+  html.fr-m .pt.pt-mob .pt-pal { flex: 1 1 auto; min-height: 0; gap: 3px; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(7, minmax(0, 1fr)); }
+}
+
 </style>
 <script>
 /* FRANK'S COMPUTER — core: state, bus, window manager, dialogs, sound, clock, puzzle engine */
@@ -2306,6 +2359,7 @@ FR.apps = FR.apps || {};
       FR.state.solved[id] = Date.now(); FR.state.missStreak = 0; FR.save();
       FR.sound.play(id === 'frank' ? 'tada' : 'unlock');
       FR.bus.emit('solved', id);
+      FR.bus.emit('score');
       return true;
     },
     // a wrong guess anywhere (checklist, password boxes) counts toward the final score. Every one except the Windows
@@ -2315,6 +2369,7 @@ FR.apps = FR.apps || {};
       FR.state.wrong = (FR.state.wrong || 0) + 1;
       if (!(o && o.login)) FR.state.missStreak = (FR.state.missStreak || 0) + 1;
       FR.save();
+      FR.bus.emit('score');   // (R6 Q4) the checklist footer shows the −50 at once
       if (!(o && o.login)) FR.bus.emit('miss', FR.state.missStreak);
     },
     hit() { if (FR.state.missStreak) { FR.state.missStreak = 0; FR.save(); } },
@@ -2723,7 +2778,7 @@ FR.apps = FR.apps || {};
     const c = tips.cur = { t, b, state: 'arriving', shownAt: Date.now(), timer: 0 };
     tipLog('shown ' + title);
     const bb = b.querySelector('.fr-balloon-b'), bt = b.querySelector('.fr-balloon-t b');
-    if (bb.scrollHeight > bb.clientHeight + 1 || b.scrollHeight > b.clientHeight + 1 || (bt && bt.scrollWidth > bt.clientWidth + 1)) b.classList.add('fr-balloon-more');
+    if (bb.scrollHeight > bb.clientHeight + 1 || b.scrollHeight > b.clientHeight + 1 || (bt && bt.scrollWidth > bt.clientWidth + 1) || (b.classList.contains('fr-balloon-bar') && bb.scrollWidth > bb.clientWidth + 1)) b.classList.add('fr-balloon-more');
     // arriving: taps pass through for 400 ms (and for as long as a finger that came down meanwhile stays down)
     let touchedMeanwhile = false;
     const arrive = () => {
@@ -2769,9 +2824,28 @@ FR.apps = FR.apps || {};
   // strip, and a tap where the strip was a moment ago lands on grid, not on a button. (IE keeps it over its bottom
   // bars: under the strip there, the tap guard can still catch a stray tap; over the framed web page it could not.)
   const TIP_BARS = '.xl-tabbar, .ck-foot, .np-mbar, .so-tools';
+  // (R6 Q5) held sideways the screen is too short for a strip over the window (Excel shows about 8 rows): the tip is
+  // one compact line over the title bar's caption, left of its Menu / Minimize / Close buttons (the caption does
+  // nothing on a phone), so it covers no row, no formula bar and no bottom control. A tap on it still opens it up.
+  const tipSideways = () => innerWidth > innerHeight && innerHeight <= 500;
+  function tipPlaceBar(b, w) {
+    const tb = w.el.querySelector(':scope > .title-bar');
+    if (!tb) return false;
+    const r = tb.getBoundingClientRect();
+    if (!r.height || r.top > 4) return false;
+    let right = r.right;
+    tb.querySelectorAll(':scope > .fr-mbtn, :scope > .title-bar-controls').forEach(e => { const q = e.getBoundingClientRect(); if (q.width) right = Math.min(right, q.left); });
+    const left = r.left + 3, width = Math.round(right - 6 - left);
+    if (width < 200) return false;
+    b.classList.add('fr-balloon-bar');
+    b.querySelectorAll('.fr-balloon-b br').forEach(br => { const sep = document.createElement('span'); sep.className = 'fr-balloon-sep'; sep.textContent = ' · '; br.replaceWith(sep); });
+    b.style.top = Math.round(r.top + 1) + 'px'; b.style.left = Math.round(left) + 'px'; b.style.width = width + 'px'; b.style.height = Math.round(r.height - 2) + 'px';
+    return true;
+  }
   function tipPlace(b) {
     const w = FR.wm.active;
     if (!w || w.min || !w.el || w.el.classList.contains('fr-dialog')) return;
+    if (tipSideways() && tipPlaceBar(b, w)) return;
     const tbar = document.querySelector('.fr-taskbar'), floor = tbar ? tbar.getBoundingClientRect().top : innerHeight;
     let top = floor;
     w.el.querySelectorAll(TIP_BARS).forEach(e => { const r = e.getBoundingClientRect(); if (r.width && r.height && r.bottom > floor - 120 && r.top < floor) top = Math.min(top, r.top); });
@@ -3545,17 +3619,20 @@ FR.apps = FR.apps || {};
     ],
     rulesLine: () => FR.score.rulesList().join(' · '),
     // (R5 P3) "4 of 15 Easter eggs · 9 of 9 bonus requests": what this game has found so far
+    // (R6 Q9) the one word for the bonus total (bonus requests + Easter eggs) wherever it is shown on its own: the
+    // checklist footer, the ending's tile, the leaderboard; the breakdown splits it into "bonus requests" and "eggs"
+    bonusWord: 'bonus & eggs',
     found: (c = R.calc(FR.state)) => `${c.eggs} of ${c.eggsTotal} Easter eggs · ${c.bonusDone} of ${c.bonusTotal} bonus requests`,
     // which game is on the board (the same wording everywhere)
     boardRule: 'Your first finished Board Pack is your entry. Bonus requests and Easter eggs you finish later in that same game still add to it; a replay after "Start over" doesn\'t change it.',
-    // "10 × 1,000 − 4 wrong × 50 + 1,300 bonus + 4 eggs × 10 = 11,140": how this game's score adds up
+    // "10 × 1,000 − 4 wrong × 50 + 1,300 bonus requests + 4 eggs × 10 = 11,140": how this game's score adds up
     breakdown: (c = R.calc(FR.state)) => {
       const parts = [`${c.solved} × ${fmt(R.PER_SOLVED)}`];
       if (c.wrong) parts.push(`− ${c.wrong} wrong × ${R.PER_WRONG}`);
       if (c.paidHints) parts.push(`− ${c.paidHints} paid hint${c.paidHints === 1 ? '' : 's'} × ${R.PER_HINT}`);
       const floored = c.main === 0 && c.solved * R.PER_SOLVED > 0;
       const eggs = c.eggs ? ` + ${c.eggs} egg${c.eggs === 1 ? '' : 's'} × ${R.PER_EGG}` : '';
-      return `${parts.join(' ')}${floored ? ' (never below 0)' : ''}${c.requestPts ? ` + ${fmt(c.requestPts)} bonus` : ''}${eggs} = ${fmt(c.score)}`;
+      return `${parts.join(' ')}${floored ? ' (never below 0)' : ''}${c.requestPts ? ` + ${fmt(c.requestPts)} bonus requests` : ''}${eggs} = ${fmt(c.score)}`;
     },
   };
 
@@ -3574,14 +3651,14 @@ FR.apps = FR.apps || {};
 
   const medal = r => r <= 3 ? ` st-m${r}` : '';
   const row = (e, me) => `<tr class="${me ? 'st-me' : ''}"><td class="st-rank${medal(e.rank)}"><span>${e.rank}</span></td>
-    <td class="st-name">${esc(e.name)}${me ? ' <i>(you)</i>' : ''}</td><td class="st-score">${fmt(e.score)}${e.bonus ? `<span class="st-pbonus">incl. +${fmt(e.bonus)}</span>` : ''}</td><td class="st-bonus">${e.bonus ? '+' + fmt(e.bonus) : '&mdash;'}</td>
+    <td class="st-name">${esc(e.name)}${me ? ' <i>(you)</i>' : ''}</td><td class="st-score">${fmt(e.score)}${e.bonus ? `<span class="st-pbonus">incl. +${fmt(e.bonus)} ${FR.score.bonusWord}</span>` : ''}</td><td class="st-bonus">${e.bonus ? '+' + fmt(e.bonus) : '&mdash;'}</td>
     <td>${e.finished ? '<span class="st-done">Board Pack sent</span>' : `At Frank's desk &middot; ${e.solved}/${R.ITEMS.length}`}</td>
     <td>${e.hints}</td><td>${e.wrong}</td><td>${esc(dur(e.timeMs))}</td></tr>`;
 
   // fill an IE page element; isCurrent() is false once the player has navigated away (the answer arrives late)
   function render(page, isCurrent = () => true) {
     const c = FR.score.now();
-    const mine = c.solved ? `<div class="st-mine"><b>Your Board Pack right now:</b> ${fmt(c.score)} points${c.bonus ? ` (incl. +${fmt(c.bonus)} bonus)` : ''} &middot; ${esc(FR.score.breakdown(c))} &middot; ${c.solved}/${c.total} done &middot; ${c.hints} hint${c.hints === 1 ? '' : 's'} (${c.freeLeft} free left) &middot; ${c.wrong} wrong &middot; ${esc(FR.score.found(c))}</div>` : '';
+    const mine = c.solved ? `<div class="st-mine"><b>Your Board Pack right now:</b> ${fmt(c.score)} points${c.bonus ? ` (incl. +${fmt(c.bonus)} ${FR.score.bonusWord})` : ''} &middot; ${esc(FR.score.breakdown(c))} &middot; ${c.solved}/${c.total} done &middot; ${c.hints} hint${c.hints === 1 ? '' : 's'} (${c.freeLeft} free left) &middot; ${c.wrong} wrong &middot; ${esc(FR.score.found(c))}</div>` : '';
     if (!FR.score.available()) {
       page.innerHTML = shell(`${mine}<div class="st-msg">The intranet is offline. (The server is also in Vegas.)<br><small>The leaderboard is in the online game, for players with a player account.</small></div>`);
       return;
@@ -3595,7 +3672,7 @@ FR.apps = FR.apps || {};
         : FR.score.otherGame(d.me) ? `<p class="st-note">Your place is from your first finished Board Pack: ${fmt(d.me.score)} points. This game is a replay, so it doesn't change it.</p>` : '';
       if (!d.top.length) { page.innerHTML = shell(`${mine}<div class="st-msg">Nobody has covered for Frank yet. Be the first.</div>${note}`); return; }
       const meRank = d.me ? d.me.rank : -1;
-      page.innerHTML = shell(`${mine}<table class="st-t"><thead><tr><th>#</th><th>Player</th><th>Points</th><th title="Bonus requests and Easter eggs, included in Points">Bonus</th><th>Status</th><th>Hints</th><th>Wrong</th><th>Time</th></tr></thead><tbody>
+      page.innerHTML = shell(`${mine}<table class="st-t"><thead><tr><th>#</th><th>Player</th><th>Points</th><th title="Bonus requests and Easter eggs, included in Points">Bonus &amp; eggs</th><th>Status</th><th>Hints</th><th>Wrong</th><th>Time</th></tr></thead><tbody>
         ${d.top.map(e => row(e, e.rank === meRank)).join('')}
         ${d.me && !d.me.inTop ? `<tr class="st-gap"><td colspan="8">&hellip;</td></tr>${row(d.me, true)}` : ''}
         </tbody></table><p class="st-count">${fmt(d.players)} ${d.players === 1 ? 'person has' : 'people have'} covered for Frank so far</p>${note}`);
@@ -5324,6 +5401,29 @@ FR.data.logo = {"mark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"380
     }
   }
   XL.fmtNum = fmtNum;
+  // (R6 Q8) Excel's General format (no number format) when the number is wider than its column: as many decimals as
+  // fit (2391.23627 → 2391.236 → 2391.2 → 2391), then scientific (1.23457E+11 … 1E+11); "###" only when even that
+  // doesn't fit. Formatted numbers (0.0, %, dates …) never shrink, they show ### as in Excel. fits(text) → bool.
+  const FIXED_FMT = /^(n[012]|p[012]|x[12]|ms1|int|days|date|ymd|c[02])$/;
+  const isGeneral = f => !FIXED_FMT.test(f || '');
+  function fitGeneral(v, fits) {
+    const s0 = fmtNum(v).t;
+    if (fits(s0)) return s0;
+    if (typeof v !== 'number' || !isFinite(v)) return null;
+    const m = /^-?\d+\.(\d+)$/.exec(s0);
+    if (m) for (let d = m[1].length - 1; d >= 0; d--) {
+      const t = String(parseFloat(v.toFixed(d)));
+      if (+t === 0) break;   // every significant digit gone (0.0000123 → 0): scientific instead
+      if (fits(t)) return t;
+    }
+    for (let p = 5; p >= 0; p--) {
+      const [mant, ex] = v.toExponential(p).split('e');
+      const t = String(parseFloat(mant)) + 'E' + (ex[0] === '-' ? '-' : '+') + ex.replace(/^[+-]/, '').padStart(2, '0');
+      if (fits(t)) return t;
+    }
+    return null;
+  }
+  XL.fitGeneral = fitGeneral;
   const decFmt = (f, dir) => {
     const map = { n0: ['n1', 'n0'], n1: ['n2', 'n0'], n2: ['n2', 'n1'], p0: ['p1', 'p0'], p1: ['p2', 'p0'], p2: ['p2', 'p1'], x1: ['x2', 'x1'], x2: ['x2', 'x1'], c0: ['c2', 'c0'], c2: ['c2', 'c0'] };
     const m = map[f || ''] || ['n1', 'n0'];
@@ -5592,7 +5692,10 @@ FR.data.logo = {"mark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"380
           let cls = cl.cm ? 'xl-hascm' : '';
           let html;
           const w = colWd[c];
-          if (isNum && text && measure(text, sty) > w - 5) { text = '#'.repeat(Math.max(1, Math.floor((w - 5) / 7.4))); pad = false; }
+          if (isNum && text && measure(text, sty) > w - 5) {
+            const g = isGeneral(sty.f) ? fitGeneral(v, t => measure(t, sty) <= w - 5) : null;
+            text = g || '#'.repeat(Math.max(1, Math.floor((w - 5) / 7.4))); pad = false;
+          }
           if (!isNum && text && al === 'l' && !isErr(v)) {
             const tw = measure(text, sty) + 4 + (sty.ind ? sty.ind * 9 : 0);
             if (tw > w) {
@@ -11077,6 +11180,9 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
         let first = true;
         f.onload = () => {
           S.loading = false; status('Done');
+          // (R6 Q2) a same-origin page tells the screensaver the player is using it (another site's page can't be
+          // listened to: src/boot.js frameInUse covers that)
+          try { const d = f.contentDocument; if (d) ['mousemove', 'mousedown', 'keydown', 'touchstart', 'wheel', 'scroll'].forEach(ev => d.addEventListener(ev, () => FR.idle && FR.idle.poke(), { passive: true, capture: true })); } catch (er) {}
           // navigated inside the site: the page's own title when the browser lets us read it (same origin), else the
           // company name (a cross-origin page's title and URL can't be read) (R3b S17)
           let t = '';
@@ -12731,8 +12837,9 @@ P.S. Somebody keeps buying all the Funyuns at 2 AM.`,
     FR.save();
     FR.sound.play('unlock');
     const sc = FR.score ? FR.score.now() : null;
-    FR.balloon(`Bonus: +${pts(id)} points`, `${esc(label || (BY[id] ? BY[id].from.name : 'Bonus'))}${sc ? `<br>Score now ${FR.score.fmt(sc.score)} (bonus ${FR.score.fmt(sc.bonus)})` : ''}`, null, { silent: true });
+    FR.balloon(`Bonus: +${pts(id)} points`, `${esc(label || (BY[id] ? BY[id].from.name : 'Bonus'))}${sc ? `<br>Score now ${FR.score.fmt(sc.score)} (+${FR.score.fmt(sc.bonus)} ${FR.score.bonusWord})` : ''}`, null, { silent: true });
     FR.bus.emit('bonus', id);
+    FR.bus.emit('score');
     return true;
   }
   // → { ok: true } | { ok: false, msg, hint? }
@@ -12926,6 +13033,7 @@ P.S. Somebody keeps buying all the Funyuns at 2 AM.`,
     FR.save();
     toast(id, n);
     FR.bus.emit('egg', { id, n, total: EGGS.length });
+    FR.bus.emit('score');
     if (FR.checklistRender) FR.checklistRender();   // the footer's score and egg count
     return true;
   }
@@ -13520,11 +13628,20 @@ I'm taking Thursday off.
     ];
     const box = el.querySelector('.fr-icons');
     const touch = matchMedia('(pointer: coarse)').matches;
+    const unselect = () => box.querySelectorAll('.sel').forEach(s => { s.classList.remove('sel'); s.style.marginBottom = ''; });
     icons.forEach(ic => {
       // long file names: allow breaks after _ and . ; two lines max (full name on hover / when selected)
       const d = $(`<div class="fr-dicon${ic.shortcut ? ' fr-dicon-lnk' : ''}" tabindex="0">${FR.icon(ic.i, 32)}<span class="fr-dl">${esc(ic.n).replace(/([_.])/g, '$1<wbr>')}</span></div>`);
       d.title = ic.n;
-      const select = () => { box.querySelectorAll('.sel').forEach(s => s.classList.remove('sel')); d.classList.add('sel'); };
+      // (R6 Q6) a selected icon shows its whole name OVER the icons under it (as in XP): its place in the column stays
+      // the same size, so a long name can't push the last icon of a full column into a new column (half off screen)
+      const select = () => {
+        unselect();
+        const h0 = d.offsetHeight;
+        d.classList.add('sel');
+        const grow = d.offsetHeight - h0;
+        if (grow > 0) d.style.marginBottom = -grow + 'px';
+      };
       // touch / phones: one tap opens; a double-tap (desktop habit) must not open it two or three times
       d.onclick = e => { e.stopPropagation(); select(); if ((touch || FR.mobile) && Date.now() > (d.tapGuard || 0)) { d.tapGuard = Date.now() + 600; ic.a(); } };
       d.oncontextmenu = e => {
@@ -13537,7 +13654,24 @@ I'm taking Thursday off.
       d.onkeydown = e => { if (e.key === 'Enter') ic.a(); };
       box.appendChild(d);
     });
-    el.querySelector('.fr-wall').onclick = () => box.querySelectorAll('.sel').forEach(s => s.classList.remove('sel'));
+    // (R6 Q6) phones: every icon stays on the visible desktop. When the columns don't fit (a short screen held
+    // sideways, a keyboard), the icons get tighter, and as a last resort the icon area scrolls sideways; checked again
+    // on every resize / rotation
+    if (FR.mobile) {
+      const fitIcons = () => {
+        if (!box.isConnected) return removeEventListener('resize', onRz);
+        const over = () => [...box.children].some(i => i.getBoundingClientRect().right > innerWidth - 1);
+        box.classList.remove('fr-icons-tight', 'fr-icons-scroll');
+        if (over()) box.classList.add('fr-icons-tight');
+        if (over()) box.classList.add('fr-icons-scroll');
+      };
+      let fitT = 0;
+      const onRz = () => { clearTimeout(fitT); fitT = setTimeout(fitIcons, 150); };
+      addEventListener('resize', onRz);
+      fitIcons();
+      FR.fitIcons = fitIcons;
+    }
+    el.querySelector('.fr-wall').onclick = unselect;
     el.querySelector('.fr-wall').oncontextmenu = e => { e.preventDefault(); ctxMenu(e.clientX, e.clientY, [
       { label: 'Arrange Icons By', disabled: true }, { label: 'Refresh', action: () => {} }, { sep: true },
       { label: 'New', disabled: true }, { sep: true },
@@ -13632,12 +13766,39 @@ I'm taking Thursday off.
   }
 
   // screensaver after 5 minutes idle on the desktop
-  let idleT = null;
+  const IDLE = 300000, IDLE_CAP = 1800000;
+  let idleT = null, idleSeen = Date.now(), overFrame = null, lastTouch = 0, lastMouse = null;
   const resetIdle = () => {
+    idleSeen = Date.now();
     clearTimeout(idleT);
-    idleT = setTimeout(() => { if (document.querySelector('.fr-desktop') && !document.querySelector('.fr-end') && !document.querySelector('.fr-dialog')) screensaver(); }, 300000);
+    idleT = setTimeout(idleUp, IDLE);
   };
+  // (R6 Q2) what the player does inside IE's framed web page (packacorp.com: another site, so its touches, swipes,
+  // wheel and mouse moves never reach this page) still counts as use: while the page has the focus (it was tapped or
+  // clicked into), while the mouse is over it, or on a touch screen while IE with the page is the window on top, the
+  // screensaver waits (up to 30 minutes after the last thing this page itself saw). A same-origin page reports its own
+  // events (FR.idle.poke, src/apps/shell.js).
+  const frameInUse = () => {
+    const w = FR.wm.active, f = w && !w.min && w.el && w.el.querySelector('.ie-frame');
+    if (!f) return false;
+    if (document.activeElement === f || overFrame === f || FR.mobile || Date.now() - lastTouch < IDLE_CAP) return true;
+    // the mouse went into the page: this page's last mouse position is at the page's edge (a browser says nothing to
+    // the game once the pointer is inside another site's frame)
+    const r = f.getBoundingClientRect(), m = lastMouse, M = 30;
+    return !!m && m.x >= r.left - M && m.x <= r.right + M && m.y >= r.top - M && m.y <= r.bottom + M;
+  };
+  function idleUp() {
+    if (!document.querySelector('.fr-desktop') || document.querySelector('.fr-end') || document.querySelector('.fr-dialog')) return;
+    if (frameInUse() && Date.now() - idleSeen < IDLE_CAP) { idleT = setTimeout(idleUp, 30000); return; }
+    screensaver();
+  }
   ['mousemove', 'mousedown', 'keydown', 'touchstart', 'wheel'].forEach(ev => document.addEventListener(ev, resetIdle, { passive: true }));
+  document.addEventListener('touchstart', () => { lastTouch = Date.now(); }, { passive: true, capture: true });
+  document.addEventListener('mousemove', e => { lastMouse = { x: e.clientX, y: e.clientY }; }, { passive: true, capture: true });
+  document.addEventListener('mouseover', e => { overFrame = e.target && e.target.classList && e.target.classList.contains('ie-frame') ? e.target : null; }, { passive: true });
+  FR.idle = { poke: resetIdle, frameInUse };
+  // (tests, file:// and localhost only) as if nothing had been seen for `ago` ms and the 5 minutes were up now
+  if (LOCAL) FR.idle._fire = ago => { if (ago != null) idleSeen = Date.now() - ago; clearTimeout(idleT); idleUp(); };
   resetIdle();
   function screensaver() {
     if (document.querySelector('.fr-saver')) return;
@@ -13652,10 +13813,21 @@ I'm taking Thursday off.
       img.style.transform = `translate(${x}px, ${y}px)`; raf = requestAnimationFrame(step);
     };
     step();
-    const quit = () => { cancelAnimationFrame(raf); sv.remove(); ['mousemove', 'mousedown', 'keydown', 'touchstart'].forEach(ev => document.removeEventListener(ev, quitH)); };
+    const quit = () => { cancelAnimationFrame(raf); sv.remove(); ['mousemove', 'mousedown', 'keydown', 'touchstart'].forEach(ev => document.removeEventListener(ev, quitH, true)); };
     let armed = false; setTimeout(() => (armed = true), 400);
-    const quitH = () => { if (armed) quit(); };
-    ['mousemove', 'mousedown', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, quitH));
+    // (R6) the tap / click / key that wakes the computer only wakes it (as in Windows): it never also opens the desktop
+    // icon or presses the button that was under the screensaver
+    const swallow = e => { e.preventDefault(); e.stopPropagation(); };
+    const quitH = e => {
+      if (!armed) return;
+      quit();
+      if (e.type !== 'mousemove') swallow(e);
+      // (a browser sends a mousemove just before the press of a mouse that has been still: a short window then)
+      const evs = ['click', 'dblclick', 'mousedown', 'mouseup', 'touchend', 'contextmenu', 'keyup', 'keypress'];
+      evs.forEach(ev => document.addEventListener(ev, swallow, true));
+      setTimeout(() => evs.forEach(ev => document.removeEventListener(ev, swallow, true)), e.type === 'mousemove' ? 250 : 700);
+    };
+    ['mousemove', 'mousedown', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, quitH, { capture: true, passive: false }));
   }
   FR.screensaver = screensaver;
   // Display Properties › Screen Saver (the one tab Frank left unlocked)
@@ -13763,6 +13935,16 @@ I'm taking Thursday off.
     "No ERP, no CRM, no HRIS connected. Just Frank's files. Here goes:",
     "One version of the truth would help here. Packa has five. So:",
   ];
+  // the footer's score line, on its own: (R6 Q4) it is refreshed on every change of the score (a wrong answer, a hint,
+  // an item, a bonus request, an egg) without redrawing the list (which would wipe the wrong answer's message)
+  function renderFoot(wrap, sc = FR.score.now()) {
+    const meta = wrap && wrap.querySelector('.ck-foot .ck-meta');
+    if (!meta) return;
+    meta.innerHTML = `${FR.score.available() ? '<a href="#" class="ck-score">' : '<b class="ck-score">'}Score: ${FR.score.fmt(sc.score)}${sc.bonus ? ` <span class="ck-bonus" title="Bonus requests and Easter eggs, included in the score: ${esc(FR.score.found(sc))}">(+${FR.score.fmt(sc.bonus)} ${FR.score.bonusWord})</span>` : ''}${FR.score.available() ? '</a>' : '</b>'} · ${sc.freeLeft ? `Free hints left: ${sc.freeLeft}` : `Hints: −${FR.score.rules.PER_HINT} each`} · Time: <span class="ck-time">${FR.clock.dur(FR.clock.playMs())}</span>`;
+    const scoreLink = meta.querySelector('a.ck-score');
+    if (scoreLink) scoreLink.onclick = e => { e.preventDefault(); FR.score.open(); };
+  }
+  FR.bus.on('score', () => { const w = FR.wm.wins.get('checklist'); if (w) renderFoot(w.body.querySelector('.ck-wrap')); });
   function renderChecklist(w) {
     const wrap = w.body.querySelector('.ck-wrap');
     if (!wrap) return;
@@ -13775,12 +13957,11 @@ I'm taking Thursday off.
     wrap.innerHTML = `<div class="ck-head">${FR.icon('checklist', 34)}<div><h2>BOARD PACK — due Tue 9:00 AM</h2><p>Frank's to-do list. Get all ten done and Packa survives.</p></div></div>
       <div class="ck-prog"><progress max="${ITEMS.length}" value="${done}"></progress><b>${done} of ${ITEMS.length} done</b>${FR.puzzle.isSolved('frank') ? '<a href="#" class="ck-endlink">See how it ended &#9656;</a>' : ''}</div>
       <div class="ck-list"></div>
-      <div class="ck-foot"><span class="ck-meta">${FR.score.available() ? '<a href="#" class="ck-score">' : '<b class="ck-score">'}Score: ${FR.score.fmt(sc.score)}${sc.bonus ? ` <span class="ck-bonus" title="Bonus requests and Easter eggs, included in the score: ${esc(FR.score.found(sc))}">(+${FR.score.fmt(sc.bonus)} bonus)</span>` : ''}${FR.score.available() ? '</a>' : '</b>'} · ${sc.freeLeft ? `Free hints left: ${sc.freeLeft}` : `Hints: −${FR.score.rules.PER_HINT} each`} · Time: <span class="ck-time">${FR.clock.dur(FR.clock.playMs())}</span></span><button class="ck-help">How to play</button></div>`;
+      <div class="ck-foot"><span class="ck-meta"></span><button class="ck-help">How to play</button></div>`;
     wrap.querySelector('.ck-help').onclick = openHelp;
     const endLink = wrap.querySelector('.ck-endlink');
     if (endLink) endLink.onclick = e => { e.preventDefault(); FR.sound.play('click'); ending(); };
-    const scoreLink = wrap.querySelector('a.ck-score');
-    if (scoreLink) scoreLink.onclick = e => { e.preventDefault(); FR.score.open(); };
+    renderFoot(wrap, sc);
     const list = wrap.querySelector('.ck-list');
     FR.state.unlockedAt = FR.state.unlockedAt || {};
     ITEMS.forEach((it, idx) => {
@@ -13813,9 +13994,12 @@ I'm taking Thursday off.
         if (n >= 3) return;
         const take = () => { FR.state.hintsUsed[it.id] = n + 1; FR.save(); FR.sound.play('ding'); renderChecklist(w); };
         // the free hints are gone: every hint now costs points, so ask first
-        const cost = FR.score.now().freeLeft ? '' : `You've used your ${FR.score.rules.FREE_HINTS} free hints. This one costs <b>${FR.score.rules.PER_HINT} points</b>.`;
-        if (n === 2 || cost) {
-          FR.dialog({ icon: 'question', title: 'FinanceOS Assist', message: [n === 2 ? "This one gives the answer away. FinanceOS won't judge. Emily might." : '', cost].filter(Boolean).join('<br><br>'), buttons: [n === 2 ? 'Show it' : 'Use a hint', 'Cancel'] })
+        const free = FR.score.now().freeLeft;
+        const cost = free ? '' : `You've used your ${FR.score.rules.FREE_HINTS} free hints. This one costs <b>${FR.score.rules.PER_HINT} points</b>.`;
+        // (R6 Q1) phones: a thumb slip near the button must never spend a hint, so every hint asks first, free or not
+        const phoneAsk = FR.mobile && free ? `Use a free hint? (${free} left)` : '';
+        if (n === 2 || cost || FR.mobile) {
+          FR.dialog({ icon: 'question', title: 'FinanceOS Assist', message: [phoneAsk, n === 2 ? "This one gives the answer away. FinanceOS won't judge. Emily might." : '', cost].filter(Boolean).join('<br><br>'), buttons: [n === 2 ? 'Show it' : 'Use a hint', 'Cancel'] })
             .then(r => { if (r.button === 'Show it' || r.button === 'Use a hint') take(); });
           return;
         }
@@ -13892,7 +14076,7 @@ I'm taking Thursday off.
       list.appendChild(row);
     });
     list.scrollTop = scrollTop;
-    if (keep && keep.id === FR.puzzle.current()) { const ni = list.querySelector('.ck-item.open .ck-ans input'); if (ni) { ni.value = keep.v; if (keep.f) ni.focus(); } }
+    if (keep && keep.id === FR.puzzle.current()) { const ni = list.querySelector('.ck-item.open .ck-ans input'); if (ni) { ni.value = keep.v; if (keep.f && FR.wm.active === w) ni.focus(); } }   // (focus only on top: a re-render behind another window must not bring the checklist forward)
     const focusRow = list.querySelector('.ck-just') || list.querySelector('.ck-item.open');
     if (focusRow && (!scrollTop || justSolved)) setTimeout(() => focusRow.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 0);
     if (justSolved) { const j = justSolved; setTimeout(() => { if (justSolved === j) justSolved = null; }, 1500); }
@@ -14030,7 +14214,7 @@ I'm taking Thursday off.
       <div class="fr-kicker">Board Pack delivered · Survival package approved</div>
       <h1>Packa Corp is saved.<br>Frank is in Vegas.</h1>
       <p>You rebuilt Packa's numbers from a pile of "FINAL" files, a hidden folder, a change log and one man's head. The Board saw the real runway, the bank got a true covenant certificate, and the emergency plan passed.</p>
-      <div class="fr-end-stats"><div class="fr-end-score"><b>${FR.score.fmt(sc.score)}</b><span>Score</span></div><div><b>${t}</b><span>Time at Frank's desk</span></div><div><b>${hints}</b><span>Hints used</span></div><div><b>${FR.state.wrong || 0}</b><span>Wrong guesses</span></div><div class="fr-end-bonus"><b>+${FR.score.fmt(sc.bonus || 0)}</b><span>Bonus</span></div></div>
+      <div class="fr-end-stats"><div class="fr-end-score"><b>${FR.score.fmt(sc.score)}</b><span>Score</span></div><div><b>${t}</b><span>Time at Frank's desk</span></div><div><b>${hints}</b><span>Hints used</span></div><div><b>${FR.state.wrong || 0}</b><span>Wrong guesses</span></div><div class="fr-end-bonus"><b>+${FR.score.fmt(sc.bonus || 0)}</b><span>Bonus &amp; eggs</span></div></div>
       <p class="fr-end-calc">${esc(FR.score.breakdown(sc))}</p>
       <p class="fr-end-rank"></p>
       <div class="fr-end-line"></div>

@@ -1004,10 +1004,228 @@ def r5_desktop(p, b):
     ctx.close()
 
 
+ICONS = "() => [...document.querySelectorAll('.fr-dicon')].map(i => { const r = i.getBoundingClientRect(); return [Math.round(r.left), Math.round(r.top), Math.round(r.right)]; })"
+SAVER = "() => !!document.querySelector('.fr-saver')"
+
+
+def r6_checks(p, b, devname):
+    """round 6 (iPhone SE player): a hint is never spent by a near miss and always asks first on a phone (Q1), the
+    screensaver waits while IE's web page is in use (Q2), the checklist footer follows every score change (Q4), a
+    long-press doesn't move a desktop icon and icons stay on screen (Q6), Paint's Save As fits a 320 px phone (Q7),
+    General numbers fit their column in Excel (Q8), "bonus & eggs" / "bonus requests" (Q9)"""
+    dev = dict(p.devices[devname]); dev.pop('default_browser_type', None)
+    PFX[0] = 'r6_' + devname.replace(' ', '') + '_'
+    print('== round 6 checks on', devname, flush=True)
+    ctx = b.new_context(**dev); ctx.route(re.compile(r'https?://(www\.)?packacorp\.com/.*'), site)
+    pg = ctx.new_page()
+    pg.on('console', lambda m: logs.append(m.type + ': ' + m.text) if m.type in ('error', 'warning') else None)
+    pg.on('pageerror', lambda e: logs.append('PAGEERROR ' + str(e)))
+    pg.goto(URL + '?dev=1&solve=version'); pg.wait_for_selector('.fr-desktop'); pg.wait_for_timeout(900)
+    pg.evaluate(MUTE)
+
+    # Q1: item 3 (unlock). The line just above the button ("Ticks itself when you do it.") is not the button, even
+    # with the browser's near-miss snapping; the button itself asks first ("Use a free hint? (10 left)")
+    item = ck(pg)
+    reachable(pg, item.locator('.ck-hbtn'))
+    g = pg.evaluate("() => { const it = document.querySelector('.ck-item.open'), a = it.querySelector('.ck-auto').getBoundingClientRect(), h = it.querySelector('.ck-hbtn').getBoundingClientRect(); return [Math.round(h.top - a.bottom), a.left + 40, a.bottom - 2, h.left + 30, h.top + h.height / 2]; }")
+    ok(g[0] >= 16, f'Q1: {g[0]} px of plain space between "Ticks itself when you do it." and the hint button')
+    for dy in (0, 3, 7):   # the report's tap was on the text's last pixels; also a little lower
+        pg.touchscreen.tap(g[1], g[2] + dy); pg.wait_for_timeout(350)
+    ok(pg.evaluate("() => (FR.state.hintsUsed.unlock || 0) === 0 && !document.querySelector('.fr-dialog')"), 'Q1: taps on the line above the button spend nothing and open nothing')
+    tap(pg, item.locator('.ck-hbtn'), 400)
+    msg = pg.inner_text('.fr-dialog .fr-dlg-msg') if pg.locator('.fr-dialog').count() else ''
+    ok('Use a free hint? (10 left)' in msg and pg.evaluate("() => (FR.state.hintsUsed.unlock || 0) === 0"), f'Q1: the button asks first: {msg!r}')
+    shot(pg, 'hint_confirm')
+    dlg_btn(pg, 'Cancel')
+    ok(pg.evaluate("() => (FR.state.hintsUsed.unlock || 0) === 0 && FR.score.now().freeLeft === 10"), 'Q1: Cancel: no hint used, still 10 free')
+    tap(pg, ck(pg).locator('.ck-hbtn'), 400); dlg_btn(pg, 'Use a hint')
+    ok(pg.evaluate("() => FR.state.hintsUsed.unlock === 1") and pg.locator(TOP + ' .ck-item.open .ck-fos').count() == 1, 'Q1: "Use a hint": hint 1 shows')
+    tap(pg, ck(pg).locator('.ck-hbtn'), 400)
+    ok('(9 left)' in (pg.inner_text('.fr-dialog .fr-dlg-msg') if pg.locator('.fr-dialog').count() else ''), 'Q1: the next one says 9 left')
+    dlg_btn(pg, 'Cancel')
+
+    # Q4: the footer drops by 50 at each wrong answer, while the checklist stays open (and the message stays)
+    pg.evaluate("() => FR.puzzle.solve('unlock')"); pg.wait_for_timeout(400); pg.evaluate(MUTE)
+    item = ck(pg)
+    foot = lambda: pg.evaluate("() => (document.querySelector('.fr-win .ck-foot .ck-score').textContent.match(/Score: ([\\d,]+)/) || [])[1]")
+    s0 = pg.evaluate('() => FR.score.now().score')
+    for k, v in enumerate(('2230', '3530')):
+        tap(pg, item.locator('.ck-ans input'), 150); pg.keyboard.type(v); tap(pg, item.locator('.ck-ans button'), 400)
+        want = f'{s0 - 50 * (k + 1):,}'
+        ok(foot() == want and '(−50 points)' in pg.inner_text(TOP + ' .ck-item.open .ck-fb'), f'Q4: wrong answer {k + 1}: the footer says {foot()} at once (want {want}), the message stays')
+    shot(pg, 'footer_live')
+    # Q9: one word for the total ("bonus & eggs"), the breakdown splits it
+    pg.evaluate("() => { FR.eggs.find('diary'); FR.state.bonus = FR.state.bonus || {}; FR.state.bonus.mum_fx = { solvedAt: Date.now(), pts: 100 }; FR.save(); FR.bus.emit('bonus', 'mum_fx'); FR.bus.emit('score'); }"); pg.wait_for_timeout(300)
+    ft = pg.inner_text(TOP + ' .ck-foot .ck-meta'); bd = pg.evaluate('() => FR.score.breakdown()')
+    ok('(+110 bonus & eggs)' in ft and '+ 100 bonus requests + 1 egg × 10 =' in bd, f'Q9: footer {ft.split(" · ")[0]!r}, breakdown {bd!r}')
+    pg.evaluate(MUTE)
+    closeall(pg)
+
+    # Q2: the screensaver waits while the player is on IE's web page (its touches never reach the game), comes otherwise
+    pg.evaluate("() => FR.apps.ie('https://www.packacorp.com/about.html')"); pg.wait_for_timeout(1200)
+    pg.evaluate('() => FR.idle._fire(0)'); pg.wait_for_timeout(200)
+    ok(not pg.evaluate(SAVER), 'Q2: 5 minutes with no touch the game can see, IE on packacorp.com on top: no screensaver')
+    pg.evaluate('() => FR.idle._fire(31 * 60000)'); pg.wait_for_timeout(200)
+    ok(pg.evaluate(SAVER), 'Q2: ... but after 30 minutes it comes anyway')
+    pg.wait_for_timeout(500); pg.touchscreen.tap(100, 100); pg.wait_for_timeout(900)
+    st2 = pg.evaluate("() => [!!document.querySelector('.fr-saver'), FR.wm.active && FR.wm.active.id, [...FR.wm.wins.keys()]]")
+    ok(not st2[0] and st2[1] == 'ie', f'Q2: a touch ends it, and only ends it (nothing under it was pressed) {st2}')
+    closeall(pg)
+    if pg.evaluate("() => !!FR.wm.wins.get('checklist')"): pg.evaluate("() => FR.wm.wins.get('checklist').close()")
+    pg.wait_for_timeout(300)
+    pg.evaluate('() => FR.idle._fire(0)'); pg.wait_for_timeout(200)
+    ok(pg.evaluate(SAVER), 'Q2: with no web page on top, 5 idle minutes bring the screensaver as before')
+    pg.wait_for_timeout(500); pg.touchscreen.tap(60, 60); pg.wait_for_timeout(900)
+    ok(not pg.evaluate(SAVER) and pg.evaluate("() => FR.wm.wins.size") == 0, 'Q2: the tap that ends it doesn\'t open the desktop icon under it')
+
+    # Q6: a long-press opens the menu and moves nothing; every icon stays on the visible desktop, also when it gets short
+    before = pg.evaluate(ICONS)
+    longpress(pg, pg.locator('.fr-dicon', has_text='Model_FY26'))
+    ok(pg.locator('.fr-ctx').count() == 1, 'Q6: long-press on the model file opens its menu')
+    pg.wait_for_timeout(600)   # (the menu ignores taps for its first moments: tap guard)
+    tap(pg, pg.locator('.fr-ctx .fr-menu-item', has_text='Properties'), 700)
+    tap(pg, pg.locator('.sh-sheet .sh-cancel'), 500)
+    after = pg.evaluate(ICONS)
+    ok(before == after, 'Q6: after long-press + Properties no icon has moved' + ('' if before == after else f' {before} -> {after}'))
+    ok(all(r <= pg.viewport_size['width'] for _, _, r in after), 'Q6: every icon is on screen')
+    shot(pg, 'icons_after_longpress')
+    vw, vh = pg.viewport_size['width'], pg.viewport_size['height']
+    pg.set_viewport_size({'width': vw, 'height': 330}); pg.wait_for_timeout(500)
+    q6 = pg.evaluate("() => { const box = document.querySelector('.fr-icons'), br = box.getBoundingClientRect(); const ic = [...box.children].map(i => i.getBoundingClientRect()); const off = ic.filter(r => r.right > innerWidth + 1).length; return [off, box.className, box.scrollWidth > box.clientWidth ? getComputedStyle(box).overflowX : 'fits']; }")
+    ok(q6[0] == 0 or q6[2] == 'auto', f'Q6: a short screen ({vw}x330): the icons get tighter, and scroll sideways if they still don\'t fit {q6}')
+    pg.set_viewport_size({'width': vw, 'height': vh}); pg.wait_for_timeout(500)
+    ok(pg.evaluate(ICONS) == after, 'Q6: back to full height: the icons are where they were')
+
+    # Q7: Paint's Save As fits a 320 px phone (nothing cut off on the left)
+    pg.evaluate("() => FR.apps.paint(null)"); pg.wait_for_timeout(900)
+    tap(pg, pg.locator(TOP + ' .fr-mi', has_text='File'), 300)
+    tap(pg, pg.locator('.fr-menu-item', has_text='Save As'), 700)
+    q7 = pg.evaluate("() => { const d = [...document.querySelectorAll('.fr-dialog')].pop(), row = d.querySelector('.fr-dlg-row'), dr = d.getBoundingClientRect(); const labs = [...d.querySelectorAll('.pt-frow > span:first-child')].map(s => s.getBoundingClientRect()); return [row.scrollWidth <= row.clientWidth + 1, row.scrollLeft, labs.every(r => r.left >= dr.left + 2 && r.right <= dr.right), dr.left >= 0 && dr.right <= innerWidth]; }")
+    ok(all([q7[0], q7[1] == 0, q7[2], q7[3]]), f'Q7: Save As fits the screen, no sideways scroll, labels whole {q7}')
+    shot(pg, 'paint_saveas')
+    dlg_btn(pg, 'Cancel')
+    closeall(pg)
+
+    # Q8: a blank sheet shows =2000*(1+1.5%)^12 as a number (General: as many decimals as fit), never #######
+    pg.evaluate("() => FR.apps.excel(null)"); pg.wait_for_timeout(900)
+    xl_type(pg, 0, 1, '=2000*(1+1.5%)^12')
+    t8 = pg.inner_text(f'{TOP} .xl-grid td[data-r="0"][data-c="1"]').strip()
+    ok(t8.startswith('2391.2') and '#' not in t8, f'Q8: B1 shows {t8!r} (Excel: 2391.236)')
+    xl_type(pg, 1, 1, '=123456789012*10')
+    t8b = pg.inner_text(f'{TOP} .xl-grid td[data-r="1"][data-c="1"]').strip()
+    ok(re.match(r'^1\.2\d*E\+12$', t8b) is not None, f'Q8: a number too long for the column goes scientific: {t8b!r}')
+    shot(pg, 'excel_general')
+    closeall(pg)
+    ctx.close()
+
+
+def r6_land(p, b, devname):
+    """round 6, phones sideways: Paint gives the picture the height (Q3), tips are one line over the title bar (Q5)"""
+    dev = dict(p.devices[devname]); dev.pop('default_browser_type', None)
+    vw, vh = dev['viewport']['width'], dev['viewport']['height']
+    PFX[0] = 'r6_land_' + devname.replace(' ', '') + '_'
+    ctx = b.new_context(**dict(dev, viewport={'width': max(vw, vh), 'height': min(vw, vh)}))
+    pg = ctx.new_page()
+    pg.on('console', lambda m: logs.append(m.type + ': ' + m.text) if m.type in ('error', 'warning') else None)
+    pg.on('pageerror', lambda e: logs.append('PAGEERROR ' + str(e)))
+    pg.goto(URL + '?dev=1&solve=unlock'); pg.wait_for_selector('.fr-desktop'); pg.wait_for_timeout(900)
+    pg.evaluate(MUTE)
+    H = pg.viewport_size['height']
+    # Q3: Paint sideways
+    pg.evaluate("() => FR.apps.paint(null)"); pg.wait_for_timeout(900)
+    PT = """() => { const w = document.querySelector('.fr-win:not(.fr-inactive)'), q = s => w.querySelector(s).getBoundingClientRect(), tb = document.querySelector('.fr-taskbar').getBoundingClientRect();
+      const tools = [...w.querySelectorAll('.pt-tool')].map(t => t.getBoundingClientRect()), sw = [...w.querySelectorAll('.pt-sw')].map(t => t.getBoundingClientRect());
+      return { ws: [Math.round(q('.pt-ws').width), Math.round(q('.pt-ws').height)], toolsOn: tools.every(r => r.top >= 0 && r.bottom <= tb.top + 1 && r.height >= 26 && r.width >= 30), swOn: sw.length === 28 && sw.every(r => r.bottom <= tb.top + 1 && r.right <= innerWidth && r.height >= 24 && r.width >= 22),
+        status: getComputedStyle(w.querySelector('.status-bar')).display, menubar: w.querySelector('.fr-menubar').getBoundingClientRect().height }; }"""
+    r = pg.evaluate(PT)
+    ok(r['ws'][1] >= 0.75 * (H - 62) and r['ws'][0] >= 300, f'Q3: sideways Paint: the picture area is {r["ws"][0]}x{r["ws"][1]} (screen {pg.viewport_size["width"]}x{H})')
+    ok(r['toolsOn'] and r['swOn'] and r['status'] == 'none' and r['menubar'] == 0, f'Q3: all 16 tools and 28 colours on screen, big enough to tap; no status bar, no menu bar {r}')
+    shot(pg, 'paint')
+    tap(pg, pg.locator(TOP + ' .pt-tool[data-t=text]'), 300)
+    r = pg.evaluate(PT); fb = pg.evaluate("() => { const f = document.querySelector('.fr-win:not(.fr-inactive) .pt-fontbar'); const r = f.getBoundingClientRect(); return [getComputedStyle(f).display, Math.round(r.height)]; }")
+    ok(fb[0] == 'flex' and fb[1] <= 36 and r['ws'][1] >= 0.6 * (H - 62), f'Q3: with the Text tool: one slim Fonts row {fb}, the picture still {r["ws"][0]}x{r["ws"][1]}')
+    shot(pg, 'paint_text')
+    tap(pg, pg.locator(TOP + ' .pt-tool[data-t=brush]'), 300); tap(pg, pg.locator(TOP + ' .pt-tool[data-t=brush]'), 300)
+    op = pg.evaluate("() => { const e = document.querySelector('.fr-win:not(.fr-inactive) .pt-opts'), r = e.getBoundingClientRect(), t = document.querySelector('.fr-win:not(.fr-inactive) .pt-tools').getBoundingClientRect(); return [getComputedStyle(e).display, r.left >= t.right - 1 && r.bottom <= innerHeight && r.right <= innerWidth]; }")
+    ok(op[0] == 'flex' and op[1], f'Q3: the brush options pop out beside the tool column, on screen {op}')
+    tap(pg, pg.locator(TOP + ' .pt-o').nth(1), 300)
+    # draw a stroke by finger in the middle of the picture
+    before = pg.evaluate("() => { const c = document.querySelector('.fr-win:not(.fr-inactive) .pt-cv'); return c.toDataURL().length; }")
+    bb = pg.locator(TOP + ' .pt-cv').bounding_box()
+    swipe(pg, bb['x'] + 30, bb['y'] + 40, bb['x'] + min(bb['width'], 300) - 30, bb['y'] + min(bb['height'], 200) - 30)
+    ok(pg.evaluate("() => document.querySelector('.fr-win:not(.fr-inactive) .pt-cv').toDataURL().length") != before, 'Q3: a finger stroke draws on the picture')
+    ok(topmost_is_visible(pg, TOP + ' .fr-mbtn'), 'Q3: a Menu button in the title bar')
+    tap(pg, pg.locator(TOP + ' .fr-mbtn'), 300); tap(pg, pg.locator(TOP + ' .fr-mi', has_text='File'), 300)
+    tap(pg, pg.locator('.fr-menu-item', has_text='Save As'), 700)
+    ok(pg.locator('.fr-dialog .pt-fd-name').count() == 1, 'Q3: Menu › File › Save As… opens')
+    dlg_btn(pg, 'Cancel')
+    ok(not pg.locator(TOP + ' .fr-menubar').is_visible(), 'Q3: the menu bar goes away again')
+    closeall(pg)
+    # Q5: a tip sideways over Excel: one line over the title bar's caption, never over rows / formula bar / tabs / buttons
+    tap(pg, pg.locator('.fr-win .ck-item.open .ck-chip', has_text='Budget_FY27_BOARD.xls').first, 1200)
+    pg.evaluate("() => FR.balloon('T-new', 'New request from Steve Packa: Rotary question (typed by Barb). How many tickets does the Rotary Club have to sell to break even this year?<br><small>Optional bonus request · +200 points</small>', () => FR.apps.mail(null), { act: 'Open it' })")
+    pg.wait_for_selector('.fr-balloon:has-text("Rotary")', timeout=6000); pg.wait_for_timeout(500)
+    q5 = pg.evaluate("""() => { const b = document.querySelector('.fr-balloon').getBoundingClientRect(), w = document.querySelector('.fr-win:not(.fr-inactive)'), tb = w.querySelector('.title-bar').getBoundingClientRect(), mb = w.querySelector('.fr-mbtn').getBoundingClientRect(), ctl = w.querySelector('.title-bar-controls').getBoundingClientRect(), grid = w.querySelector('.xl-scroll').getBoundingClientRect(), fbar = w.querySelector('.xl-fbar').getBoundingClientRect();
+      return [Math.round(b.top), Math.round(b.bottom), Math.round(b.height), b.bottom <= tb.bottom + 0.5, b.right <= mb.left && b.right <= ctl.left, b.bottom <= fbar.top + 0.5 && b.bottom <= grid.top, Math.round(b.width)]; }""")
+    ok(q5[2] <= 30 and q5[3] and q5[4] and q5[5] and q5[6] >= 200, f'Q5: the tip is one line ({q5[2]} px) over the title bar\'s caption, clear of Menu / Minimize / Close, the formula bar and the grid {q5}')
+    shot(pg, 'toast_excel')
+    ok(pg.evaluate("() => document.querySelector('.fr-balloon').classList.contains('fr-balloon-more')"), 'Q5: the cut-off line says "more"')
+    pg.wait_for_timeout(400); tap(pg, pg.locator('.fr-balloon .fr-balloon-b'), 400)
+    op = pg.evaluate("() => { const b = document.querySelector('.fr-balloon'); return [b.classList.contains('fr-balloon-open'), Math.round(b.getBoundingClientRect().height), b.getBoundingClientRect().bottom <= innerHeight]; }")
+    ok(op[0] and op[1] > 30 and op[2], f'Q5: a tap opens it up to the whole text {op}')
+    shot(pg, 'toast_open')
+    pg.evaluate("() => FR.tips.clear()")
+    ctx.close()
+
+
+def r6_desktop(p, b):
+    """round 6 on a desktop: the hint button's hit area is the button (Q1), the footer follows a wrong answer (Q4), the
+    screensaver waits while the mouse is on IE's web page (Q2), General numbers fit (Q8), no phone confirmation"""
+    PFX[0] = 'r6_desktop_'
+    ctx = b.new_context(viewport={'width': 1366, 'height': 800}); ctx.route(re.compile(r'https?://(www\.)?packacorp\.com/.*'), site)
+    pg = ctx.new_page(); pg.on('pageerror', lambda e: logs.append('PAGEERROR ' + str(e)))
+    pg.goto(URL + '?dev=1&solve=version'); pg.wait_for_selector('.fr-desktop'); pg.wait_for_timeout(900)
+    pg.evaluate(MUTE)
+    h = pg.evaluate("() => { const b = document.querySelector('.ck-item.open .ck-hbtn').getBoundingClientRect(); return [b.left, b.top, b.right, b.bottom]; }")
+    for x, y in ((h[0] + 20, h[1] - 2), (h[2] + 3, (h[1] + h[3]) / 2), (h[0] + 20, h[3] + 2), (h[0] - 3, (h[1] + h[3]) / 2)):
+        pg.mouse.click(x, y); pg.wait_for_timeout(200)
+    ok(pg.evaluate("() => (FR.state.hintsUsed.unlock || 0) === 0"), f'Q1 desktop: clicks just outside the button (above, right, below, left) spend nothing {h}')
+    pg.mouse.click(h[0] + 20, (h[1] + h[3]) / 2); pg.wait_for_timeout(300)
+    ok(pg.evaluate("() => FR.state.hintsUsed.unlock === 1 && !document.querySelector('.fr-dialog')"), 'Q1 desktop: a click on the button shows a free hint at once (unchanged)')
+    pg.evaluate("() => FR.puzzle.solve('unlock')"); pg.wait_for_timeout(400); pg.evaluate(MUTE)
+    s0 = pg.evaluate('() => FR.score.now().score')
+    pg.fill('.ck-item.open .ck-ans input', '2230'); pg.click('.ck-item.open .ck-ans button'); pg.wait_for_timeout(300)
+    ft = pg.inner_text('.ck-foot .ck-score')
+    ok(f'Score: {s0 - 50:,}' in ft and 'EBIT' in pg.inner_text('.ck-item.open .ck-fb'), f'Q4 desktop: the footer drops at once ({ft!r}), the message stays')
+    # Q2: the mouse on the web page in IE: no screensaver; off it: the screensaver as before
+    pg.evaluate("() => FR.apps.ie('https://www.packacorp.com/about.html')"); pg.wait_for_timeout(1500)
+    fb = pg.locator('.fr-win:not(.fr-inactive) .ie-frame').bounding_box()
+    pg.mouse.move(fb['x'] + fb['width'] / 2, fb['y'] - 60, steps=2); pg.mouse.move(fb['x'] + fb['width'] / 2, fb['y'] + 120, steps=15); pg.wait_for_timeout(200)
+    pg.evaluate('() => FR.idle._fire(0)'); pg.wait_for_timeout(200)
+    ok(not pg.evaluate(SAVER), 'Q2 desktop: the mouse is over the web page in IE: no screensaver')
+    pg.mouse.move(fb['x'] + fb['width'] / 2, 785, steps=4); pg.wait_for_timeout(200)
+    pg.evaluate('() => FR.idle._fire(0)'); pg.wait_for_timeout(200)
+    ok(pg.evaluate(SAVER), 'Q2 desktop: mouse off the page (on the taskbar), 5 idle minutes: the screensaver')
+    pg.wait_for_timeout(500); pg.mouse.move(300, 300); pg.mouse.move(320, 320); pg.wait_for_timeout(300)
+    # Q8
+    pg.evaluate("() => FR.apps.excel(null)"); pg.wait_for_timeout(900)
+    pg.evaluate("() => { const w = FR.wm.active; w.el.querySelector('.xl-grid td[data-r=\"0\"][data-c=\"1\"]').dispatchEvent(new MouseEvent('mousedown', { bubbles: true })); }")
+    pg.keyboard.type('=2000*(1+1.5%)^12'); pg.keyboard.press('Enter'); pg.wait_for_timeout(300)
+    t8 = pg.evaluate("() => FR.wm.active.el.querySelector('.xl-grid td[data-r=\"0\"][data-c=\"1\"]').textContent")
+    ok(t8.startswith('2391.2') and '#' not in t8, f'Q8 desktop: B1 shows {t8!r}')
+    pg.screenshot(path=f'{OUT}/mobile_{PFX[0]}excel_general.png')
+    ctx.close()
+
+
 os.makedirs(OUT, exist_ok=True)
 with sync_playwright() as p:
     kw = {'executable_path': os.environ['CHROMIUM']} if os.environ.get('CHROMIUM') else {}
     b = p.chromium.launch(**kw)
+    for devname in (DEVICES if not os.environ.get('PLAY_ONLY') else []): r6_checks(p, b, devname)
+    for devname in (DEVICES if not os.environ.get('PLAY_ONLY') else []): r6_land(p, b, devname)
+    if not os.environ.get('PLAY_ONLY'): r6_desktop(p, b)
+    if os.environ.get('R6_ONLY'):   # (developers: only the round-6 checks)
+        print('\n'.join(logs) or 'no console errors'); print('ALL PASS' if not fails[0] and not logs else f'{fails[0]} FAILED'); sys.exit(1 if fails[0] or logs else 0)
     for devname in (DEVICES if not os.environ.get('PLAY_ONLY') else []): r5_checks(p, b, devname)
     if not os.environ.get('PLAY_ONLY'): r5_desktop(p, b)
     if os.environ.get('R5_ONLY'):   # (developers: only the round-5 checks)

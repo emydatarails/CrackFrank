@@ -1723,6 +1723,9 @@
         let first = true;
         f.onload = () => {
           S.loading = false; status('Done');
+          // (R6 Q2) a same-origin page tells the screensaver the player is using it (another site's page can't be
+          // listened to: src/boot.js frameInUse covers that)
+          try { const d = f.contentDocument; if (d) ['mousemove', 'mousedown', 'keydown', 'touchstart', 'wheel', 'scroll'].forEach(ev => d.addEventListener(ev, () => FR.idle && FR.idle.poke(), { passive: true, capture: true })); } catch (er) {}
           // navigated inside the site: the page's own title when the browser lets us read it (same origin), else the
           // company name (a cross-origin page's title and URL can't be read) (R3b S17)
           let t = '';

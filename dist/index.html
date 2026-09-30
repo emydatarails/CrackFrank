@@ -6024,6 +6024,8 @@ FR.version = {"version": "1.0.0", "build": "dev", "date": "", "full": "1.0.0 (de
     /* ---------- selection ---------- */
     const selRect = () => ({ r0: Math.min(st.anchor.r, st.focus.r), r1: Math.max(st.anchor.r, st.focus.r), c0: Math.min(st.anchor.c, st.focus.c), c1: Math.max(st.anchor.c, st.focus.c) });
     function boxFor(r0, c0, r1, c1) { return { x: colX[c0], y: rowY[r0], w: colX[c1] + colWd[c1] - colX[c0], h: rowY[r1] + rowHt[r1] - rowY[r0] }; }
+    // phones: column A is frozen (sticky), so a box that starts in it moves with the scroll to stay over it
+    const pinA = (b, c0) => { if (FR.mobile && c0 === 0 && scroll.scrollLeft) b.x += scroll.scrollLeft; return b; };
     function drawSel() {
       if (!tds.length) return;
       st.tinted.forEach(td => td.classList.remove('xl-in')); st.tinted = [];
@@ -6033,7 +6035,7 @@ FR.version = {"version": "1.0.0", "build": "dev", "date": "", "full": "1.0.0 (de
       if (multi) for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) { if (r === st.ar && c === st.ac) continue; const td = tds[r] && tds[r][c]; if (td) { td.classList.add('xl-in'); st.tinted.push(td); } }
       for (let c = c0; c <= c1; c++) if (colTh[c]) { colTh[c].classList.add('xl-hs'); st.hs.push(colTh[c]); }
       for (let r = r0; r <= r1; r++) if (rowTh[r]) { rowTh[r].classList.add('xl-hs'); st.hs.push(rowTh[r]); }
-      const b = boxFor(r0, c0, r1, c1);
+      const b = pinA(boxFor(r0, c0, r1, c1), c0);
       Object.assign(selbox.style, { left: b.x + 'px', top: b.y + 'px', width: b.w + 'px', height: b.h + 'px', display: st.edit && st.edit.si === st.si && !multi && !(FR.mobile && st.edit.from === 'fbar') ? 'none' : '' });
       if (!st.drag) nbin.value = a1(st.ar, st.ac);
       if (!st.edit) fin.value = fbarText(st.ar, st.ac);
@@ -6075,7 +6077,9 @@ FR.version = {"version": "1.0.0", "build": "dev", "date": "", "full": "1.0.0 (de
       const x = colX[c], y = rowY[r], w = colWd[c], h = rowHt[r];
       if (FR.mobile) {   // phones: column A is frozen, and a cell wider than the screen shows from its left edge
         const fz = c > 0 ? colWd[0] : 0;
-        if (x - RHW - fz < scroll.scrollLeft || w > scroll.clientWidth - RHW - fz) scroll.scrollLeft = Math.max(0, x - RHW - fz);
+        // column A itself is always in sight: selecting it must not pan the sheet back (the notes next to it vanished)
+        if (c === 0) {}
+        else if (x - RHW - fz < scroll.scrollLeft || w > scroll.clientWidth - RHW - fz) scroll.scrollLeft = Math.max(0, x - RHW - fz);
         else if (x + w > scroll.scrollLeft + scroll.clientWidth) scroll.scrollLeft = x + w - scroll.clientWidth;
         if (y - CHH < scroll.scrollTop) scroll.scrollTop = y - CHH;
         else if (y + h > scroll.scrollTop + scroll.clientHeight) scroll.scrollTop = y + h - scroll.clientHeight;
@@ -6111,7 +6115,7 @@ FR.version = {"version": "1.0.0", "build": "dev", "date": "", "full": "1.0.0 (de
       const mirror = FR.mobile && ed && ed.from === 'fbar';
       editor.classList.toggle('xl-editor-mirror', !!mirror);
       if (!ed || ed.si !== st.si || (ed.from === 'fbar' && !mirror)) { editor.style.display = 'none'; return; }
-      const b = boxFor(ed.r, ed.c, ed.r, ed.c);
+      const b = pinA(boxFor(ed.r, ed.c, ed.r, ed.c), ed.c);
       Object.assign(editor.style, { display: 'block', left: b.x + 'px', top: b.y + 'px', height: b.h - 1 + 'px', minWidth: b.w - 1 + 'px' });
     }
     function sizeEditor() {
@@ -6439,7 +6443,12 @@ FR.version = {"version": "1.0.0", "build": "dev", "date": "", "full": "1.0.0 (de
       const fb = $('<button class="xl-fillb" aria-label="Fill right or down">Fill…</button>');
       fb.onclick = e => { e.stopPropagation(); fillTo(); };
       q('.xl-tabbar').append(fb, zb);
-      scroll.addEventListener('scroll', () => scroll.classList.toggle('xl-sx', scroll.scrollLeft > 2), { passive: true });
+      scroll.addEventListener('scroll', () => {
+        scroll.classList.toggle('xl-sx', scroll.scrollLeft > 2);
+        // the selection or the in-cell editor sitting on the frozen column A follows it
+        if (st.ac === 0 || selRect().c0 === 0) drawSel();
+        if (st.edit && st.edit.c === 0) syncEditorVisibility();
+      }, { passive: true });
       wrap.addEventListener('mousedown', e => {
         const p = cellAt(e);
         const lt = st.lastTap;   // only a cell the player tapped already (not the one a workbook opens on)

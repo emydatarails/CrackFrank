@@ -3,7 +3,7 @@
    made in Magnific, packed by tools/make_salon_images.py); a missing photo shows as an empty frame. No puzzle numbers here. */
 (() => {
   const esc = FR.esc;
-  const HOST = 'alpacka.example', URL0 = 'http://www.alpacka.example/';
+  const HOST = 'alpacka.mo', URL0 = 'http://www.alpacka.mo/';
   const at = p => URL0 + p;
   const img = (k, alt, cls = '') => {
     const src = FR.data.images && FR.data.images['sa_' + k];

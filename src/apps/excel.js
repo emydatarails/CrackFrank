@@ -345,6 +345,8 @@
     },
     COUNTIF(A, E, S) { const rg = E(A[0]); if (!rg || !rg.rg) return ERR('#VALUE!'); const f = critFn(S(A[1])); return this.rv(rg).flat().filter(f).length; },
     CONCATENATE(A, E, S) { let s = ''; for (const a of A) { const v = S(a); if (isErr(v)) return v; s += toStr(v); } return s; },
+    // Easter egg (src/apps/xp_eggs.js): Frank's favourite function. There's always a formula.
+    KRISTIANS() { if (typeof FR !== 'undefined' && FR.bus) FR.bus.emit('xl-kristians'); return "There's always a formula."; },
     CONCAT(A, E) { let s = ''; for (const a of A) { const v = E(a); if (v && v.rg) { for (const x of this.rv(v).flat()) { if (isErr(x)) return x; s += toStr(x); } continue; } if (isErr(v)) return v; s += toStr(v); } return s; },
     LEN(A, E, S) { const v = S(A[0]); return isErr(v) ? v : toStr(v).length; },
     UPPER(A, E, S) { const v = S(A[0]); return isErr(v) ? v : toStr(v).toUpperCase(); },
@@ -1331,6 +1333,8 @@
     S.set('A19', 'Best INDEX/MATCH', { b: 1 }); S.set('C19', '=MIN(C6,C7,C9,C12,C15,C17)', { b: 1, f: 'ms1' });
     S.set('A20', 'Best Lookup relay', { b: 1 }); S.set('C20', '=MIN(C8,C10,C13,C16)', { b: 1, f: 'ms1' });
     S.cm('A3', FRANK, "Out-of-office NOT on. If Drew sees 'Excel' and 'championship' in one sentence he'll want to come.");
+    // Easter egg: white on white in the very last cell (Ctrl+End finds it)
+    S.set('J36', "You pressed Ctrl+End. Kristians would be proud. Nobody else would. —F", { fc: '#FFFFFF' });
     const P = sheet('Packing list', { nc: 6, nr: 30 });
     P.w({ A: 30, B: 380 });
     P.h(1, 20);
@@ -1445,6 +1449,59 @@
   XL.books = { rankedBook, budgetBook, boardBook, covenantBook, cashBook, bridgeBook, esportsBook, v2Book, blankBook, packBook, changelogBook, model47Book, forBoardBook, VERS };
 
   /* =====================================================================
+     The player's edits, saved with the game (FR.state.xl) — a file opens the way the player left it, after a
+     reload or on another computer. Only the difference from the file's own contents is kept:
+       FR.state.xl = { <file id>: { <sheet name>: { <A1>: '<what was typed>' | ['<typed>', '<number format>'] } } }
+     (a number format only when typing changed it, e.g. "22%"). core.js (harden) validates it on load.
+     ===================================================================== */
+  const EDITS_MAX = 100000;   // characters of JSON for all files together (the account server takes 1 MB per save)
+  const EDIT_RAW_MAX = 2000;
+  XL.edits = {
+    // put the saved edits into a freshly built book; note(si, r, c) is told about each cell before it changes
+    restore(book, fileId, note) {
+      const all = typeof FR !== 'undefined' && FR.state && FR.state.xl, f = all && all[fileId];
+      if (!f || typeof f !== 'object') return 0;
+      let n = 0;
+      for (const sn in f) {
+        const si = book.idx(sn); if (si < 0) continue;
+        const cells = book.sheets[si].cells;
+        for (const a in f[sn]) {
+          const p = parseA1(a), v = f[sn][a]; if (!p) continue;
+          const raw = Array.isArray(v) ? v[0] : v, fmt = Array.isArray(v) ? v[1] : undefined;
+          if (typeof raw !== 'string') continue;
+          if (note) note(si, p.r, p.c);
+          const k = p.r + ',' + p.c, cl = cells[k] || (cells[k] = { raw: '' });
+          cl.raw = raw; delete cl.ast; delete cl.lit;
+          if (typeof fmt === 'string') cl.s = Object.assign({}, cl.s || {}, { f: fmt });
+          n++;
+        }
+      }
+      book.recalc();
+      return n;
+    },
+    // write this book's edits (the cells in orig: 'si,r,c' → {raw, f} as the file had them) into FR.state.xl
+    // and save; returns false (nothing changes) if it would go over the size limit
+    save(book, fileId, orig) {
+      if (typeof FR === 'undefined' || !FR.state || !fileId) return false;
+      const f = {};
+      orig.forEach((o, k) => {
+        const [si, r, c] = k.split(',').map(Number), sh = book.sheets[si]; if (!sh) return;
+        const cl = sh.cells[r + ',' + c], raw = cl ? cl.raw || '' : '', fmt = cl && cl.s ? cl.s.f : undefined;
+        if (raw === (o.raw || '') && fmt === o.f) return;
+        if (raw.length > EDIT_RAW_MAX) return;
+        (f[sh.name] = f[sh.name] || {})[a1(r, c)] = fmt !== o.f && typeof fmt === 'string' ? [raw, fmt] : raw;
+      });
+      const all = Object.assign({}, FR.state.xl || {});
+      if (Object.keys(f).length) all[fileId] = f; else delete all[fileId];
+      if (JSON.stringify(all).length > EDITS_MAX) return false;
+      FR.state.xl = all;
+      if (FR.save) FR.save();
+      return true;
+    },
+    MAX: EDITS_MAX,
+  };
+
+  /* =====================================================================
      Number display
      ===================================================================== */
   const commas = (x, d) => { const [i, f] = x.toFixed(d).split('.'); return i.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (f ? '.' + f : ''); };
@@ -1472,6 +1529,29 @@
     }
   }
   XL.fmtNum = fmtNum;
+  // (R6 Q8) Excel's General format (no number format) when the number is wider than its column: as many decimals as
+  // fit (2391.23627 → 2391.236 → 2391.2 → 2391), then scientific (1.23457E+11 … 1E+11); "###" only when even that
+  // doesn't fit. Formatted numbers (0.0, %, dates …) never shrink, they show ### as in Excel. fits(text) → bool.
+  const FIXED_FMT = /^(n[012]|p[012]|x[12]|ms1|int|days|date|ymd|c[02])$/;
+  const isGeneral = f => !FIXED_FMT.test(f || '');
+  function fitGeneral(v, fits) {
+    const s0 = fmtNum(v).t;
+    if (fits(s0)) return s0;
+    if (typeof v !== 'number' || !isFinite(v)) return null;
+    const m = /^-?\d+\.(\d+)$/.exec(s0);
+    if (m) for (let d = m[1].length - 1; d >= 0; d--) {
+      const t = String(parseFloat(v.toFixed(d)));
+      if (+t === 0) break;   // every significant digit gone (0.0000123 → 0): scientific instead
+      if (fits(t)) return t;
+    }
+    for (let p = 5; p >= 0; p--) {
+      const [mant, ex] = v.toExponential(p).split('e');
+      const t = String(parseFloat(mant)) + 'E' + (ex[0] === '-' ? '-' : '+') + ex.replace(/^[+-]/, '').padStart(2, '0');
+      if (fits(t)) return t;
+    }
+    return null;
+  }
+  XL.fitGeneral = fitGeneral;
   const decFmt = (f, dir) => {
     const map = { n0: ['n1', 'n0'], n1: ['n2', 'n0'], n2: ['n2', 'n1'], p0: ['p1', 'p0'], p1: ['p2', 'p0'], p2: ['p2', 'p1'], x1: ['x2', 'x1'], x2: ['x2', 'x1'], c0: ['c2', 'c0'], c2: ['c2', 'c0'] };
     const m = map[f || ''] || ['n1', 'n0'];
@@ -1536,6 +1616,12 @@
 
   function openWorkbook(book, opts = {}) {
     const st = { si: 0, ar: 0, ac: 0, anchor: { r: 0, c: 0 }, focus: { r: 0, c: 0 }, edit: null, tinted: [], hs: [], undo: [], redo: [], dirty: false, circWarned: false, showCm: false, fbar: true, drag: false, clip: null, closed: false };
+    // the player's earlier edits of this file come back (FR.state.xl, see XL.edits); orig remembers each touched
+    // cell as the file had it, so only the difference is saved
+    const fileId = opts.id && opts.node ? opts.node.id : null;
+    const orig = new Map();
+    const noteOrig = (si, r, c) => { const k = si + ',' + r + ',' + c; if (orig.has(k)) return; const cl = book.sheets[si] && book.sheets[si].cells[r + ',' + c]; orig.set(k, { raw: cl ? cl.raw || '' : '', f: cl && cl.s ? cl.s.f : undefined }); };
+    if (fileId) XL.edits.restore(book, fileId, noteOrig);
     const app = $(`<div class="xl-app">
       <div class="xl-dock">
         <div class="xl-tb xl-tb-std"></div>
@@ -1626,10 +1712,12 @@
           { label: 'Properties', action: propsMsg }, { sep: 1 }, { label: 'Exit', action: () => win.close() }] },
         { label: 'Edit', items: () => [{ label: 'Undo Typing', key: 'Ctrl+Z', disabled: !st.undo.length, action: undo }, { label: 'Redo', key: 'Ctrl+Y', disabled: !st.redo.length, action: redo }, { sep: 1 },
           { label: 'Cut', key: 'Ctrl+X', action: () => copySel(true) }, { label: 'Copy', key: 'Ctrl+C', action: () => copySel(false) }, { label: 'Paste', key: 'Ctrl+V', disabled: !st.clip, action: pasteClip }, { sep: 1 },
-          { label: 'Clear Contents', key: 'Del', action: clearSel }, dis('Delete...'), dis('Delete Sheet'), dis('Move or Copy Sheet...'), { sep: 1 }, dis('Find...'), dis('Replace...'), { label: 'Go To...', key: 'Ctrl+G', action: () => { nbin.focus(); nbin.select(); } }] },
+          { label: 'Clear Contents', key: 'Del', action: clearSel }, dis('Delete...'), dis('Delete Sheet'), dis('Move or Copy Sheet...'), { sep: 1 }, dis('Find...'), dis('Replace...'), { label: 'Go To...', key: 'Ctrl+G', action: () => { nbin.focus(); nbin.select(); } },
+          // (R5 P4) a phone keyboard has no Ctrl or End: the same jump as Ctrl+End, from the menu
+          ...(FR.mobile ? [{ label: 'Go To Last Cell (Ctrl+End)', action: () => goLastCell(false) }] : [])] },
         { label: 'View', items: () => [{ label: 'Normal', checked: true }, dis('Page Break Preview'), { sep: 1 }, dis('Task Pane'), dis('Toolbars'), { label: 'Formula Bar', checked: st.fbar, action: () => { st.fbar = !st.fbar; q('.xl-fbar').style.display = st.fbar ? '' : 'none'; } },
           { label: 'Status Bar', checked: q('.xl-status').style.display !== 'none', action: () => { const s = q('.xl-status'); s.style.display = s.style.display === 'none' ? '' : 'none'; } }, { sep: 1 },
-          { label: 'Comments', checked: st.showCm, action: () => { st.showCm = !st.showCm; renderObjs(); } }, { sep: 1 }, dis('Full Screen'), dis('Zoom...')] },
+          { label: 'Comments', checked: st.showCm, action: () => { st.showCm = !st.showCm; renderObjs(); } }, { sep: 1 }, dis('Full Screen'), FR.mobile ? { label: 'Zoom: Fit to Width', checked: !!st.fit, action: () => setFit(!st.fit) } : dis('Zoom...')] },
         { label: 'Insert', items: () => [dis('Cells...'), dis('Rows'), dis('Columns'), dis('Worksheet'), dis('Chart...'), { sep: 1 }, { label: 'Function...', action: fnHelp }, dis('Name'), dis('Comment'), { sep: 1 }, dis('Picture'), dis('Hyperlink...')] },
         { label: 'Format', items: () => [dis('Cells...'), dis('Row'), dis('Column'), dis('Sheet'), { sep: 1 }, dis('AutoFormat...'), dis('Conditional Formatting...'), dis('Style...')] },
         { label: 'Tools', items: () => [{ label: 'Spelling...', key: 'F7', action: soon('The spelling check is complete for the entire sheet.') }, dis('Error Checking...'), { sep: 1 }, dis('Protection'), dis('Goal Seek...'), dis('Scenarios...'), dis('Formula Auditing'), { sep: 1 }, dis('Macro'), dis('Add-Ins...'), { label: 'Options...', action: soon('Options are locked by the Packa Corp IT policy.<br><br>(Packa Corp IT = Drew.)') }] },
@@ -1661,6 +1749,13 @@
       const d = dims(s);
       NR = d.nr; NC = d.nc;
       colWd = []; for (let c = 0; c < NC; c++) colWd[c] = s.colW[c] || DEFW;
+      // phones: column A is frozen (sticky), so it may take at most ~40% of the grid's width; longer labels show in full on tap
+      if (FR.mobile) {
+        const vw = scroll.clientWidth || (innerWidth / 1.2);
+        colWd[0] = Math.min(colWd[0], Math.max(96, Math.round((vw - RHW) * 0.42)));
+        // any other column at most ~55% of the grid, so a very wide text column never pushes the numbers off-screen
+        for (let c = 1; c < NC; c++) colWd[c] = Math.min(colWd[c], Math.max(110, Math.round((vw - RHW) * 0.55)));
+      }
       rowHt = []; for (let r = 0; r < NR; r++) rowHt[r] = s.rowH[r] || DEFH;
       let h = `<colgroup><col style="width:${RHW}px">${colWd.map(w => `<col style="width:${w}px">`).join('')}</colgroup><thead><tr><th class="xl-corner"><span></span></th>`;
       for (let c = 0; c < NC; c++) h += `<th class="xl-ch" data-c="${c}">${colName(c)}</th>`;
@@ -1679,7 +1774,7 @@
       colX = colTh.map(th => th.offsetLeft); colWd = colTh.map(th => th.offsetWidth);
       rowY = tds.map(row => row[0].offsetTop); rowHt = tds.map(row => row[0].offsetHeight);
       wrap.style.width = table.offsetWidth + 'px'; wrap.style.height = table.offsetHeight + 'px';
-      tcache.set(st.si, { table, tds, colTh, rowTh, colX, colWd, rowY, rowHt, NR, NC });
+      tcache.set(st.si, { table, tds, colTh, rowTh, colX, colWd, rowY, rowHt, NR, NC, h: table.offsetHeight });
       renderTabs();
       refresh();
     }
@@ -1725,12 +1820,17 @@
           let cls = cl.cm ? 'xl-hascm' : '';
           let html;
           const w = colWd[c];
-          if (isNum && text && measure(text, sty) > w - 5) { text = '#'.repeat(Math.max(1, Math.floor((w - 5) / 7.4))); pad = false; }
+          if (isNum && text && measure(text, sty) > w - 5) {
+            const g = isGeneral(sty.f) ? fitGeneral(v, t => measure(t, sty) <= w - 5) : null;
+            text = g || '#'.repeat(Math.max(1, Math.floor((w - 5) / 7.4))); pad = false;
+          }
           if (!isNum && text && al === 'l' && !isErr(v)) {
             const tw = measure(text, sty) + 4 + (sty.ind ? sty.ind * 9 : 0);
             if (tw > w) {
               let acc = w, j = c;
-              while (acc < tw && j + 1 < NC && !(s.cells[r + ',' + (j + 1)] && s.cells[r + ',' + (j + 1)].raw !== '')) { j++; acc += colWd[j]; }
+              // (phones: text also stops at a filled cell, e.g. a yellow input cell, so you never type "into" a label)
+              const stop = n => { const x = s.cells[r + ',' + n]; return !!x && (x.raw !== '' || (FR.mobile && x.s && x.s.bg && x.s.bg !== '#fff' && x.s.bg !== '#ffffff')); };
+              while (acc < tw && j + 1 < NC && !stop(j + 1)) { j++; acc += colWd[j]; }
               if (j > c) { cls += ' xl-spill'; html = `<span class="xl-sp" style="width:${acc - 4}px">${esc(text)}</span>`; }
             }
           }
@@ -1738,6 +1838,7 @@
           td.className = cls; td.style.cssText = css; td.innerHTML = html;
         }
       }
+      if (FR.mobile) remeasure();
       renderObjs();
       drawSel();
       if (book.circ && !st.circWarned) {
@@ -1745,9 +1846,56 @@
         setTimeout(() => FR.dialog({ icon: 'warn', title: 'Microsoft Excel', width: 440, message: 'Microsoft Office Excel cannot calculate a formula. There is a circular reference in an open workbook, but the references that cause it cannot be listed for you automatically.<br><br>The circular reference has been treated as zero.' }), 0);
       }
     }
+    // (R3b S15) phones: if filling the cells made a row taller than it was when the grid was measured (big text, a
+    // wrapped label), the rows below moved: measure again, so the selection box, notes and taps stay on the right row
+    function remeasure() {
+      const hit = tcache.get(st.si); if (!hit || hit.table !== table || !tds.length) return;
+      const h = table.offsetHeight; if (h === hit.h) return;
+      rowY = tds.map(row => row[0].offsetTop); rowHt = tds.map(row => row[0].offsetHeight);
+      colX = colTh.map(th => th.offsetLeft); colWd = colTh.map(th => th.offsetWidth);
+      wrap.style.width = table.offsetWidth + 'px'; wrap.style.height = h + 'px';
+      Object.assign(hit, { rowY, rowHt, colX, colWd, h });
+    }
+    /* (R7 T1) phones / tablets: Frank's sticky notes sit right of the statement (column K), off the screen of a tablet
+       held upright or a phone. A yellow "📝 Frank's note ▸" chip over the grid's top right corner shows while a note is
+       out of sight; a tap scrolls the grid to it (the next one, if there are more) and the note pops again */
+    let stickEls = [], stickChip = null;
+    const stickVis = n => {
+      const sl = scroll.scrollLeft, stp = scroll.scrollTop, cw = scroll.clientWidth, ch = scroll.clientHeight, w = n.d.offsetWidth, h = n.d.offsetHeight;
+      return n.l >= sl + RHW + (n.o.c > 0 ? colWd[0] : 0) - 2 && n.l + w <= sl + cw - 6 && n.t >= stp + CHH - 2 && n.t + h <= stp + ch - 6;   // (it is tilted a little)
+    };
+    function stickUpd() {
+      if (!FR.mobile) return;
+      const off = stickEls.filter(n => n.d.isConnected && !stickVis(n));
+      if (!off.length) { if (stickChip) stickChip.hidden = true; return; }
+      if (!stickChip) {
+        stickChip = $('<button class="xl-stickchip" type="button"></button>');
+        stickChip.onmousedown = e => e.stopPropagation();
+        stickChip.onclick = e => {
+          e.stopPropagation();
+          const n = stickEls.find(x => x.d.isConnected && !stickVis(x)); if (!n) { stickUpd(); return; }
+          const cw = scroll.clientWidth, ch = scroll.clientHeight, w = n.d.offsetWidth, h = n.d.offsetHeight;
+          const sl = Math.min(n.l - RHW - (n.o.c > 0 ? colWd[0] : 0) - 4, Math.max(0, n.l + w + 14 - cw));   // (column A is frozen)
+          let stp = scroll.scrollTop;
+          if (n.t < stp + CHH || n.t + h > stp + ch - 6) stp = Math.max(0, Math.min(n.t - CHH - 6, n.t + h + 16 - ch));
+          scroll.scrollTo({ left: Math.max(0, sl), top: stp });
+          n.d.classList.remove('xl-pop'); void n.d.offsetWidth; n.d.classList.add('xl-pop');
+          setTimeout(stickUpd, 60);
+        };
+        q('.xl-main').appendChild(stickChip);
+      }
+      stickChip.innerHTML = `&#128221; ${off.length === 1 && stickEls.length === 1 ? "Frank's note" : `${off.length} of Frank's notes`} &#9656;`;
+      stickChip.setAttribute('aria-label', "Show Frank's sticky note");
+      stickChip.hidden = false;
+    }
+    if (FR.mobile) {
+      scroll.addEventListener('scroll', () => { if (stickEls.length) stickUpd(); }, { passive: true });
+      window.addEventListener('resize', () => setTimeout(() => { if (stickEls.length) stickUpd(); }, 80));
+    }
     function renderObjs() {
       const s = sh();
       objs.innerHTML = '';
+      stickEls = [];
       s.charts.forEach(ch => {
         const d = $(`<div class="xl-chart" style="left:${colX[ch.c] + ch.dx}px;top:${rowY[ch.r] + ch.dy}px;width:${ch.w}px;height:${ch.h}px"></div>`);
         try { d.innerHTML = ch.render(book); } catch (e) { d.textContent = 'Chart error'; }
@@ -1760,10 +1908,17 @@
         d.innerHTML = o.html;
         d.onmousedown = e => e.stopPropagation();
         objs.appendChild(d);
+        if (FR.mobile && /\bxl-sticky\b/.test(o.cls || '')) {
+          // a note never wider than what's left of the screen next to the frozen column A (it wraps instead)
+          const room = scroll.clientWidth - RHW - (o.c > 0 ? colWd[0] : 0) - 16;
+          if (room > 0 && o.w > room) d.style.width = Math.max(96, room) + 'px';
+          stickEls.push({ d, o, l: colX[o.c] + o.dx, t: rowY[o.r] + o.dy });
+        }
       });
       if (st.showCm) {
         for (const k in s.cells) { const cl = s.cells[k]; if (!cl.cm) continue; const [r, c] = k.split(',').map(Number); if (r >= NR || c >= NC) continue; objs.appendChild(cmBox(cl.cm, r, c, true)); }
       }
+      if (FR.mobile) stickUpd();
     }
     function cmBox(cm, r, c, fixed) {
       const x = colX[c] + colWd[c] + 12, y = Math.max(0, rowY[r] - 6);
@@ -1784,6 +1939,26 @@
         tabsEl.appendChild(t);
       });
     }
+    /* phones: "Fit" shrinks the grid so the whole used width of the sheet fits the screen (a statement at a glance);
+       "100%" goes back. The grid is zoomed with CSS zoom, and Excel measures its cells from the DOM, so taps still land. */
+    function setFit(on) {
+      st.fit = on;
+      if (!on) scroll.style.zoom = '';
+      else {
+        // the width of the statement: up to the last column with a number or a formula (notes further right may spill)
+        let mc = 0; for (const k in sh().cells) { const cl = sh().cells[k]; if (!cl.raw) continue; const c = +k.split(',')[1]; if (c > mc && (cl.raw[0] === '=' || !isNaN(parseNumText(cl.raw)))) mc = c; }
+        if (!mc) for (const k in sh().cells) { const c = +k.split(',')[1]; if (sh().cells[k].raw && c > mc) mc = c; }
+        const used = colX[mc] + colWd[mc] + 4, avail = q('.xl-main').getBoundingClientRect().width;
+        scroll.style.zoom = Math.max(0.55, Math.min(1.2, avail / used)).toFixed(3);
+        // (R3b S14) the status bar says how far it zoomed out, and when even that is too wide (the 13-week sheet on a
+        // phone held upright) that sideways shows it all
+        st.fitPct = Math.round(+scroll.style.zoom / 1.2 * 100); st.fitShort = avail / used < 0.55 && innerHeight > innerWidth;
+      }
+      scroll.scrollLeft = 0;
+      drawSel();
+      const zb = q('.xl-zoomb'); if (zb) { zb.textContent = on ? '100%' : 'Fit'; zb.classList.toggle('on', on); }
+      tapNote(null);
+    }
     function switchSheet(i) {
       if (i === st.si) return;
       if (st.edit && !canPoint()) { if (!commit(0, 0)) return; }
@@ -1795,6 +1970,7 @@
       renderSheet();
       syncEditorVisibility();
       if (!keepEdit) focusGrid(); else fin.focus();
+      if (st.fit) setFit(true);
     }
     q('.xl-tabnav').onmousedown = e => {
       const n = e.target.closest('[data-n]'); if (!n) return; e.preventDefault();
@@ -1816,7 +1992,7 @@
       for (let c = c0; c <= c1; c++) if (colTh[c]) { colTh[c].classList.add('xl-hs'); st.hs.push(colTh[c]); }
       for (let r = r0; r <= r1; r++) if (rowTh[r]) { rowTh[r].classList.add('xl-hs'); st.hs.push(rowTh[r]); }
       const b = boxFor(r0, c0, r1, c1);
-      Object.assign(selbox.style, { left: b.x + 'px', top: b.y + 'px', width: b.w + 'px', height: b.h + 'px', display: st.edit && st.edit.si === st.si && !multi ? 'none' : '' });
+      Object.assign(selbox.style, { left: b.x + 'px', top: b.y + 'px', width: b.w + 'px', height: b.h + 'px', display: st.edit && st.edit.si === st.si && !multi && !(FR.mobile && st.edit.from === 'fbar') ? 'none' : '' });
       if (!st.drag) nbin.value = a1(st.ar, st.ac);
       if (!st.edit) fin.value = fbarText(st.ar, st.ac);
       // copy marquee
@@ -1832,7 +2008,7 @@
       return cl.raw;
     }
     function statusSum(r0, r1, c0, c1, multi) {
-      stMode.textContent = st.edit ? (st.edit.point ? 'Point' : st.edit.mode === 'edit' ? 'Edit' : 'Enter') : 'Ready';
+      stMode.textContent = st.edit ? (st.edit.point ? 'Point' : st.edit.mode === 'edit' ? 'Edit' : 'Enter') : st.fit && FR.mobile ? `Zoom ${st.fitPct}%${st.fitShort ? ' · turn sideways to see all' : ''}` : 'Ready';
       if (!multi) { stSum.textContent = ''; return; }
       const s = sh(); let sum = 0, n = 0, f = null;
       for (const k in s.cells) {
@@ -1851,9 +2027,18 @@
       else { st.ar = r; st.ac = c; st.anchor = { r, c }; st.focus = { r, c }; }
       drawSel();
       ensureVisible(extend ? r : st.ar, extend ? c : st.ac);
+      if (!extend && FR.bus) FR.bus.emit('xl-select', { book: book.name, sheet: book.sheets[st.si] && book.sheets[st.si].name, r, c });
     }
     function ensureVisible(r, c) {
       const x = colX[c], y = rowY[r], w = colWd[c], h = rowHt[r];
+      if (FR.mobile) {   // phones: column A is frozen, and a cell wider than the screen shows from its left edge
+        const fz = c > 0 ? colWd[0] : 0;
+        if (x - RHW - fz < scroll.scrollLeft || w > scroll.clientWidth - RHW - fz) scroll.scrollLeft = Math.max(0, x - RHW - fz);
+        else if (x + w > scroll.scrollLeft + scroll.clientWidth) scroll.scrollLeft = x + w - scroll.clientWidth;
+        if (y - CHH < scroll.scrollTop) scroll.scrollTop = y - CHH;
+        else if (y + h > scroll.scrollTop + scroll.clientHeight) scroll.scrollTop = y + h - scroll.clientHeight;
+        return;
+      }
       if (x - RHW < scroll.scrollLeft) scroll.scrollLeft = x - RHW;
       else if (x + w > scroll.scrollLeft + scroll.clientWidth) scroll.scrollLeft = x + w - scroll.clientWidth;
       if (y - CHH < scroll.scrollTop) scroll.scrollTop = y - CHH;
@@ -1879,7 +2064,11 @@
     }
     function syncEditorVisibility() {
       const ed = st.edit;
-      if (!ed || ed.si !== st.si || ed.from === 'fbar') { editor.style.display = 'none'; return; }
+      // (R7 T2) phones / tablets edit in the formula bar (a finger can't aim inside a 17 px cell), but the cell shows
+      // what is being typed, like Excel does: the in-cell editor as a mirror (taps go through it)
+      const mirror = FR.mobile && ed && ed.from === 'fbar';
+      editor.classList.toggle('xl-editor-mirror', !!mirror);
+      if (!ed || ed.si !== st.si || (ed.from === 'fbar' && !mirror)) { editor.style.display = 'none'; return; }
       const b = boxFor(ed.r, ed.c, ed.r, ed.c);
       Object.assign(editor.style, { display: 'block', left: b.x + 'px', top: b.y + 'px', height: b.h - 1 + 'px', minWidth: b.w - 1 + 'px' });
     }
@@ -1963,6 +2152,7 @@
     }
     function applyChanges(list) {
       list.forEach(x => {
+        if (fileId) noteOrig(x.si, x.r, x.c);
         const s = book.sheets[x.si], k = x.r + ',' + x.c;
         let cl = s.cells[k];
         if (!cl) cl = s.cells[k] = { raw: '' };
@@ -1971,6 +2161,7 @@
       });
       st.dirty = true;
       book.recalc();
+      if (fileId) XL.edits.save(book, fileId, orig);   // one save per committed edit / fill / paste / undo
       refresh();
       if (opts.afterCalc) opts.afterCalc(book, api);
     }
@@ -2045,6 +2236,20 @@
       if (!batch.length) return;
       pushUndo(batch);
       applyChanges(batch.map(x => ({ si: x.si, r: x.r, c: x.c, raw: x.neu, s: x.neuS })));
+    }
+    function fillTo() {
+      if (st.edit && !commit(0, 0)) return;
+      const from = a1(st.ar, st.ac), r0 = st.ar, c0 = st.ac, si = st.si;
+      FR.dialog({ icon: 'question', title: 'Fill', message: `Copy <b>${from}</b> right or down, up to which cell?<br><small>A cell in the same row fills right (e.g. ${a1(r0, Math.min(NC - 1, c0 + 3))}), one in the same column fills down (e.g. ${a1(Math.min(NR - 1, r0 + 3), c0)}). A formula moves along, like dragging the fill handle.</small>`, input: { label: 'Up to cell:', value: '' }, buttons: ['Fill', 'Cancel'] }).then(r => {
+        if (r.button !== 'Fill' || st.si !== si) return;
+        const p = parseA1((r.value || '').trim().replace(/^.*!/, '').split(':').pop());
+        if (!p || (p.r !== r0 && p.c !== c0) || (p.r === r0 && p.c === c0)) { FR.dialog({ icon: 'error', title: 'Microsoft Excel', message: `Pick a cell in the same row (to fill right) or the same column (to fill down) as ${from}.` }); return; }
+        const r1 = Math.min(NR - 1, p.r), c1 = Math.min(NC - 1, p.c);
+        st.ar = Math.min(r0, r1); st.ac = Math.min(c0, c1);
+        st.anchor = { r: r0, c: c0 }; st.focus = { r: r1, c: c1 };
+        fillRange({ r0, r1: r0, c0, c1: c0 }, { r0: Math.min(r0, r1), r1: Math.max(r0, r1), c0: Math.min(c0, c1), c1: Math.max(c0, c1) });
+        st.ar = r0; st.ac = c0; drawSel();
+      });
     }
     function fillDir(dir) {
       if (st.edit && !commit(0, 0)) return;
@@ -2167,12 +2372,96 @@
       document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up);
     });
     wrap.addEventListener('dblclick', e => {
-      const p = cellAt(e); if (!p || st.edit) return;
+      const p = cellAt(e); if (!p || st.edit || FR.mobile) return;
       select(p.r, p.c);
       startEdit('edit', fbarText(p.r, p.c));
     });
     let tipCell = null;
+    /* phones: no hover and no double-click. Tapping a cell shows its note (red triangle); tapping the selected cell
+       again edits it in the formula bar, with the old content selected so typing replaces it. */
+    let finSelAll = false;   // (S6, below)
+    const editInBar = () => { if (st.edit) return; fin.focus(); finSelAll = false; try { fin.setSelectionRange(0, fin.value.length); } catch (x) {} };
+    if (FR.mobile) {
+      // (R5 P2) every workbook is full-screen on a phone and the title bar is cut short: a strip at the formula bar
+      // names the workbook you're typing into, in a colour of its own (the same file always gets the same colour),
+      // and the empty formula bar says it too
+      let hue = 0; for (const ch of book.name) hue = (hue * 31 + ch.charCodeAt(0)) % 360;
+      const fn = $(`<div class="xl-fname" style="--xl-fc:hsl(${hue},50%,28%)">${FR.icon('excel', 14)}<b></b></div>`);
+      fn.querySelector('b').textContent = book.name;
+      fn.title = book.name;
+      q('.xl-fbar').appendChild(fn);   // (its own line under the formula bar upright; at the end of the formula bar sideways)
+      fin.placeholder = 'Typing into ' + book.name;
+      const zb = $('<button class="xl-zoomb" aria-label="Fit the sheet to the screen width">Fit</button>');
+      zb.onclick = e => { e.stopPropagation(); setFit(!st.fit); };
+      // no fill handle to drag on a phone: "Fill…" copies the current cell right or down to a cell you name
+      const fb = $('<button class="xl-fillb" aria-label="Fill right or down">Fill…</button>');
+      fb.onclick = e => { e.stopPropagation(); fillTo(); };
+      q('.xl-tabbar').append(fb, zb);
+      scroll.addEventListener('scroll', () => scroll.classList.toggle('xl-sx', scroll.scrollLeft > 2), { passive: true });
+      wrap.addEventListener('mousedown', e => {
+        const p = cellAt(e);
+        const lt = st.lastTap;   // only a cell the player tapped already (not the one a workbook opens on)
+        st.redirect = null;
+        // (R7 T2) a double-tap on a cell at the edge of the screen: the first tap scrolled the grid to show the cell, so
+        // the second one lands on its neighbour. A second tap within 450 ms at the same spot of the screen, right after the
+        // grid moved, is the double-tap on the first cell (it edits it, it doesn't select the neighbour)
+        if (p && lt && lt.moved && lt.si === st.si && Date.now() - lt.t < 450 && (lt.r !== p.r || lt.c !== p.c) && !st.edit && Math.abs(e.clientX - lt.x) < 30 && Math.abs(e.clientY - lt.y) < 30 && lt.r === st.ar && lt.c === st.ac) {
+          st.redirect = { r: lt.r, c: lt.c }; e.stopPropagation(); e.preventDefault(); return;
+        }
+        st.tapAgain = !!(p && lt && lt.si === st.si && lt.r === p.r && lt.c === p.c && !st.edit && p.r === st.ar && p.c === st.ac && st.anchor.r === st.focus.r && st.anchor.c === st.focus.c);
+        st.tapDown = { sx: scroll.scrollLeft, sy: scroll.scrollTop };
+      }, true);
+      wrap.addEventListener('click', e => {
+        if (st.redirect) { const rd = st.redirect; st.redirect = null; st.lastTap = null; if (st.ar === rd.r && st.ac === rd.c && !st.edit) editInBar(); return; }
+        const p = cellAt(e); if (!p) return;
+        tapNote(e.target.closest('td[data-r]'));
+        if (st.tapAgain && !st.edit) editInBar();
+        const d = st.tapDown || {};
+        st.tapAgain = false; st.lastTap = { si: st.si, r: p.r, c: p.c, t: Date.now(), x: e.clientX, y: e.clientY, moved: d.sx !== scroll.scrollLeft || d.sy !== scroll.scrollTop };
+      });
+    }
+    // Ctrl+End: the last row and the last column that have anything in them
+    function goLastCell(ext) {
+      let mr = 0, mc = 0;
+      for (const key in sh().cells) { if (!sh().cells[key].raw) continue; const [r, c] = key.split(',').map(Number); if (r > mr) mr = r; if (c > mc) mc = c; }
+      select(mr, mc, ext);
+    }
+    function tapNote(td) {
+      cmtip.innerHTML = ''; tipCell = null;
+      if (!td) return;
+      const r = +td.dataset.r, c = +td.dataset.c, cl = sh().cells[r + ',' + c];
+      let g, text = false;
+      if (td.classList.contains('xl-hascm') && cl && cl.cm) { if (st.showCm) return; g = cmBox(cl.cm, r, c, false); }
+      else {
+        // text cut off by its cell or by the edge of the screen: shown whole, in a box like a note
+        const t = td.textContent.trim(); if (!t || !cl) return;
+        const sp = td.querySelector('.xl-sp') || td, R = sp.getBoundingClientRect(), S = scroll.getBoundingClientRect();
+        if (!(sp.scrollWidth > sp.clientWidth + 1 || R.right > S.right + 1)) return;
+        g = cmBox({ a: '', t }, r, c, false); text = true;
+        const bx = g.querySelector('.xl-cm'); bx.classList.add('xl-cm-text'); bx.querySelector('b').remove();
+      }
+      cmtip.appendChild(g); tipCell = td;
+      // inside the visible part of the grid: right of the cell if it fits there, else just under it
+      const box = g.querySelector('.xl-cm'), ln = g.querySelector('.xl-cm-ln');
+      const fz = c > 0 ? colWd[0] : 0, vw = scroll.clientWidth, vl = scroll.scrollLeft;
+      box.style.width = Math.min(text ? 300 : 230, vw - RHW - 12) + 'px';
+      const bw = box.offsetWidth;
+      if (text || colX[c] + colWd[c] + 12 + bw > vl + vw - 4) {
+        box.style.left = Math.max(vl + RHW + 4, Math.min(Math.max(colX[c], vl + RHW + fz), vl + vw - bw - 4)) + 'px';
+        box.style.top = rowY[r] + rowHt[r] + 4 + 'px';
+        if (ln) ln.style.display = 'none';
+      }
+      // (R3b S5) and never under the sheet tabs: no room below → above the cell; a tall note stays inside the grid
+      const vt = scroll.scrollTop + CHH + 2, vb = scroll.scrollTop + scroll.clientHeight - 4, bh = box.offsetHeight;
+      let top = parseFloat(box.style.top) || 0;
+      if (top + bh > vb) {
+        top = rowY[r] - bh - 4 >= vt ? rowY[r] - bh - 4 : Math.max(vt, vb - bh);
+        box.style.top = top + 'px';
+        if (ln) ln.style.display = 'none';
+      }
+    }
     wrap.addEventListener('mouseover', e => {
+      if (FR.mobile) return;
       const td = e.target.closest && e.target.closest('td.xl-hascm');
       if (!td || st.showCm) { if (tipCell && !e.target.closest('.xl-cmtip')) { cmtip.innerHTML = ''; tipCell = null; } return; }
       const r = +td.dataset.r, c = +td.dataset.c;
@@ -2206,7 +2495,7 @@
       if (k === 'Tab') { e.preventDefault(); select(st.ar, st.ac + (e.shiftKey ? -1 : 1)); return; }
       if (k === 'PageDown' || k === 'PageUp') { e.preventDefault(); const n = Math.max(1, Math.floor(scroll.clientHeight / DEFH) - 2) * (k === 'PageDown' ? 1 : -1); scroll.scrollTop += n * DEFH; select(st.ar + n, st.ac); return; }
       if (k === 'Home') { e.preventDefault(); select(ctrl ? 0 : st.ar, 0); return; }
-      if (k === 'End') { e.preventDefault(); if (ctrl) { let mr = 0, mc = 0; for (const key in sh().cells) { if (!sh().cells[key].raw) continue; const [r, c] = key.split(',').map(Number); if (r > mr) mr = r; if (c > mc) mc = c; } select(mr, mc, e.shiftKey); } else { let c = NC - 1; while (c > 0 && book.raw(st.si, st.ar, c) === '') c--; select(st.ar, c, e.shiftKey); } return; }
+      if (k === 'End') { e.preventDefault(); if (ctrl) goLastCell(e.shiftKey); else { let c = NC - 1; while (c > 0 && book.raw(st.si, st.ar, c) === '') c--; select(st.ar, c, e.shiftKey); } return; }
       if (k === 'F2') { e.preventDefault(); startEdit('edit', fbarText(st.ar, st.ac)); return; }
       if (k === 'Delete') { e.preventDefault(); clearSel(); return; }
       if (k === 'Backspace') { e.preventDefault(); startEdit('enter', ''); return; }
@@ -2234,7 +2523,8 @@
         if (inp === fin && k === 'Enter') { e.preventDefault(); focusGrid(); }
         return;
       }
-      if (k === 'Enter') { e.preventDefault(); commit(e.shiftKey ? -1 : 1, 0); return; }
+      // phones: Enter puts the value in and stays on the cell (no jump, no scroll: the next tap lands where aimed)
+      if (k === 'Enter') { e.preventDefault(); commit(FR.mobile ? 0 : e.shiftKey ? -1 : 1, 0); return; }
       if (k === 'Tab') { e.preventDefault(); commit(0, e.shiftKey ? -1 : 1); return; }
       if (k === 'Escape') { e.preventDefault(); cancelEdit(); return; }
       if (k === 'F2') { e.preventDefault(); st.edit.mode = st.edit.mode === 'edit' ? 'enter' : 'edit'; drawSel(); return; }
@@ -2274,7 +2564,14 @@
       editor.value = fin.value; if (st.edit) { st.edit.point = null; pointbox.style.display = 'none'; } sizeEditor();
     });
     fin.addEventListener('mousedown', e => { e.stopPropagation(); });
-    fin.addEventListener('focus', () => { if (!st.edit) { const v = fbarText(st.ar, st.ac); startEdit('edit', v, 'fbar'); } });
+    // phones (S6): a tap into the formula bar starts with the whole content selected (typing replaces it, like the
+    // tap-again on a cell); the next tap places the caret
+    fin.addEventListener('focus', () => {
+      const fresh = !st.edit;
+      if (!st.edit) { const v = fbarText(st.ar, st.ac); startEdit('edit', v, 'fbar'); }
+      if (FR.mobile) { tapNote(null); if (fresh) { finSelAll = true; setTimeout(() => (finSelAll = false), 1000); } }
+    });
+    if (FR.mobile) fin.addEventListener('click', () => { if (!finSelAll) return; finSelAll = false; try { fin.setSelectionRange(0, fin.value.length); } catch (x) {} });
     editor.addEventListener('mousedown', e => e.stopPropagation());
     q('.xl-fx-x').onmousedown = e => { e.preventDefault(); cancelEdit(); };
     q('.xl-fx-ok').onmousedown = e => { e.preventDefault(); commit(0, 0); };
@@ -2297,7 +2594,7 @@
     app.addEventListener('mousedown', e => { if (e.target.closest('.xl-tabbar, .xl-status')) { e.preventDefault(); } });
 
     // any core dialog (Frank's notes, errors) hands focus back to this window → put the caret back on the grid
-    const onDlgClosed = w => { if (st.closed) { FR.bus.off && FR.bus.off('dialog-closed', onDlgClosed); return; } if (!w || w === win || w.id === win.id) setTimeout(focusGrid, 0); };
+    const onDlgClosed = w => { if (st.closed) { FR.bus.off && FR.bus.off('dialog-closed', onDlgClosed); return; } if ((!w || w === win || w.id === win.id) && (!FR.wm.active || FR.wm.active === win)) setTimeout(() => { if (!st.closed && (!FR.wm.active || FR.wm.active === win)) focusGrid(); }, 0); };
     if (FR.bus) FR.bus.on('dialog-closed', onDlgClosed);
     const api = {
       book, win, refresh, renderObjs, switchSheet, st, focusGrid,
@@ -2350,7 +2647,12 @@
     };
     FR.bus.on('solved', onBus);
     return {
-      afterOpen: (book, ui) => { wasOk = test(book); uiRef = ui; if (o.afterOpen) o.afterOpen(book, ui); },
+      afterOpen: (book, ui) => {
+        wasOk = test(book); uiRef = ui; if (o.afterOpen) o.afterOpen(book, ui);
+        // reopened with the player's saved edits already right (FR.state.xl): solved ones stay as they are (no second
+        // award); one fixed while the checklist wasn't there yet counts now, or as soon as the checklist catches up
+        if (wasOk && !FR.puzzle.isSolved(o.puzzle)) { pending = true; if (FR.puzzle.isUnlocked(o.puzzle)) check(book, ui, true); }
+      },
       afterCalc: (book, ui) => check(book, ui, false),
     };
   }
@@ -2397,6 +2699,9 @@
   });
   function revealNote(book, ui, fromChecklist) {
     const pi = book.idx('P&L Summary'), s = book.sheets[pi];
+    // (R7) the last near-miss note ("The quarters are still #REF!…") goes once the row is fixed: it used to stay on top
+    // of the new note
+    const xi = s.shapes.findIndex(x => x.id === 'xnudge'); if (xi >= 0) { s.shapes.splice(xi, 1); if (ui.st.si === pi && !ui.st.closed) ui.renderObjs(); }
     const n = s.shapes.find(x => x.id === 'fnote');
     if (!n || !n.hidden) return;
     n.hidden = false; n.cls = 'xl-sticky xl-pop';
@@ -2427,7 +2732,8 @@
         early: "Password accepted.<br><br>Excel: this file is linked to files you haven't rebuilt yet. Finish Frank's checklist up to the bridge, then open it.",
         decoys: { '43182': 'Right numbers. Wrong order. What they told the Board comes first. —F', '18251': 'The formula said 51. Nobody believed the formula either. What is true today (10/16) is in the change log. —F', '182': 'That is what they told the Board. And then what is true. —F', '43': 'That is what is true. What they told the Board comes first. —F', '225': 'Not a sum. =CONCAT. —F' } });
       case 'bp_q1': case 'bp_q2': case 'bp_q3': case 'bp_q4': return openWorkbook(packBook(node.id), Object.assign(o, node.id === 'bp_q4' ? { startSheet: 'Cash Runway', startCell: 'B30' } : {}));
-      case 'changelog': return openWorkbook(changelogBook(), Object.assign(o, { startCell: 'H17' }));
+      // (F18, round 4) phones: row 17 from its first column (the date, who, which file), not scrolled over to H's note
+      case 'changelog': return openWorkbook(changelogBook(), Object.assign(o, { startCell: FR.mobile ? 'A17' : 'H17' }));
       case 'model47': return openWorkbook(model47Book(), o);
       case 'k_ranked': return openWorkbook(rankedBook(), o);
       case 'copybudget':

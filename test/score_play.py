@@ -19,7 +19,7 @@ def ok(cond, msg):
 
 def player(b, name, pw):
     pg = b.new_context(viewport={'width': 1366, 'height': 800}).new_page()
-    pg.on('console', lambda m: m.type == 'error' and '401' not in m.text and errors.append(m.text))
+    pg.on('console', lambda m: m.type == 'error' and errors.append(m.text))   # (N2: no 401 at start any more)
     pg.on('pageerror', lambda e: errors.append(str(e)))
     pg.route('https://www.packacorp.com/**', lambda r: r.fulfill(status=200, content_type='text/html', body='<h1>Packa</h1>'))
     pg.goto(URL); pg.wait_for_timeout(600)
@@ -107,6 +107,18 @@ try:
         ok(pg.locator('.fr-end').count() == 0, 'ending → "Who covered for Frank?" closes the ending screen')
         pg.wait_for_selector('.ie-page .st-me', timeout=6000)
         ok(pg.locator('.st-t tr.st-me td.st-rank').inner_text() == '1' and 'Board Pack sent' in pg.inner_text('.st-t tr.st-me'), 'you are #1, marked Board Pack sent')
+        # (N1) the rules are on the page, with the numbers from src/score_rules.js
+        how = pg.inner_text('.ie-page .st-howto')
+        ok('How points work' in how and '+1,000' in how and '−50' in how and '−100' in how and 'count on the leaderboard' in how and 'first finished' in how, 'leaderboard explains the scoring: ' + how.replace('\n', ' / ')[:160])
+        # (F4) ONE SCORE: a bonus request answered after the ending shows on the board, the checklist and a new ending alike
+        pg.evaluate("() => { FR.state.bonus = FR.state.bonus || {}; FR.state.bonus.steve_margin = { solvedAt: Date.now(), pts: 200 }; FR.save(); }")
+        want = pg.evaluate('() => FR.score.fmt(FR.score.now().score)')
+        pg.fill('.ie-addr input', 'intranet.packacorp.local'); pg.press('.ie-addr input', 'Enter'); pg.wait_for_selector('.ie-page .st-me', timeout=6000); pg.wait_for_timeout(600)
+        board = pg.inner_text('.st-t tr.st-me td.st-score')
+        foot = checklist(pg)
+        ok(want == '10,100' and board.startswith(want) and ('Score: ' + want) in foot, f'bonus after the ending: game {want}, board {board.split(chr(10))[0]}, checklist "{foot.split(" ·")[0]}"')
+        pg.evaluate('() => { document.querySelectorAll(".fr-end").forEach(e => e.remove()); FR.ending(); }'); pg.wait_for_timeout(2500)
+        ok(pg.inner_text('.fr-end-score b') == want and ('with ' + want + ' points') in pg.inner_text('.fr-end-rank') and '+ 200 bonus requests = ' + want in pg.inner_text('.fr-end-calc'), 'ending: ' + pg.inner_text('.fr-end-calc') + ' / ' + pg.inner_text('.fr-end-rank'))
         b.close()
 finally:
     server.terminate()

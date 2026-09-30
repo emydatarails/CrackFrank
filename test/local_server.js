@@ -5,11 +5,24 @@ require('./fake_redis')();
 const ROOT = path.join(__dirname, '..');
 const TYPES = { '.html': 'text/html; charset=utf-8', '.png': 'image/png', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json' };
 
+// A long-running local server must never answer with API code older than the files on disk (a stale copy of
+// src/score_rules.js once made the board leave out the bonus points the game showed): when api/*.js or the score
+// rules change, they are loaded again. The in-memory Redis (fake_redis) keeps its data.
+const LIVE = () => [path.join(ROOT, 'src', 'score_rules.js'), ...fs.readdirSync(path.join(ROOT, 'api')).map(f => path.join(ROOT, 'api', f))];
+let loadedAt = 0;
+function freshApi() {
+  const newest = Math.max(...LIVE().map(f => { try { return fs.statSync(f).mtimeMs; } catch (e) { return 0; } }));
+  if (newest <= loadedAt) return;
+  LIVE().forEach(f => { delete require.cache[f]; });
+  loadedAt = newest;
+}
+
 function start(port = 8000) {
   const server = http.createServer((req, res) => {
     const url = new URL(req.url, 'http://x');
     const api = url.pathname.match(/^\/api\/([a-z]+)$/);
     if (api) {
+      freshApi();
       const f = path.join(ROOT, 'api', api[1] + '.js');
       if (!fs.existsSync(f)) { res.statusCode = 404; return res.end('{}'); }
       return require(f)(req, res);

@@ -7,6 +7,7 @@
     seriesUrl: '',            // set to the "Frank Is Missing" episode page when it exists
   }, window.FR_CONFIG || {});
   FR.config = CONFIG;
+  if (FR.version) console.info("Frank's Computer " + FR.version.full);
   const $ = FR.$, esc = FR.esc;
   const root = document.getElementById('fr-root');
   const q = new URLSearchParams(location.search);
@@ -46,18 +47,20 @@
       hints: ['The website is the referee. The homepage gives the headcount; the About Us timeline gives the size of the 2024 warehouse.', 'Open each file: check the Headcount tab against the website, the Gross margin % row, and the Rent & leases line in Opex Detail.', 'The 2024 warehouse is 40,000 sq ft (About page timeline) × $6.00 = $240K, so Rent & leases must be $420K. Only v5_FINAL_USE_THIS has 118 heads, 22.0% and $420K.'] },
     { id: 'unlock', level: 2, t: 'Unlock the Board copy of the budget', d: 'Budget_FY27_BOARD.xls is password-protected. Frank left the hint inside the approved version.', auto: true,
       where: [W.file('bud_v5ut', 'The approved version'), W.file('bud_board', 'Budget_FY27_BOARD.xls'), W.site('about.html', 'About Us'), W.site('quality.html', 'Quality & Safety')],
+      // phones have no hover: the first hint says "tap" there (mhints replaces hints[i] when FR.mobile)
+      mhints: ["In the approved file, tap cell A1 (the one with the red triangle) to read Frank's note, or read its Notes tab."],
       hints: ['In the approved file, hover the red triangle in cell A1 (or read its Notes tab).', "Walter's seed money is in \"How We Got Started\" on About Us. The ISO year is on Quality & Safety.", '=SUM(2400, 2006) → 4406.'] },
-    { id: 'ebitda', level: 1, t: 'Repair FY27 EBITDA in the Board copy', d: 'Frank broke the EBITDA row at 3 AM (#REF!). Fix row 12 in Excel — FY and all four quarters (E12:H12) — or type the FY number here.', input: 'FY27 EBITDA ($K)', ph: 'e.g. 1,234',
+    { id: 'ebitda', level: 1, t: 'Repair FY27 EBITDA in the Board copy', d: 'Frank broke the EBITDA row at 3 AM (#REF!). Fix row 12 in Excel — FY and all four quarters (E12:H12) — or type the FY number here.', input: 'FY27 EBITDA ($K)', ph: 'e.g. 1,234', num: true,
       where: [W.file('bud_board', 'Budget_FY27_BOARD.xls')],
       hints: ["It's not one cell. The FY column and all four quarters say #REF!. Excel only ticks it when the whole row adds up. (Or type the FY number here.)", 'Gross profit minus SG&A, Rent & leases and Other opex. In C12 type =C7-C9-C10-C11, then the same in E12:H12.', '40,000 − 31,200 − 4,850 − 420 − 400 = 3,130.'] },
-    { id: 'dscr', level: 2, t: 'Prove the bank covenant (DSCR)', d: 'The bank wants the Q3 covenant certificate. Fill in the DSCR in Excel (it ticks itself) or type it here.', input: 'DSCR (x)', ph: 'e.g. 1.40',
-      where: [W.folder('bank', 'My Documents › Bank'), W.mail("Karen's email", 'm_karen_capex')],
+    { id: 'dscr', level: 2, t: 'Prove the bank covenant (DSCR)', d: 'The bank wants the Q3 covenant certificate. Fill in the DSCR in Excel (it ticks itself) or type it here.', input: 'DSCR (x)', ph: 'e.g. 1.40', num: true,
+      where: [W.folder('bank', 'My Documents › Bank'), W.mail("Karen's email", 'm_karen_capex'), W.file('passwords', 'passwords.txt (desktop)')],
       hints: ["Bank.zip needs a password. Open Budget_FY27_BOARD.xls: the yellow note Frank left next to the EBITDA row tells you which cell holds it (passwords.txt on the desktop says the same).", "Section 6.1: capex that wasn't financed by a loan comes off EBITDA first. Karen's email says what was paid in cash.", '(2,860 − 110) ÷ (450 + 1,750) = 1.25x. Just.'] },
     { id: 'cash', level: 3, t: 'Find the first week cash drops below $250K', d: "Frank kept a REAL cash forecast the Board never saw. Find it, add payroll, and pick the first week cash falls below $250K.", pick: 'weeks',
       where: [W.folder('boardroot', 'My Documents › BOARD'), W.mail("Rachel's email", 'm_rachel_payroll'), W.site('careers.html', 'Careers page')],
       hints: ["The REAL VERSION folder is hidden. In any folder window: Tools › Folder Options › View › Show hidden files and folders.", "The payroll row is empty. Rachel has the amount per run; the Careers page says how often Packa pays.", '$196K every other Friday from Oct 23 → weeks 1, 3, 5… Week 5 ends at $110K.'] },
-    { id: 'bridge', level: 3, t: 'Close the Q3 EBITDA bridge', d: 'Two bars are missing. Fill both in Excel until the check says TIES — or type the Freight bar here.', input: 'Freight ($K)', ph: 'e.g. -25',
-      where: [W.folder('board', 'Board Meeting Oct 20'), W.mail('The mill letter', 'm_ozark'), W.site('products.html', 'Products page')],
+    { id: 'bridge', level: 3, t: 'Close the Q3 EBITDA bridge', d: 'Two bars are missing. Fill both in Excel until the check says TIES — or type the Freight bar here.', input: 'Freight ($K)', ph: 'e.g. -25', num: true,
+      where: [W.folder('board', 'Board Meeting Oct 20'), W.mail('The mill letter', 'm_ozark'), W.site('products.html', FR.mobile ? 'Products page (first paragraph)' : 'Products page')],   // (F12: a long page on a phone)
       hints: ["Open Q3_EBITDA_Bridge.xls. Frank's rule: never plug a bar you can calculate. Work out containerboard first.", "The mill letter gives $ per ton. How many tons Packa runs a quarter is on the Products page.", '$40 × 1,500 tons = $60K more cost, so −60. Then −160 − (−120 + 80 − 20 − 60) = −40.'] },
     { id: 'forboard', level: 4, t: 'Open FOR THE BOARD', d: "The locked file on Frank's desktop is his emergency plan. The survival package depends on it.", auto: true,
       where: [W.folder('forboard_dir', 'FOR THE BOARD folder'), W.file('realnotes', 'NOTES_to_whoever_finds_this.txt'), W.file('changelog', 'CHANGE_LOG_do_not_share.xls')],
@@ -97,11 +100,13 @@
         ${hasSave ? '<button class="fr-bigbtn" data-a="new">Start over</button>' : ''}
         <a class="fr-small" href="${CONFIG.siteUrl}" target="_blank" rel="noopener">Open packacorp.com ↗</a>
       </div>
-      <p class="fr-small fr-save-line" style="margin-top:14px">Made for finance people. Best on a laptop or desktop. ${saveLine()}</p>
+      <p class="fr-small fr-save-line" style="margin-top:14px">Made for finance people. ${FR.mobile ? 'Best on a laptop or desktop, but it works on a phone too (Excel is easier sideways).' : 'Best on a laptop or desktop.'} ${saveLine()}</p>
     </div></div>`);
     el.querySelector('[data-a=go]').onclick = () => { FR.sound.play('click'); if (!FR.state.startedAt) { FR.state.startedAt = Date.now(); FR.save(); } boot(); };
     const n = el.querySelector('[data-a=new]');
     if (n) n.onclick = () => confirmStartOver();
+    // phones: the site opens in Frank's Internet Explorer, over this page (no second tab to find your way back from)
+    if (FR.mobile) el.querySelector('.fr-intro-start .fr-small').onclick = e => { e.preventDefault(); FR.apps.ie(CONFIG.siteUrl); };
     const acct = el.querySelector('[data-a=acct]'), out = el.querySelector('[data-a=out]');
     if (acct) acct.onclick = e => { e.preventDefault(); FR.sound.play('click'); FR.account.screen('new').then(intro); };
     if (out) out.onclick = e => { e.preventDefault(); FR.dialog({ icon: 'question', title: 'Sign out', message: `Sign out of <b>${esc(FR.account.user)}</b>?<br><br>Your progress stays saved in your player account.`, buttons: ['Sign out', 'Cancel'] }).then(r => { if (r.button === 'Sign out') FR.account.signOut(); }); };
@@ -118,7 +123,7 @@
 
   function confirmStartOver() {
     const keeps = FR.account && FR.account.user && FR.puzzle.isSolved('frank') ? '<br><br>Your place on the leaderboard stays: only your first finished game counts.' : '';
-    return FR.dialog({ icon: 'warn', title: 'Start over', message: "Start over from the beginning?<br><br>Everything you've done at Frank's desk will be erased: the checklist, hints and time." + keeps, buttons: ['Start over', 'Cancel'] })
+    return FR.dialog({ icon: 'warn', title: 'Start over', message: "Start over from the beginning?<br><br>Everything you've done at Frank's desk will be erased: the checklist, hints and time." + keeps, buttons: ['Start over', 'Cancel'], def: FR.mobile ? 1 : 0 })
       .then(r => { if (r.button === 'Start over') Promise.resolve(FR.resetSave()).then(() => location.reload()); });
   }
 
@@ -157,6 +162,7 @@
     </div>`);
     show(el);
     const inp = el.querySelector('input'), slot = el.querySelector('.fr-err-slot');
+    if (FR.mobile && innerWidth < 360) inp.placeholder = 'Password';   // (R3) 320 px: "Type your password" was cut to "Type your pas"
     setTimeout(() => inp.focus(), 50);
     let hintEl = null;
     const showHint = (extra) => {
@@ -166,7 +172,8 @@
       const top = Math.max(r.bottom, slot.childElementCount ? er.bottom : 0);
       hintEl = $(`<div class="fr-login-hint"><b>${FR.icon('info', 14)} Password hint</b>=LOWER(the town where Packa started) &amp; the year it started. (Yes, an Excel formula. No spaces.)${extra ? `<div style="margin-top:6px"><b style="display:inline">Still stuck?</b> It's right on the <a href="${CONFIG.siteUrl}" target="_blank" rel="noopener">packacorp.com</a> homepage: the town, then the year.</div>` : ''}<div class="fr-login-fos">FinanceOS Assist is available once you're in.</div></div>`);
       hintEl.style.left = r.left + 'px'; hintEl.style.top = top + 10 + 'px';
-      el.appendChild(hintEl);
+      // phones: in the flow under the password box, so it moves with it when the keyboard comes up
+      if (FR.mobile) { hintEl.classList.add('fr-login-hint-m'); slot.after(hintEl); } else el.appendChild(hintEl);
     };
     el.querySelector('.fr-q').onclick = () => { FR.sound.play('ding'); hintEl ? (hintEl.remove(), hintEl = null) : showHint(fails >= 2); };
     const attempt = () => {
@@ -176,7 +183,7 @@
         if (!FR.state.startedAt) { FR.state.startedAt = Date.now(); FR.save(); }
         welcome(back); return;
       }
-      fails++; FR.puzzle.miss(); FR.sound.play('error');
+      fails++; FR.puzzle.miss({ login: true }); FR.sound.play('error');   // (log-on misses never count toward the Blue Screen)
       const u = el.querySelector('.fr-user'); u.classList.remove('fr-shake'); void u.offsetWidth; u.classList.add('fr-shake');
       slot.innerHTML = `<div class="fr-login-err">Did you forget your password? Please type your password again.<br>Be sure to use the correct uppercase and lowercase letters.</div>`;
       inp.value = ''; inp.focus();
@@ -185,6 +192,14 @@
     el.querySelector('.fr-go').onclick = attempt;
     inp.onkeydown = e => { if (e.key === 'Enter') attempt(); };
     el.querySelector('.fr-offbtn').onclick = () => FR.dialog({ icon: 'warn', title: 'Turn off computer', message: "It's almost midnight and the Board meets at 9:00 AM.<br>Frank would never." });
+    // phones: no second browser tab to juggle; the company homepage (the password hint) opens in Frank's Internet Explorer,
+    // right over the log-on screen (close it to come back). The sticky note does the same.
+    if (FR.mobile) {
+      const web = $(`<button class="fr-login-web">${FR.icon('ie', 22)}<span>www.packacorp.com</span></button>`);
+      web.onclick = () => { FR.sound.play('click'); FR.apps.ie(CONFIG.siteUrl); };
+      el.querySelector('.fr-login-bot').appendChild(web);
+      el.querySelector('.fr-postit').onclick = () => web.onclick();
+    }
   }
 
   function welcome(resume) {
@@ -223,33 +238,62 @@
       { n: 'Outlook Express', i: 'mail', a: () => FR.apps.mail(null) },
       { n: 'Microsoft Excel', i: 'excel', a: () => FR.apps.excel(null) },
       { n: 'ShowMe ERP', i: 'erp', a: () => FR.apps.erp() },
+      { n: 'Paint', i: 'paint', a: () => FR.apps.paint(null) },
+      { n: 'Solitaire', i: 'solitaire', a: () => FR.apps.solitaire() },
       { n: 'Board Pack — TO DO', i: 'checklist', a: () => openChecklist() },
       ...(FR.score.available() ? [{ n: 'Who Covered for Frank?', i: 'ie', a: () => FR.score.open(), shortcut: true }] : []),
       ...FR.fs.children('desktop', { showHidden: false }).map(n => ({ n: n.name, i: n.icon, a: () => FR.openFile(n), node: n })),
     ];
     const box = el.querySelector('.fr-icons');
     const touch = matchMedia('(pointer: coarse)').matches;
+    const unselect = () => box.querySelectorAll('.sel').forEach(s => { s.classList.remove('sel'); s.style.marginBottom = ''; });
     icons.forEach(ic => {
       // long file names: allow breaks after _ and . ; two lines max (full name on hover / when selected)
       const d = $(`<div class="fr-dicon${ic.shortcut ? ' fr-dicon-lnk' : ''}" tabindex="0">${FR.icon(ic.i, 32)}<span class="fr-dl">${esc(ic.n).replace(/([_.])/g, '$1<wbr>')}</span></div>`);
       d.title = ic.n;
-      const select = () => { box.querySelectorAll('.sel').forEach(s => s.classList.remove('sel')); d.classList.add('sel'); };
-      d.onclick = e => { e.stopPropagation(); select(); if (touch) ic.a(); };
+      // (R6 Q6) a selected icon shows its whole name OVER the icons under it (as in XP): its place in the column stays
+      // the same size, so a long name can't push the last icon of a full column into a new column (half off screen)
+      const select = () => {
+        unselect();
+        const h0 = d.offsetHeight;
+        d.classList.add('sel');
+        const grow = d.offsetHeight - h0;
+        if (grow > 0) d.style.marginBottom = -grow + 'px';
+      };
+      // touch / phones: one tap opens; a double-tap (desktop habit) must not open it two or three times
+      d.onclick = e => { e.stopPropagation(); select(); if ((touch || FR.mobile) && Date.now() > (d.tapGuard || 0)) { d.tapGuard = Date.now() + 600; ic.a(); } };
       d.oncontextmenu = e => {
         e.preventDefault(); e.stopPropagation(); select();
         const items = [{ label: 'Open', action: () => ic.a() }];
         if (ic.node) items.push({ sep: true }, { label: 'Properties', action: () => props(ic.node) });
         ctxMenu(e.clientX, e.clientY, items);
       };
-      d.ondblclick = () => { FR.sound.play('click'); ic.a(); };
+      d.ondblclick = () => { if (touch || FR.mobile) return; FR.sound.play('click'); ic.a(); };
       d.onkeydown = e => { if (e.key === 'Enter') ic.a(); };
       box.appendChild(d);
     });
-    el.querySelector('.fr-wall').onclick = () => box.querySelectorAll('.sel').forEach(s => s.classList.remove('sel'));
+    // (R6 Q6) phones: every icon stays on the visible desktop. When the columns don't fit (a short screen held
+    // sideways, a keyboard), the icons get tighter, and as a last resort the icon area scrolls sideways; checked again
+    // on every resize / rotation
+    if (FR.mobile) {
+      const fitIcons = () => {
+        if (!box.isConnected) return removeEventListener('resize', onRz);
+        const over = () => [...box.children].some(i => i.getBoundingClientRect().right > innerWidth - 1);
+        box.classList.remove('fr-icons-tight', 'fr-icons-scroll');
+        if (over()) box.classList.add('fr-icons-tight');
+        if (over()) box.classList.add('fr-icons-scroll');
+      };
+      let fitT = 0;
+      const onRz = () => { clearTimeout(fitT); fitT = setTimeout(fitIcons, 150); };
+      addEventListener('resize', onRz);
+      fitIcons();
+      FR.fitIcons = fitIcons;
+    }
+    el.querySelector('.fr-wall').onclick = unselect;
     el.querySelector('.fr-wall').oncontextmenu = e => { e.preventDefault(); ctxMenu(e.clientX, e.clientY, [
       { label: 'Arrange Icons By', disabled: true }, { label: 'Refresh', action: () => {} }, { sep: true },
       { label: 'New', disabled: true }, { sep: true },
-      { label: 'Properties', action: () => FR.dialog({ icon: 'warn', title: 'Display Properties', message: 'Frank has locked the display settings.<br>Do not touch the "Do not touch." —F' }) }]); };
+      { label: 'Properties', action: () => FR.dialog({ icon: 'warn', title: 'Display Properties', message: 'Frank has locked the display settings.<br>Do not touch the "Do not touch." —F<br><br>(The Screen Saver tab is still open. Frank needed it.)', buttons: ['Screen Saver...', 'OK'], def: 1 }).then(r => { if (r.button === 'Screen Saver...') saverDlg(); }) }]); };
     // quick launch
     const ql = el.querySelector('.fr-quick');
     [['ie', () => FR.apps.ie(null), 'Launch Internet Explorer'], ['mail', () => FR.apps.mail(null), 'Launch Outlook Express'], ['excel', () => FR.apps.excel(null), 'Microsoft Excel']].forEach(([i, a, t]) => {
@@ -259,13 +303,17 @@
     const clock = el.querySelector('.fr-clock');
     const tick = () => { const d = FR.clock.now(); clock.textContent = FR.clock.fmt(d, 'time'); clock.title = FR.clock.fmt(d, 'long'); };
     tick(); setInterval(tick, 5000);
-    el.querySelector('.fr-pack').onclick = () => { if (FR.puzzle.isSolved('frank') && !document.querySelector('.fr-end')) ending(); else openChecklist(); };
+    // (R5 P5) the tray's checklist button always opens the checklist (it used to bring the ending back once the game was
+    // done); the ending is a link at the top of the finished checklist, and in the Start menu
+    el.querySelector('.fr-pack').onclick = () => openChecklist();
     const vol = el.querySelectorAll('.fr-tray > .fr-ico')[0];
     vol.title = 'Volume'; vol.style.opacity = FR.sound.muted ? .45 : 1;
     vol.onclick = () => { FR.sound.muted = !FR.sound.muted; FR.state.flags.muted = FR.sound.muted; FR.save(); vol.style.opacity = FR.sound.muted ? .45 : 1; FR.balloon('Volume', FR.sound.muted ? 'Sounds are muted.' : 'Sounds are on.'); };
     if (!FR.storageOk && !storageWarned) { storageWarned = true; setTimeout(() => FR.balloon('Progress not saved', "Progress can't be saved in this browser (private mode?)"), 4000); }
     updateTray();
-    el.querySelector('.fr-ktray').onclick = () => kTip();
+    el.querySelector('.fr-ktray').onclick = () => kTip(undefined, true);
+    // (R3b S18) phones have no hover tooltips: the little face says what it is (and a tap on it shows a tip at once)
+    if (FR.mobile) { const k = el.querySelector('.fr-ktray'); k.alt = "Kristians' Cheat Sheet of the Day"; k.setAttribute('role', 'button'); k.setAttribute('aria-label', "Kristians' Cheat Sheet of the Day: tap for a tip"); }
     stickies(el);
     // start menu
     const sb = el.querySelector('.fr-startbtn');
@@ -273,10 +321,12 @@
     document.addEventListener('mousedown', e => { if (startMenu && !startMenu.contains(e.target) && !sb.contains(e.target)) closeStart(); });
 
     if (firstTime || DEV || resumed) {
-      setTimeout(() => openChecklist(), DEV ? 0 : 700);
-      if (!DEV && !resumed) setTimeout(() => FR.balloon('You have new e-mail', 'Diane Kessler: "Board Pack — 9:00 AM. No excuses."', () => FR.apps.mail(null)), 2600);
+      // (R7 T4) phones / tablets: at once, with the desktop (it came ~1 s later, under a finger already on its way to an icon)
+      setTimeout(() => openChecklist(), DEV || FR.mobile ? 0 : 700);
+      if (!DEV && !resumed) setTimeout(() => FR.balloon('You have new e-mail', 'Diane Kessler: "Board Pack — 9:00 AM. No excuses."', () => FR.apps.mail(null), { act: 'Open Inbox' }), 2600);
     }
     if (FR.puzzle.isSolved('frank') && !DEV) setTimeout(ending, 800);
+    FR.bus.emit('desktop', el);   // (the Easter eggs, Norton and the bonus requests hook in here: src/apps/xp_*.js)
     if (!DEV) {
       setTimeout(() => kTip(0), resumed ? 20000 : 45000);
       if (!lowDiskShown) { lowDiskShown = true; setTimeout(() => FR.balloon('Low Disk Space', 'You are running out of disk space on Local Disk (C:).<br>47 versions of the model will do that.', null, { silent: false }), 150000); }
@@ -294,10 +344,23 @@
     'F4 toggles $ in a reference. Absolute ranges, absolute peace.',
     'Alt+= AutoSums the block above. Kristians does it blindfolded.',
   ];
+  // phones: same tips where they need a mouse, said for a finger
+  // phones: no keyboard-shortcut tips (a phone has no F2 or Alt), and the mouse ones said for a finger
+  const KTIPS_M = [
+    'Tap a cell, then tap it again to type. Type straight over what was there, no need to delete it first.',
+    'A red triangle in a cell corner means a comment. Tap the cell to read it.',
+    'Long-press a file and choose Properties. Authors and dates tell stories.',
+    'Hidden files are still files. Tools › Folder Options › View shows them.',
+    "Never plug a number you can calculate. There's always a formula.",
+    'Wide sheet? Turn the phone sideways. Kristians uses two phones.',
+    'Lost a window? The button next to Start lists every open window.',
+  ];
   let kIdx = 0;
-  function kTip(i) {
-    const t = KTIPS[(i ?? kIdx) % KTIPS.length]; kIdx = (i ?? kIdx) + 1;
-    FR.balloon("Kristians' Cheat Sheet of the Day", `<div class="fr-ktip"><img src="${FR.data.images.kristians}" alt=""><span>${esc(t)}</span></div>`, null);
+  function kTip(i, asked) {
+    // phones: none after the Board Pack has gone out (the game is over)
+    if (FR.mobile && FR.puzzle.isSolved('frank')) return;
+    const list = FR.mobile ? KTIPS_M : KTIPS, t = list[(i ?? kIdx) % list.length]; kIdx = (i ?? kIdx) + 1;
+    FR.balloon("Kristians' Cheat Sheet of the Day", `<div class="fr-ktip"><img src="${FR.data.images.kristians}" alt=""><span>${esc(t)}</span></div>`, null, { asked, still: () => !(FR.mobile && FR.puzzle.isSolved('frank')) });
   }
   setInterval(() => { if (document.querySelector('.fr-desktop') && !document.querySelector('.fr-balloon')) kTip(); }, 240000);
 
@@ -322,15 +385,43 @@
   }
 
   // screensaver after 5 minutes idle on the desktop
-  let idleT = null;
+  const IDLE = 300000, IDLE_CAP = 1800000;
+  let idleT = null, idleSeen = Date.now(), overFrame = null, lastTouch = 0, lastMouse = null;
   const resetIdle = () => {
+    idleSeen = Date.now();
     clearTimeout(idleT);
-    idleT = setTimeout(() => { if (document.querySelector('.fr-desktop') && !document.querySelector('.fr-end') && !document.querySelector('.fr-dialog')) screensaver(); }, 300000);
+    idleT = setTimeout(idleUp, IDLE);
   };
+  // (R6 Q2) what the player does inside IE's framed web page (packacorp.com: another site, so its touches, swipes,
+  // wheel and mouse moves never reach this page) still counts as use: while the page has the focus (it was tapped or
+  // clicked into), while the mouse is over it, or on a touch screen while IE with the page is the window on top, the
+  // screensaver waits (up to 30 minutes after the last thing this page itself saw). A same-origin page reports its own
+  // events (FR.idle.poke, src/apps/shell.js).
+  const frameInUse = () => {
+    const w = FR.wm.active, f = w && !w.min && w.el && w.el.querySelector('.ie-frame');
+    if (!f) return false;
+    if (document.activeElement === f || overFrame === f || FR.mobile || Date.now() - lastTouch < IDLE_CAP) return true;
+    // the mouse went into the page: this page's last mouse position is at the page's edge (a browser says nothing to
+    // the game once the pointer is inside another site's frame)
+    const r = f.getBoundingClientRect(), m = lastMouse, M = 30;
+    return !!m && m.x >= r.left - M && m.x <= r.right + M && m.y >= r.top - M && m.y <= r.bottom + M;
+  };
+  function idleUp() {
+    if (!document.querySelector('.fr-desktop') || document.querySelector('.fr-end') || document.querySelector('.fr-dialog')) return;
+    if (frameInUse() && Date.now() - idleSeen < IDLE_CAP) { idleT = setTimeout(idleUp, 30000); return; }
+    screensaver();
+  }
   ['mousemove', 'mousedown', 'keydown', 'touchstart', 'wheel'].forEach(ev => document.addEventListener(ev, resetIdle, { passive: true }));
+  document.addEventListener('touchstart', () => { lastTouch = Date.now(); }, { passive: true, capture: true });
+  document.addEventListener('mousemove', e => { lastMouse = { x: e.clientX, y: e.clientY }; }, { passive: true, capture: true });
+  document.addEventListener('mouseover', e => { overFrame = e.target && e.target.classList && e.target.classList.contains('ie-frame') ? e.target : null; }, { passive: true });
+  FR.idle = { poke: resetIdle, frameInUse };
+  // (tests, file:// and localhost only) as if nothing had been seen for `ago` ms and the 5 minutes were up now
+  if (LOCAL) FR.idle._fire = ago => { if (ago != null) idleSeen = Date.now() - ago; clearTimeout(idleT); idleUp(); };
   resetIdle();
   function screensaver() {
     if (document.querySelector('.fr-saver')) return;
+    FR.bus.emit('screensaver');
     const sv = $(`<div class="fr-saver"><img src="${FR.data.images.kristians}" alt=""><div class="fr-saver-m">GET SHEET DONE &nbsp;✦&nbsp; There's always a formula &nbsp;✦&nbsp; Cheat Sheet #212 &nbsp;✦&nbsp; Kristians is my co-pilot &nbsp;✦&nbsp; GET SHEET DONE</div></div>`);
     root.appendChild(sv);
     const img = sv.querySelector('img');
@@ -341,12 +432,28 @@
       img.style.transform = `translate(${x}px, ${y}px)`; raf = requestAnimationFrame(step);
     };
     step();
-    const quit = () => { cancelAnimationFrame(raf); sv.remove(); ['mousemove', 'mousedown', 'keydown', 'touchstart'].forEach(ev => document.removeEventListener(ev, quitH)); };
+    const quit = () => { cancelAnimationFrame(raf); sv.remove(); ['mousemove', 'mousedown', 'keydown', 'touchstart'].forEach(ev => document.removeEventListener(ev, quitH, true)); };
     let armed = false; setTimeout(() => (armed = true), 400);
-    const quitH = () => { if (armed) quit(); };
-    ['mousemove', 'mousedown', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, quitH));
+    // (R6) the tap / click / key that wakes the computer only wakes it (as in Windows): it never also opens the desktop
+    // icon or presses the button that was under the screensaver
+    const swallow = e => { e.preventDefault(); e.stopPropagation(); };
+    const quitH = e => {
+      if (!armed) return;
+      quit();
+      if (e.type !== 'mousemove') swallow(e);
+      // (a browser sends a mousemove just before the press of a mouse that has been still: a short window then)
+      const evs = ['click', 'dblclick', 'mousedown', 'mouseup', 'touchend', 'contextmenu', 'keyup', 'keypress'];
+      evs.forEach(ev => document.addEventListener(ev, swallow, true));
+      setTimeout(() => evs.forEach(ev => document.removeEventListener(ev, swallow, true)), e.type === 'mousemove' ? 250 : 700);
+    };
+    ['mousemove', 'mousedown', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, quitH, { capture: true, passive: false }));
   }
   FR.screensaver = screensaver;
+  // Display Properties › Screen Saver (the one tab Frank left unlocked)
+  function saverDlg() {
+    FR.dialog({ icon: 'info', title: 'Display Properties — Screen Saver', width: 400, message: 'Screen saver: <b>Kristians (Marquee)</b><br>Wait: <b>5</b> minutes<br>On resume, password protect: No<br><br>Frank tried to set Wait to 0 minutes. Windows said no. Frank said "there\'s always a formula."', buttons: ['Preview', 'OK'], def: 1 })
+      .then(r => { if (r.button === 'Preview') setTimeout(screensaver, 150); });
+  }
 
   function ctxMenu(x, y, items) {
     document.querySelectorAll('.fr-ctx').forEach(c => c.remove());
@@ -360,6 +467,8 @@
     });
     m.style.left = Math.min(x, innerWidth - 180) + 'px'; m.style.top = Math.min(y, innerHeight - 160) + 'px';
     document.body.appendChild(m);
+    // phones: the whole menu on screen, clear of the taskbar
+    if (FR.mobile) { m.style.left = Math.max(4, Math.min(x, innerWidth - m.offsetWidth - 4)) + 'px'; m.style.top = Math.max(4, Math.min(y, innerHeight - 46 - m.offsetHeight)) + 'px'; }
     setTimeout(() => document.addEventListener('mousedown', function h(e) { if (!m.contains(e.target)) { m.remove(); document.removeEventListener('mousedown', h); } }), 0);
   }
 
@@ -371,15 +480,23 @@
     const L = m.querySelector('.fr-start-l'), R = m.querySelector('.fr-start-r'), F = m.querySelector('.fr-start-foot');
     L.append(it('ie', 'Internet', 'Internet Explorer', () => FR.apps.ie(null)), it('mail', 'E-mail', 'Outlook Express', () => FR.apps.mail(null)), $('<div class="fr-sm-sep"></div>'),
       it('excel', 'Microsoft Excel', '', () => FR.apps.excel(null)), it('erp', 'ShowMe ERP', 'Packa Corporation', () => FR.apps.erp()), it('checklist', 'Board Pack — TO DO', '', openChecklist), it('notepad', 'Notepad', '', () => FR.apps.notepad(null)), it('calc', 'Calculator', '', () => FR.apps.calc()),
+      it('paint', 'Paint', '', () => FR.apps.paint(null)), it('solitaire', 'Solitaire', '', () => FR.apps.solitaire()),
       ...(FR.score.available() ? [it('ie', 'Who Covered for Frank?', 'Board Pack Rescue leaderboard', () => FR.score.open())] : []),
       ...(FR.puzzle.isSolved('frank') ? [it('star', 'Show the ending again', '', () => ending())] : []),
-      $('<div class="fr-sm-sep"></div>'), it('star', 'All Programs', '', () => FR.dialog({ icon: 'info', title: 'All Programs', message: 'Frank uninstalled everything except Excel, Outlook and Solitaire.<br>Then he uninstalled Solitaire.' }), 'fr-sm-all'));
+      $('<div class="fr-sm-sep"></div>'), it('star', 'All Programs', '', () => FR.dialog({ icon: 'info', title: 'All Programs', message: 'Frank uninstalled everything except Excel, Outlook, Paint and Solitaire.<br>Priorities.' }), 'fr-sm-all'));
     R.append(it('mydocs', 'My Documents', '', () => FR.apps.explorer('mydocs')), it('image', 'My Pictures', '', () => FR.apps.explorer('pics')), it('computer', 'My Computer', '', () => FR.apps.explorer('mycomputer')),
       $('<div class="fr-sm-sep"></div>'), it('controlpanel', 'Control Panel', '', () => FR.dialog({ icon: 'error', title: 'Control Panel', message: 'Access is denied.<br><br>Contact your system administrator. (IT is also in Vegas.)' })),
       it('help', 'Help and Support', '', openHelp), it('search', 'Search', '', () => FR.apps.explorer('mydocs')), it('question', 'Run...', '', runBox));
     F.append(it('logoff', 'Log Off', '', () => FR.dialog({ icon: 'question', title: 'Log Off Windows', message: 'Are you sure you want to log off? Your progress is saved.', buttons: ['Log Off', 'Cancel'] }).then(r => { if (r.button === 'Log Off') { FR.sound.play('logoff'); FR.save(); document.querySelectorAll('.fr-balloon, .fr-ctx').forEach(x => x.remove()); setTimeout(login, 600); } })),
       it('shutdown', 'Turn Off Computer', '', shutdown));
     el.appendChild(m); startMenu = m;
+    // (F16, round 4) phones: when the menu is taller than the screen (sideways), a "more below" shade at its bottom edge
+    // says it scrolls; it goes once the end is in view
+    if (FR.mobile) {
+      m.appendChild($('<div class="fr-start-hint" aria-hidden="true">&#9660; more below</div>'));
+      const more = () => m.classList.toggle('fr-start-more', m.scrollHeight - m.scrollTop - m.clientHeight > 6);
+      m.addEventListener('scroll', more, { passive: true }); requestAnimationFrame(more);
+    }
   }
   function closeStart() { if (startMenu) startMenu.remove(); startMenu = null; document.querySelectorAll('.fr-startbtn').forEach(b => b.classList.remove('on')); }
 
@@ -387,8 +504,10 @@
     FR.dialog({ icon: 'question', title: 'Run', message: 'Type the name of a program, folder, document, or Internet resource, and Windows will open it for you.', input: { label: 'Open:', value: '' }, buttons: ['OK', 'Cancel'] }).then(r => {
       if (r.button !== 'OK') return;
       const v = (r.value || '').trim().toLowerCase().replace(/\.exe$/, '');
-      const map = { solitaire: () => FR.dialog({ icon: 'error', title: 'solitaire', message: 'Uninstalled. Frank had a problem.' }), sol: () => FR.dialog({ icon: 'error', title: 'sol', message: 'Uninstalled. Frank had a problem.' }), kristians: () => FR.dialog({ icon: 'error', title: 'kristians', message: "Windows cannot find 'kristians'. Neither can Rachel." }), excel: () => FR.apps.excel(null), calc: () => FR.apps.calc(), notepad: () => FR.apps.notepad(null), iexplore: () => FR.apps.ie(null), msimn: () => FR.apps.mail(null), outlook: () => FR.apps.mail(null), explorer: () => FR.apps.explorer('mydocs'), cmd: () => FR.dialog({ icon: 'error', title: 'cmd', message: 'Frank disabled the command prompt after "the incident".' }) };
+      const map = { solitaire: () => FR.apps.solitaire(), sol: () => FR.apps.solitaire(), mspaint: () => FR.apps.paint(null), pbrush: () => FR.apps.paint(null), paint: () => FR.apps.paint(null), kristians: () => FR.dialog({ icon: 'error', title: 'kristians', message: "Windows cannot find 'kristians'. Neither can Rachel." }), excel: () => FR.apps.excel(null), calc: () => FR.apps.calc(), notepad: () => FR.apps.notepad(null), iexplore: () => FR.apps.ie(null), msimn: () => FR.apps.mail(null), outlook: () => FR.apps.mail(null), explorer: () => FR.apps.explorer('mydocs'), cmd: () => FR.dialog({ icon: 'error', title: 'cmd', message: 'Frank disabled the command prompt after "the incident".' }) };
       if (map[v]) return map[v]();
+      // more commands (some of them Frank's secrets) live in FR.runCommands (src/apps/xp_eggs.js)
+      if (FR.runCommands && Object.prototype.hasOwnProperty.call(FR.runCommands, v)) return FR.runCommands[v](r.value);
       if (/^https?:|^www\./.test(v)) return FR.apps.ie(v.startsWith('www.') ? 'https://' + v : v);
       FR.dialog({ icon: 'error', title: esc(r.value || ''), message: `Windows cannot find '${esc(r.value || '')}'. Make sure you typed the name correctly, and then try again.` });
     });
@@ -407,10 +526,10 @@
     FR.wm.open({ id: 'help', title: 'Help and Support Center', icon: 'help', width: 520, height: 470, content: `<div class="fr-help">
       <h3>What is going on?</h3><p>Frank Warmington, Packa's FP&amp;A Manager, disappeared on Friday night. The Board meets at 9:00 AM and the bank's $4.0M survival package depends on a complete, honest Board Pack. Everything is on this computer.</p>
       <h3>How to play</h3><p>Open <b>Board Pack — TO DO</b> (desktop or the clipboard in the tray) to see where you stand. Items unlock one by one. The orange dots show how hard each one is. Each one has <b>Look in</b> shortcuts that open the right folder, email or web page. Some items tick themselves when you crack something in Excel or Outlook; others ask you to pick or type an answer.</p>
-      <p>Double-click to open files and folders. Right-click files (on the desktop too) for Properties. Excel works like Excel: type formulas, and select cells to see their Sum in the status bar.</p>
+      ${FR.mobile ? `<p>Tap to open files and folders. Long-press a file (on the desktop too) for Properties. In Excel, tap a cell, then tap it again (or tap the formula bar) to type; Enter or ✓ puts it in. A cell with a red triangle has a note: tap it to read it. Switch windows with the buttons on the taskbar.</p>` : `<p>Double-click to open files and folders. Right-click files (on the desktop too) for Properties. Excel works like Excel: type formulas, and select cells to see their Sum in the status bar.</p>`}
       <h3>Where are the clues?</h3><p>In Frank's email, his Excel files, his folders (some are hidden), his Recycle Bin, and on <a href="${CONFIG.siteUrl}" target="_blank" rel="noopener">www.packacorp.com</a> — the company website. Keep it open in another tab.</p>
-      <h3>Stuck?</h3><p>Emily from finance installed a Datarails FinanceOS trial on Frank's machine (day 13 of 14). Every checklist item has an <b>Ask FinanceOS</b> button with three hints, from a gentle nudge to the full answer.</p><h3>Score</h3><p>${esc(FR.score.rulesLine())}.${FR.score.available() ? ' Signed-in players are ranked on <b>Board Pack Rescue - Who Covered for Frank?</b> on Packa\'s intranet (the shortcut on the desktop); your first finished game is the one that counts.' : ''}</p>
-      <h3>Progress</h3><p>Your progress saves in this browser. Log off and come back any time.</p></div>` });
+      <h3>Stuck?</h3><p>Emily from finance installed a Datarails FinanceOS trial on Frank's machine (day 13 of 14). Every checklist item has an <b>Ask FinanceOS</b> button with three hints, from a gentle nudge to the full answer.</p><h3>Score</h3><p>${esc(FR.score.rulesLine())}. Found so far: ${esc(FR.score.found())}.${FR.score.available() ? ' Signed-in players are ranked on <b>Board Pack Rescue - Who Covered for Frank?</b> on Packa\'s intranet (the shortcut on the desktop);  ' + esc(FR.score.boardRule) : ''}</p>
+      <h3>Progress</h3><p>Your progress saves in this browser. Log off and come back any time.</p>${FR.version ? `<p class="fr-help-ver">Frank's Computer ${esc(FR.version.full)}</p>` : ''}</div>` });
   }
 
   /* =========================================================== CHECKLIST APP */
@@ -422,6 +541,8 @@
     return w;
   }
   FR.apps.checklist = openChecklist;
+  // re-draw the open checklist (the bonus requests change the score in its footer: src/apps/xp_bonus.js)
+  FR.checklistRender = () => { const w = FR.wm.wins.get('checklist'); if (w) renderChecklist(w); };
 
   let justSolved = null;
   // hints are "provided by" Emily's FinanceOS trial on Frank's machine (story frame only; hint content unchanged)
@@ -433,6 +554,16 @@
     "No ERP, no CRM, no HRIS connected. Just Frank's files. Here goes:",
     "One version of the truth would help here. Packa has five. So:",
   ];
+  // the footer's score line, on its own: (R6 Q4) it is refreshed on every change of the score (a wrong answer, a hint,
+  // an item, a bonus request, an egg) without redrawing the list (which would wipe the wrong answer's message)
+  function renderFoot(wrap, sc = FR.score.now()) {
+    const meta = wrap && wrap.querySelector('.ck-foot .ck-meta');
+    if (!meta) return;
+    meta.innerHTML = `${FR.score.available() ? '<a href="#" class="ck-score">' : '<b class="ck-score">'}Score: ${FR.score.fmt(sc.score)}${sc.bonus ? ` <span class="ck-bonus" title="Bonus requests and Easter eggs, included in the score: ${esc(FR.score.found(sc))}">(+${FR.score.fmt(sc.bonus)} ${FR.score.bonusWord})</span>` : ''}${FR.score.available() ? '</a>' : '</b>'} · ${sc.freeLeft ? `Free hints left: ${sc.freeLeft}` : `Hints: −${FR.score.rules.PER_HINT} each`} · Time: <span class="ck-time">${FR.clock.dur(FR.clock.playMs())}</span>`;
+    const scoreLink = meta.querySelector('a.ck-score');
+    if (scoreLink) scoreLink.onclick = e => { e.preventDefault(); FR.score.open(); };
+  }
+  FR.bus.on('score', () => { const w = FR.wm.wins.get('checklist'); if (w) renderFoot(w.body.querySelector('.ck-wrap')); });
   function renderChecklist(w) {
     const wrap = w.body.querySelector('.ck-wrap');
     if (!wrap) return;
@@ -443,12 +574,13 @@
     const oldInp = wrap.querySelector('.ck-item.open .ck-ans input');
     const keep = oldInp && oldInp.value ? { id: FR.puzzle.current(), v: oldInp.value, f: document.activeElement === oldInp } : null;
     wrap.innerHTML = `<div class="ck-head">${FR.icon('checklist', 34)}<div><h2>BOARD PACK — due Tue 9:00 AM</h2><p>Frank's to-do list. Get all ten done and Packa survives.</p></div></div>
-      <div class="ck-prog"><progress max="${ITEMS.length}" value="${done}"></progress><b>${done} of ${ITEMS.length} done</b></div>
+      <div class="ck-prog"><progress max="${ITEMS.length}" value="${done}"></progress><b>${done} of ${ITEMS.length} done</b>${FR.puzzle.isSolved('frank') ? '<a href="#" class="ck-endlink">See how it ended &#9656;</a>' : ''}</div>
       <div class="ck-list"></div>
-      <div class="ck-foot"><span class="ck-meta">${FR.score.available() ? '<a href="#" class="ck-score">' : '<b class="ck-score">'}Score: ${FR.score.fmt(sc.score)}${FR.score.available() ? '</a>' : '</b>'} · ${sc.freeLeft ? `Free hints left: ${sc.freeLeft}` : `Hints: −${FR.score.rules.PER_HINT} each`} · Time: <span class="ck-time">${FR.clock.dur(FR.clock.playMs())}</span></span><button class="ck-help">How to play</button></div>`;
+      <div class="ck-foot"><span class="ck-meta"></span><button class="ck-help">How to play</button></div>`;
     wrap.querySelector('.ck-help').onclick = openHelp;
-    const scoreLink = wrap.querySelector('a.ck-score');
-    if (scoreLink) scoreLink.onclick = e => { e.preventDefault(); FR.score.open(); };
+    const endLink = wrap.querySelector('.ck-endlink');
+    if (endLink) endLink.onclick = e => { e.preventDefault(); FR.sound.play('click'); ending(); };
+    renderFoot(wrap, sc);
     const list = wrap.querySelector('.ck-list');
     FR.state.unlockedAt = FR.state.unlockedAt || {};
     ITEMS.forEach((it, idx) => {
@@ -461,7 +593,7 @@
         <div class="ck-t"><span class="ck-n">${idx + 1}.</span> ${solved ? `<s>${esc(it.t)}</s>` : unlocked ? esc(it.t) : 'Locked — finish the item above first'} ${active && it.id !== 'login' ? pips : ''}</div>
         ${active ? `<div class="ck-d">${esc(it.d)}</div>` : ''}
         ${active && it.where ? `<div class="ck-where"><span>Look in:</span></div>` : ''}
-        ${active && it.input ? `<div class="ck-ans"><input type="text" placeholder="${esc(it.ph || '')}" aria-label="${esc(it.input)}" spellcheck="false"><button>Submit</button></div>` : ''}
+        ${active && it.input ? `<div class="ck-ans"><input type="text" placeholder="${esc(it.ph || '')}" aria-label="${esc(it.input)}" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off"><button>Submit</button></div>` : ''}
         ${active && it.pick ? `<div class="ck-pick ck-pick-${it.pick}"></div>` : ''}
         ${active ? `<div class="ck-fb"></div>` : ''}
         ${active && it.auto && it.id !== 'login' ? `<div class="ck-auto">Ticks itself when you do it.</div>` : ''}
@@ -474,16 +606,19 @@
       const wh = row.querySelector('.ck-where');
       if (wh) it.where.forEach(([label, act]) => { const c = $(`<button class="ck-chip"></button>`); c.textContent = label; c.onclick = () => { FR.sound.play('click'); act(); }; wh.appendChild(c); });
       const hbox = row.querySelector('.ck-hints');
-      if (active) for (let i = 0; i < used; i++) hbox.appendChild($(`<div class="ck-hint ck-fos"><div class="ck-fos-h">${FOS_MARK}<b>Datarails FinanceOS</b><span>· Emily's trial · hint ${i + 1}/3</span></div><div class="ck-fos-p">${esc(FOS_PREFACE[(idx + i) % FOS_PREFACE.length])}</div><div class="ck-fos-t">${esc(it.hints[i])}</div></div>`));
+      if (active) for (let i = 0; i < used; i++) hbox.appendChild($(`<div class="ck-hint ck-fos"><div class="ck-fos-h">${FOS_MARK}<b>Datarails FinanceOS</b><span>· Emily's trial · hint ${i + 1}/3</span></div><div class="ck-fos-p">${esc(FOS_PREFACE[(idx + i) % FOS_PREFACE.length])}</div><div class="ck-fos-t">${esc((FR.mobile && it.mhints && it.mhints[i]) || it.hints[i])}</div></div>`));
       const hb = row.querySelector('.ck-hbtn');
       if (hb) hb.onclick = () => {
         const n = FR.state.hintsUsed[it.id] || 0;
         if (n >= 3) return;
         const take = () => { FR.state.hintsUsed[it.id] = n + 1; FR.save(); FR.sound.play('ding'); renderChecklist(w); };
         // the free hints are gone: every hint now costs points, so ask first
-        const cost = FR.score.now().freeLeft ? '' : `You've used your ${FR.score.rules.FREE_HINTS} free hints. This one costs <b>${FR.score.rules.PER_HINT} points</b>.`;
-        if (n === 2 || cost) {
-          FR.dialog({ icon: 'question', title: 'FinanceOS Assist', message: [n === 2 ? "This one gives the answer away. FinanceOS won't judge. Emily might." : '', cost].filter(Boolean).join('<br><br>'), buttons: [n === 2 ? 'Show it' : 'Use a hint', 'Cancel'] })
+        const free = FR.score.now().freeLeft;
+        const cost = free ? '' : `You've used your ${FR.score.rules.FREE_HINTS} free hints. This one costs <b>${FR.score.rules.PER_HINT} points</b>.`;
+        // (R6 Q1) phones: a thumb slip near the button must never spend a hint, so every hint asks first, free or not
+        const phoneAsk = FR.mobile && free ? `Use a free hint? (${free} left)` : '';
+        if (n === 2 || cost || FR.mobile) {
+          FR.dialog({ icon: 'question', title: 'FinanceOS Assist', message: [phoneAsk, n === 2 ? "This one gives the answer away. FinanceOS won't judge. Emily might." : '', cost].filter(Boolean).join('<br><br>'), buttons: [n === 2 ? 'Show it' : 'Use a hint', 'Cancel'] })
             .then(r => { if (r.button === 'Show it' || r.button === 'Use a hint') take(); });
           return;
         }
@@ -496,8 +631,17 @@
           FR.state.answers = FR.state.answers || {}; FR.state.answers[it.id] = shown || value; FR.save();
           FR.puzzle.solve(it.id); return true;
         }
+        // (F19) a number is asked and what came isn't one ("banana"): say so, and it isn't a wrong guess (no points
+        // off, no step toward the Blue Screen); a real number that is wrong still is
+        if (it.num && ok == null && isNaN(FR.puzzle.num(value))) {
+          FR.sound.play('error');
+          fb.className = 'ck-fb bad ck-fb-nan'; fb.textContent = `That's not a number. Type the ${it.input} as a number (${it.ph}). This one doesn't count as a wrong answer.`;
+          return false;
+        }
         FR.puzzle.miss(); FR.sound.play('error');
         fb.className = 'ck-fb bad'; fb.textContent = WRONG[it.id] ? WRONG[it.id](value) : 'Not quite. Check the numbers again.';
+        // (N1) what a wrong answer costs, right where it happens
+        fb.appendChild($(`<span class="ck-fb-pts"> (−${FR.score.rules.PER_WRONG} points)</span>`));
         row.classList.remove('fr-shake'); void row.offsetWidth; row.classList.add('fr-shake');
         return false;
       };
@@ -513,10 +657,13 @@
           const n = FR.fs.get(fid);
           const c = $(`<div class="ck-file">${FR.icon('xls', 20)}<span class="ck-fn"></span><small>open</small><button class="ck-pickbtn">This one</button></div>`);
           c.querySelector('.ck-fn').textContent = n.name.replace(/\.xls$/, '');
+          if (FR.mobile) c.querySelector('.ck-fn').innerHTML = esc(n.name.replace(/\.xls$/, '')).replace(/_/g, '_<wbr>');   // wraps at its underscores
           c.querySelector('small').onclick = e => { e.stopPropagation(); FR.openFile(fid); };
           c.ondblclick = () => FR.openFile(fid);
           c.querySelector('.ck-pickbtn').onclick = e => {
             e.stopPropagation();
+            // phones: the same Select → Submit bar as the weeks and suspects (one confirm style, not a dialog)
+            if (FR.mobile) return confirmPick(pk, c, n.name.replace(/\.xls$/, ''), () => tryAnswer(n.name, n.name), { verb: 'Send to Diane' });
             FR.dialog({ icon: 'question', title: 'Send to Diane for sign-off', message: `Tell Diane this is the approved FY27 budget?<br><br><b>${esc(n.name)}</b>`, buttons: ['Send to Diane', 'Cancel'] })
               .then(r => { if (r.button === 'Send to Diane') tryAnswer(n.name, n.name); });
           };
@@ -529,7 +676,8 @@
         for (let wk = 1; wk <= 13; wk++) {
           const b = $(`<button>${wk}</button>`);
           b.title = 'Week ' + wk;
-          b.onclick = () => { if (!tryAnswer(String(wk), 'Week ' + wk)) b.classList.add('ck-x'); };
+          const go = () => { if (!tryAnswer(String(wk), 'Week ' + wk)) b.classList.add('ck-x'); };
+          b.onclick = () => FR.mobile ? confirmPick(pk, b, 'Week ' + wk, go) : go();
           g.appendChild(b);
         }
         pk.appendChild(g);
@@ -539,17 +687,35 @@
           const c = $(`<button class="ck-sus"><span class="ck-sus-ph"><svg viewBox="0 0 40 44"><circle cx="20" cy="15" r="9" fill="#9fb0cc"/><path d="M3 44c1-11 8-17 17-17s16 6 17 17z" fill="#9fb0cc"/></svg></span><b></b><small></small></button>`);
           c.querySelector('b').textContent = sp.n; c.querySelector('small').textContent = sp.r;
           if (sp.photo && FR.data.images && FR.data.images.kristians) c.querySelector('.ck-sus-ph').innerHTML = `<img src="${FR.data.images.kristians}" alt="">`;
-          c.onclick = () => { if (!tryAnswer(sp.n, sp.n, sp.id === 'kristians')) { c.classList.add('ck-x'); fb.textContent = SUSPECT_NO[sp.id]; } };
+          const go = () => { if (!tryAnswer(sp.n, sp.n, sp.id === 'kristians')) { c.classList.add('ck-x'); fb.textContent = SUSPECT_NO[sp.id]; fb.appendChild($(`<span class="ck-fb-pts"> (−${FR.score.rules.PER_WRONG} points)</span>`)); } };
+          c.onclick = () => FR.mobile ? confirmPick(pk, c, sp.n, go) : go();
           pk.appendChild(c);
         });
       }
       list.appendChild(row);
     });
     list.scrollTop = scrollTop;
-    if (keep && keep.id === FR.puzzle.current()) { const ni = list.querySelector('.ck-item.open .ck-ans input'); if (ni) { ni.value = keep.v; if (keep.f) ni.focus(); } }
+    if (keep && keep.id === FR.puzzle.current()) { const ni = list.querySelector('.ck-item.open .ck-ans input'); if (ni) { ni.value = keep.v; if (keep.f && FR.wm.active === w) ni.focus(); } }   // (focus only on top: a re-render behind another window must not bring the checklist forward)
     const focusRow = list.querySelector('.ck-just') || list.querySelector('.ck-item.open');
     if (focusRow && (!scrollTop || justSolved)) setTimeout(() => focusRow.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 0);
     if (justSolved) { const j = justSolved; setTimeout(() => { if (justSolved === j) justSolved = null; }, 1500); }
+  }
+  // phones: a one-tap answer (week, suspect) is only picked by the first tap; a Submit button under the picker sends it,
+  // so a stray tap can't answer for the player
+  function confirmPick(pk, btn, label, go, opts = {}) {
+    pk.querySelectorAll('.ck-sel').forEach(x => x.classList.remove('ck-sel'));
+    let bar = pk.parentElement.querySelector('.ck-confirm');
+    if (bar && bar._for === btn) { bar.remove(); return; }
+    btn.classList.add('ck-sel');
+    if (bar) bar.remove();
+    bar = $(`<div class="ck-confirm fr-guard"><button class="ck-conf-ok"></button><button class="ck-conf-no">Cancel</button></div>`);
+    bar._for = btn; bar._frShown = Date.now(); bar._frGuard = 500;   // the tap guard ignores it for its first half second
+    // (S4) the whole choice stays readable on a narrow phone: the label wraps (a file name at its underscores)
+    bar.querySelector('.ck-conf-ok').innerHTML = `${esc((opts.verb || 'Submit') + ':')} <span class="ck-conf-l">${esc(label).replace(/_/g, '_<wbr>')}</span>`;
+    bar.querySelector('.ck-conf-ok').onclick = () => { bar.remove(); btn.classList.remove('ck-sel'); go(); };
+    bar.querySelector('.ck-conf-no').onclick = () => { bar.remove(); btn.classList.remove('ck-sel'); };
+    pk.after(bar);
+    setTimeout(() => { try { bar.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) {} }, 0);
   }
   const SUSPECT_NO = {
     drew: "Drew is in Vegas looking for Frank. Loudly. In a cowboy hat.",
@@ -566,7 +732,9 @@
     if (Date.now() - FR.state.unlockedAt[cur] < 240000) return;
     FR.state.nudged[cur] = 1; FR.save();
     const it = ITEMS.find(i => i.id === cur);
-    FR.balloon('FinanceOS Assist', `Stuck on <b>${esc(it.t)}</b>? Ask FinanceOS on the checklist. Emily's trial has 1 day left.`, () => openChecklist());
+    FR.balloon('FinanceOS Assist', `Stuck on <b>${esc(it.t)}</b>? Ask FinanceOS on the checklist. Emily's trial has 1 day left.`, () => openChecklist(), { act: 'Open the checklist',
+      // (S9) asked again right before it shows (on a phone it can wait for a quiet moment): never about a solved item
+      still: () => FR.puzzle.current() === cur && !FR.puzzle.isSolved(cur) && !((FR.state.hintsUsed[cur] || 0) > 0) });
   }, 30000);
 
   // targeted feedback for common traps
@@ -605,20 +773,21 @@
     const it = ITEMS.find(i => i.id === id);
     const n = ITEMS.filter(i => FR.puzzle.isSolved(i.id)).length;
     const nxt = ITEMS.find(i => !FR.puzzle.isSolved(i.id));
-    if (it && id !== 'login') setTimeout(() => FR.balloon(`Board Pack: ${n} of ${ITEMS.length} done`, `<b>${esc(it.t)}</b> — done.${REACT[id] ? `<br><i>${esc(REACT[id])}</i>` : ''}${nxt ? `<br>Next up: ${esc(nxt.t)}` : ''}`, () => openChecklist(), { silent: true }), 900);
+    // (phones) the 10/10 toast would sit over the end of Frank's reply, which opens right after: the ending says it
+    if (it && id !== 'login' && !(FR.mobile && id === 'frank')) setTimeout(() => FR.balloon(`Board Pack: ${n} of ${ITEMS.length} done`, `<b>${esc(it.t)}</b> — done.${REACT[id] ? `<br><i>${esc(REACT[id])}</i>` : ''}${nxt ? `<br>Next up: ${esc(nxt.t)}` : ''}`, () => openChecklist(), { silent: true, act: 'Open the checklist', still: () => !nxt || !FR.puzzle.isSolved(nxt.id) }), 900);
     if (id === 'frank') {
       FR.state.finishedAt = FR.state.finishedAt || Date.now();
       if (FR.state.finishPlayMs == null) FR.state.finishPlayMs = FR.clock.playMs();
       FR.save();
-      // let the player read Frank's reply first: open it, and roll the ending when it's closed (or after 30 s)
+      // (F6) let the player read Frank's reply first: it opens by itself, and the ending rolls only when they are done
+      // with it: they close it (or leave it for another message), or tap "See how it ended" at its end. Never on a timer
+      // while they are reading.
       setTimeout(() => {
         if (FR.mail && FR.mail.open) FR.mail.open('x_frank_reveal');
         const w = FR.wm.wins.get('oe-msg-x_frank_reveal');
-        if (!w) return setTimeout(ending, 6000);
-        const oc = w.opts.onClose;
-        w.opts.onClose = () => { const r = oc ? oc() : undefined; if (r !== false && !endShown) setTimeout(ending, 400); return r; };
+        if (!w) return setTimeout(() => { if (!endShown) ending(); }, 6000);
+        revealDone(w);
       }, 3200);
-      setTimeout(() => { if (!endShown) ending(); }, 30000);
     }
   });
   FR.bus.on('play-tick', ms => { const t = document.querySelector('.ck-wrap .ck-time'); if (t) { const s = FR.clock.dur(ms); if (t.textContent !== s) t.textContent = s; } });
@@ -639,6 +808,20 @@
 
   /* =========================================================== ENDING */
   let endShown = false;
+  // Frank's reply is the last thing to read: the ending waits for the player to finish it (see 'solved' above)
+  function revealDone(w) {
+    if (w._frRevealHooked) return;
+    w._frRevealHooked = true;
+    w._frNoTips = true;   // (phones: no toast over the last lines and the button while it's being read; they wait)
+    const oc = w.opts.onClose;
+    w.opts.onClose = () => { const r = oc ? oc() : undefined; if (r !== false && !endShown) setTimeout(ending, 400); return r; };
+    const body = w.body.querySelector('.oe-mbody');
+    if (body && !body.querySelector('.fr-end-go')) {
+      const bar = $(`<div class="fr-end-gobar"><button class="fr-end-go">See how it ended &#9656;</button></div>`);
+      bar.querySelector('button').onclick = () => { FR.sound.play('click'); if (!endShown) ending(); };
+      body.appendChild(bar);
+    }
+  }
   function ending() {
     if (document.querySelector('.fr-end')) return;
     endShown = true;
@@ -650,7 +833,8 @@
       <div class="fr-kicker">Board Pack delivered · Survival package approved</div>
       <h1>Packa Corp is saved.<br>Frank is in Vegas.</h1>
       <p>You rebuilt Packa's numbers from a pile of "FINAL" files, a hidden folder, a change log and one man's head. The Board saw the real runway, the bank got a true covenant certificate, and the emergency plan passed.</p>
-      <div class="fr-end-stats"><div class="fr-end-score"><b>${FR.score.fmt(sc.score)}</b><span>Score</span></div><div><b>${t}</b><span>Time at Frank's desk</span></div><div><b>${hints}</b><span>Hints used</span></div><div><b>${FR.state.wrong || 0}</b><span>Wrong guesses</span></div></div>
+      <div class="fr-end-stats"><div class="fr-end-score"><b>${FR.score.fmt(sc.score)}</b><span>Score</span></div><div><b>${t}</b><span>Time at Frank's desk</span></div><div><b>${hints}</b><span>Hints used</span></div><div><b>${FR.state.wrong || 0}</b><span>Wrong guesses</span></div><div class="fr-end-bonus"><b>+${FR.score.fmt(sc.bonus || 0)}</b><span>Bonus &amp; eggs</span></div></div>
+      <p class="fr-end-calc">${esc(FR.score.breakdown(sc))}</p>
       <p class="fr-end-rank"></p>
       <div class="fr-end-line"></div>
       <p><b style="color:#fff">Packa doesn't run on Datarails.</b> So when Frank walked through the wall, the truth nearly went with him.</p>
@@ -667,10 +851,22 @@
     // where this game landed on the board (or how to get on it)
     const rankEl = e.querySelector('.fr-end-rank');
     if (FR.score.available() && !(FR.account && FR.account.user)) rankEl.textContent = "Playing without an account, so this score isn't on the leaderboard.";
-    else if (FR.score.available()) FR.score.fetch().then(d => {
-      if (d.me) rankEl.innerHTML = `You're <b>#${d.me.rank}</b> of ${FR.score.fmt(d.players)} ${d.players === 1 ? 'person who has' : 'people who have'} covered for Frank${d.me.score !== sc.score ? ` with your first finished game (${FR.score.fmt(d.me.score)} points)` : ''}.`;
-    }, () => {});
+    else if (FR.score.available()) {
+      // one score everywhere: the board follows this game (bonus included); only a replay shows a different number,
+      // and then it says why. The same game with a different number = the board hasn't caught up yet: ask again.
+      const rank = (tries = 0) => FR.score.fetch().then(d => {
+        if (!d.me || !rankEl.isConnected) return;
+        const other = FR.score.otherGame(d.me);
+        if (!other && d.me.score !== FR.score.now().score && tries < 3) return setTimeout(() => rank(tries + 1), 2000);
+        rankEl.innerHTML = `You're <b>#${d.me.rank}</b> of ${FR.score.fmt(d.players)} ${d.players === 1 ? 'person who has' : 'people who have'} covered for Frank${other ? ` with your first finished game (${FR.score.fmt(d.me.score)} points; a replay doesn't change it)` : ` with ${FR.score.fmt(d.me.score)} points`}.`;
+      }, () => {});
+      rank();
+    }
     e.querySelector('[data-a=again]').onclick = () => confirmStartOver();
+    // phones: it comes up by itself, so a tap already on its way (meant for the taskbar, a window) must not press
+    // anything on it (1.5 s); "Play again" sits apart, never in the bottom strip where the taskbar was (mobile.css),
+    // and its "Start over?" box has Cancel as the default
+    if (FR.mobile) { e.classList.add('fr-guard'); e._frShown = Date.now(); e._frGuard = 1500; }
     root.appendChild(e);
     FR.sound.play('tada');
   }

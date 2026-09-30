@@ -27,3 +27,5 @@ jobs:
         run: node test/account_api_test.js
       - name: Scoring and scoreboard tests
         run: node test/score_test.js
+      - name: Bonus-request grading tests
+        run: node test/bonus_grade_test.js

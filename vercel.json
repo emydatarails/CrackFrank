@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
   "installCommand": "",
-  "buildCommand": "python3 build.py && node test/excel_engine_test.js",
+  "buildCommand": "python3 build.py && node test/excel_engine_test.js && node test/bonus_grade_test.js",
   "outputDirectory": "dist",
   "headers": [
     {

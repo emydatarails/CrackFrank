@@ -103,6 +103,17 @@ eq('q3 pl var', br.val('Q3 P&L', 'E10'), -160); eq('q3 pl materials memo foots',
 eq('esports modeling case 30:42', XL.fmtNum(B.esportsBook().val('Practice log', 'C14'), 'ms1').t, '30:42.0');
 // formatting
 eq('fmt n0 neg', XL.fmtNum(-1234.4, 'n0').t, '(1,234)'); eq('fmt x2', XL.fmtNum(1.25, 'x2').t, '1.25x'); eq('fmt p1', XL.fmtNum(0.25, 'p1').t, '25.0%'); eq('fmt ms1', XL.fmtNum(107.1, 'ms1').t, '1:47.1');
+// (R6 Q8) General-format numbers fit their column the way Excel does: fewer decimals, then scientific, then ###
+const fitN = (v, n) => XL.fitGeneral(v, t => t.length <= n);
+eq('general fits as is', fitN(2000 * Math.pow(1.015, 12), 11), '2391.236343');
+eq('general 8 wide: 3 decimals (Excel: 2391.236)', fitN(2000 * Math.pow(1.015, 12), 8), '2391.236');
+eq('general 6 wide', fitN(2391.2363, 6), '2391.2'); eq('general 4 wide: no decimals', fitN(2391.2363, 4), '2391');
+eq('general rounds up', fitN(2391.96, 4), '2392'); eq('general negative', fitN(-2391.2363, 7), '-2391.2');
+eq('general trailing zeros dropped', fitN(1.50004, 4), '1.5');
+eq('general big integer → scientific (Excel: 1.23457E+11)', fitN(123456789012, 11), '1.23457E+11');
+eq('general big integer, narrow', fitN(123456789012, 5), '1E+11'); eq('general 3 wide: ###', fitN(123456789012, 3), null);
+eq('general small number keeps a digit (scientific)', fitN(0.0000123, 5), '1E-05');
+eq('general 0.5 at 1 wide rounds (Excel: 1)', fitN(0.5, 1), '1');
 eq('split', XL.split(30810, [23, 25, 26, 26]).reduce((a, b) => a + b), 30810);
 B.esportsBook(); B.v2Book();
 // v3

@@ -145,6 +145,8 @@
     const show = k => {
       const [t, sub, body] = S[k];
       root.querySelectorAll('.erp-n').forEach(b => b.classList.toggle('on', b.dataset.k === k));
+      // (R3b S13) phones: the module strip keeps the open module in view
+      if (FR.mobile) { const on = root.querySelector('.erp-n.on'); if (on && on.parentElement.scrollWidth > on.parentElement.clientWidth) { const nav = on.parentElement, r = on.getBoundingClientRect(), nr = nav.getBoundingClientRect(); nav.scrollLeft = Math.max(0, nav.scrollLeft + r.left - nr.left - (nav.clientWidth - r.width) / 2); } }
       pane.innerHTML = `<div class="erp-h"><b>${t}</b><span>${sub}</span></div><div class="erp-body">${body()}</div>`;
       pane.scrollTop = 0;
       win.setStatus(0, `<span>${t.replace(/&amp;/g, '&')}</span>`);

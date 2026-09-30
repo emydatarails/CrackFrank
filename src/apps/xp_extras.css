@@ -1,0 +1,86 @@
+/* FRANK'S COMPUTER — the extras: Blue Screen (.bs-), Norton AntiVirus 2003 (.nv-), Easter eggs (.eg-),
+   bonus requests (.bn-). Phone rules: in src/mobile.css ("extras", at the end). */
+
+/* ---------- Blue Screen of Death ---------- */
+.bs-screen { position: fixed; inset: 0; z-index: 2147483000; background: #0000aa; color: #fff; cursor: none; overflow: hidden; outline: none;
+  padding: 3.2vh 3vw; box-sizing: border-box; user-select: none; -webkit-user-select: none; touch-action: none; }
+.bs-txt { max-width: 80ch; font: min(2.5vh, 1.55vw)/1.3 "Lucida Console", "Lucida Sans Typewriter", Monaco, "DejaVu Sans Mono", "Courier New", monospace; letter-spacing: 0; }
+.bs-txt p { margin: 0 0 1.1em; white-space: pre-wrap; }
+.bs-txt b { font-weight: normal; }
+
+/* ---------- Norton AntiVirus 2003 (a nostalgic parody: generic yellow shield, no real logo) ---------- */
+.fr-balloon.nv-bal { background: #fffbe0; border-color: #6b5200; }
+.fr-balloon.nv-bal .fr-balloon-t b { color: #3d2e00; }
+.nv-ico16 svg { width: 16px; height: 16px; display: block; }
+.nv-tip { display: flex; align-items: center; gap: 8px; }
+.nv-tip .nv-ico { flex: none; width: 30px; height: 30px; }
+.nv-tip .nv-ico svg { width: 30px; height: 30px; display: block; }
+.nv-win .fr-body { padding: 0; }
+.nv { display: flex; height: 100%; font: 11px Tahoma, Verdana, sans-serif; color: #222; background: #fff; }
+.nv-side { width: 136px; flex: none; background: linear-gradient(#ffe45c, #f5c000 60%, #e7ab00); border-right: 1px solid #b98a00; display: flex; flex-direction: column; padding-bottom: 8px; }
+.nv-brand { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 3px; padding: 10px 6px 12px; border-bottom: 1px solid rgba(0,0,0,.18); margin-bottom: 6px; }
+.nv-brand b { font: bold 15px/1.05 Arial, sans-serif; color: #111; }
+.nv-brand small { font-size: 10px; color: #4a3a00; }
+.nv-ico32 { display: inline-block; width: 34px; height: 34px; flex: none; }
+.nv-ico32 svg { width: 100%; height: 100%; display: block; }
+.nv-nav { display: block; padding: 6px 12px; font-weight: bold; color: #1a1a1a; cursor: pointer; text-decoration: none; }
+.nv-nav:hover { background: rgba(255,255,255,.35); }
+.nv-nav.on { background: #fff; color: #7a4d00; box-shadow: inset 3px 0 0 #b98a00; }
+.nv-nav.nv-dis { color: #8a7430; cursor: default; font-weight: normal; }
+.nv-main { flex: 1 1 auto; min-width: 0; padding: 12px 14px; overflow: auto; }
+.nv-main h3 { margin: 0 0 6px; font-size: 13px; }
+.nv-ok { display: flex; align-items: center; gap: 10px; background: #edf7e6; border: 1px solid #8fc27a; border-radius: 3px; padding: 8px 10px; margin-bottom: 10px; }
+.nv-ok b { display: block; font-size: 14px; color: #1d6b1d; }
+.nv-t { border-collapse: collapse; width: 100%; margin-bottom: 10px; }
+.nv-t td { padding: 3px 6px; border-bottom: 1px solid #eee; vertical-align: top; }
+.nv-t td:first-child { color: #555; white-space: nowrap; }
+.nv-on { color: #1d6b1d; font-weight: bold; }
+.nv-warn { color: #9a5b00; }
+.nv-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.nv-btns.nv-col { flex-direction: column; align-items: flex-start; }
+.nv-scan { border: 1px solid #ccc; padding: 8px; background: #fafafa; }
+.nv-bar { height: 14px; border: 1px solid #7a7a7a; background: #fff; margin-top: 5px; padding: 1px; }
+.nv-bar i { display: block; height: 100%; width: 0; background: repeating-linear-gradient(90deg, #2fb34a 0 9px, #fff 9px 11px); transition: width .15s linear; }
+.nv-res { border: 1px solid #d8c26a; background: #fffbe8; padding: 8px 10px; line-height: 1.45; }
+.nv-mono { font-family: "Lucida Console", "Courier New", monospace; font-size: 10.5px; }
+
+/* ---------- Easter eggs ---------- */
+.eg-toast { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 99990; pointer-events: none; display: flex; align-items: center; gap: 8px;
+  background: #ffffe1; border: 1px solid #6d6d52; border-radius: 6px; padding: 6px 12px 6px 8px; box-shadow: 1px 2px 6px rgba(0,0,0,.35); font: 11px Tahoma, sans-serif; color: #222; max-width: calc(100vw - 24px); box-sizing: border-box; animation: egIn .3s ease-out; }
+.eg-toast .eg-ico { width: 16px; height: 20px; flex: none; }
+.eg-toast span { display: flex; flex-direction: column; min-width: 0; }
+.eg-toast b { white-space: nowrap; }
+.eg-toast i { font-style: normal; color: #555; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.eg-toast.eg-out { opacity: 0; transition: opacity .45s; }
+@keyframes egIn { from { opacity: 0; transform: translate(-50%, -8px); } to { opacity: 1; transform: translate(-50%, 0); } }
+/* the Tipsy Ledger's web page (an IE Favorite) */
+.eg-bar { min-height: 100%; background: #2a0f0a url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cpath d='M0 0h10v10H0zM10 10h10v10H10z' fill='%23361410'/%3E%3C/svg%3E"); color: #ffe9b0; font: 13px "Comic Sans MS", "Trebuchet MS", sans-serif; padding: 0 18px 20px; }
+.eg-bar-top { background: #000; color: #ffde00; font: bold 12px Verdana, sans-serif; margin: 0 -18px 10px; padding: 4px 0; }
+.eg-bar h1 { font: bold 34px Georgia, serif; color: #ffcc33; text-shadow: 2px 2px 0 #7a1b00; margin: 8px 0 2px; }
+.eg-bar h2 { font: bold 17px Georgia, serif; color: #ff9a3c; margin: 16px 0 6px; border-bottom: 1px dashed #7a3a1a; }
+.eg-bar-sub { color: #f3c58a; font-style: italic; }
+.eg-bar-t { border-collapse: collapse; background: rgba(0,0,0,.3); }
+.eg-bar-t th, .eg-bar-t td { border: 1px solid #7a3a1a; padding: 3px 8px; text-align: left; }
+.eg-bar-t th { background: #7a1b00; color: #fff; }
+.eg-bar small { color: #d9a970; }
+.eg-bar-foot { margin-top: 18px; font-size: 11px; color: #c9936a; }
+
+/* ---------- bonus requests: the answer box inside the e-mail ---------- */
+.bn-box { margin: 16px 0 6px; max-width: 540px; border: 1px solid #c9a227; border-left: 4px solid #e0a800; background: #fffbea; border-radius: 3px; padding: 8px 10px 9px; font: 11px Tahoma, Verdana, sans-serif; color: #222; }
+.bn-h { display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px; }
+.bn-h b { font-size: 12px; color: #6b4a00; }
+.bn-h span:last-child { color: #7a6a3a; }
+.bn-star { color: #e0a800; font-size: 13px; }
+.bn-l { display: block; font-weight: bold; margin-bottom: 3px; }
+.bn-row { display: flex; gap: 6px; align-items: center; }
+.bn-row input { width: 150px; }
+.bn-fb { margin-top: 6px; min-height: 0; }
+.bn-fb.bad { color: #8a1c00; }
+.bn-hint { margin-top: 4px; color: #5a4a1a; font-style: italic; }
+.bn-note { margin-top: 6px; color: #7a6a3a; font-size: 10.5px; }
+.bn-ok { color: #1d6b1d; font-size: 12px; }
+.bn-reply { margin-top: 6px; }
+.bn-reply div { white-space: pre-wrap; margin-top: 2px; font-family: Arial, sans-serif; }
+.bn-bal-s { color: #6b5a2a; }
+.bn-shake { animation: bnShake .3s; }
+@keyframes bnShake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }

@@ -100,25 +100,31 @@
 
   const byId = {};
   N.forEach(n => (byId[n.id] = n));
+  // nodes generated at listing time from the player's saved game (e.g. Paint's saved pictures in My Pictures):
+  // apps push a function () => [node, ...] into FR.fs.extra
+  const extra = [];
+  const dyn = () => extra.flatMap(fn => { try { return fn() || []; } catch (e) { return []; } });
+  const node = id => byId[id] || (extra.length ? dyn().find(n => n.id === id) : undefined);
 
   window.FR = window.FR || {};
   FR.data = FR.data || { texts: {} };
   FR.fs = {
-    nodes: N,
-    get: id => (typeof id === 'string' ? byId[id] : id),
+    get nodes() { return extra.length ? N.concat(dyn()) : N; },
+    extra,
+    get: id => (typeof id === 'string' ? node(id) : id),
     children(id, opts = {}) {
       const showHidden = opts.showHidden ?? (FR.flags && FR.flags.get('showHidden'));
-      return N.filter(n => n.parent === id && (showHidden || !n.hidden));
+      return FR.fs.nodes.filter(n => n.parent === id && (showHidden || !n.hidden));
     },
     path(id) {
       const parts = [];
-      let n = byId[id];
+      let n = node(id);
       while (n) {
         if (n.id === 'mycomputer') break;
         if (n.id === 'cdrive') { parts.unshift('C:'); break; }
         if (n.id === 'desktop' || n.id === 'recycle') { parts.unshift(n.name); break; }
         parts.unshift(n.name);
-        n = byId[n.parent];
+        n = node(n.parent);
       }
       return parts.join('\\') + (parts.length === 1 && parts[0] === 'C:' ? '\\' : '');
     },

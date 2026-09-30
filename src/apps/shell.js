@@ -91,7 +91,7 @@
     document.body.appendChild(p);
     const w = p.offsetWidth, h = p.offsetHeight;
     p.style.left = Math.max(0, Math.min(x, window.innerWidth - w - 2)) + 'px';
-    p.style.top = Math.max(0, Math.min(y, window.innerHeight - h - 2)) + 'px';
+    p.style.top = Math.max(0, Math.min(y, window.innerHeight - h - 2 - (FR.mobile ? 46 : 0))) + 'px';   // phones: clear of the taskbar
     if (level === 0) popRoot = p;
     return p;
   }
@@ -135,8 +135,8 @@
     if (n.type === 'folder') return ({ cdrive: 'Local Disk', ddrive: 'CD Drive', pdrive: 'Disconnected Network Drive', mycomputer: 'System Folder', recycle: 'Recycle Bin', desktop: 'System Folder' })[n.id] || 'File Folder';
     return TYPES[extOf(n)] || (extOf(n).toUpperCase() + ' File');
   }
-  const OPENS = { excel: 'Excel', notepad: 'Notepad', image: 'Windows Picture and Fax Viewer', mail: 'Outlook Express', zip: 'Compressed (zipped) Folders', pdf: 'Document Viewer' };
-  const OPENS_ICO = { excel: 'excel', notepad: 'notepad', image: 'image', mail: 'mail', zip: 'zip', pdf: 'txt' };
+  const OPENS = { excel: 'Excel', notepad: 'Notepad', image: 'Windows Picture and Fax Viewer', mail: 'Outlook Express', zip: 'Compressed (zipped) Folders', pdf: 'Document Viewer', paint: 'Paint' };
+  const OPENS_ICO = { excel: 'excel', notepad: 'notepad', image: 'image', mail: 'mail', zip: 'zip', pdf: 'txt', paint: 'paint' };
   const iconOf = n => n.id === 'recycle' ? (FR.fs.children('recycle').length ? 'recycleFull' : 'recycle') : (n.icon || (n.type === 'folder' ? 'folder' : 'txt'));
   const nameOf = n => n.id === 'mydocs' ? 'My Documents' : n.name;
   const inRecycle = n => n && n.parent === 'recycle';
@@ -186,6 +186,7 @@
       if (r.button !== 'OK') return false;
       const v = String(r.value || '').trim().replace(/[\s,$]/g, '');
       if (v && v === String(zipNode.password)) {
+        zipTypedNow = true;
         FR.flags.set('bankzipOpen', true); FR.sound.play('unlock');
         return true;
       }
@@ -194,8 +195,23 @@
       await FR.dialog({ title: 'Compressed (zipped) Folders', icon: 'error', message: `The password is incorrect. Please try again.${fails + 1 >= 3 ? ZIP_HINT : ''}` });
     }
   }
+  const zipSeen = new Set();   // files opened from the zip in this session
+  let zipTypedNow = false;     // the zip's password was typed in this session (not just remembered from an earlier one)
   async function openZipChild(n) {
-    if (await zipUnlock(n.parent, n.name)) FR.openFile(n);
+    const known = FR.flags.get('bankzipOpen');
+    if (!(await zipUnlock(n.parent, n.name))) return;
+    // (F2, round 4) phones: opening a file from the zip AGAIN (or after a reload: the password was typed another time)
+    // says why no password is asked, in a box where the password box used to be, so a tap aimed at "the password field"
+    // and a typed password + Enter land in the box (Enter = Open), not in a cell of the workbook that would otherwise
+    // have opened under the finger. (The first open right after typing the password opens at once.)
+    const again = known && (zipSeen.has(n.id) || !zipTypedNow);
+    zipSeen.add(n.id);
+    if (again && FR.mobile) {
+      const r = await FR.dialog({ icon: 'key', title: 'Compressed (zipped) Folders', width: 400, buttons: ['Open', 'Cancel'], enterKey: true,
+        message: `Bank.zip is already unlocked: Windows remembered the password you typed earlier.<br><br>Open <b>${esc(n.name)}</b>?` });
+      if (r.button !== 'Open') return;
+    }
+    FR.openFile(n);
   }
 
   /* ======================================================================================
@@ -204,7 +220,7 @@
   const FAKE = {
     progfiles: [
       ['Common Files', 'd', '06/12/2019 9:14 AM'], ['Internet Explorer', 'd', '06/12/2019 9:15 AM'], ['Outlook Express', 'd', '06/12/2019 9:15 AM'],
-      ['Microsoft Office', 'd', '11/03/2019 2:41 PM'], ['Prairie Ledger BankLink', 'd', '03/15/2024 10:22 AM'], ['Solitaire (uninstalled)', 'd', '10/03/2026 1:20 AM'],
+      ['Microsoft Office', 'd', '11/03/2019 2:41 PM'], ['Prairie Ledger BankLink', 'd', '03/15/2024 10:22 AM'], ['Solitaire (MEWC face cards)', 'd', '10/03/2026 1:20 AM'],
       ['Speedrun Trainer for Spreadsheets', 'd', '09/19/2026 1:37 AM'], ['Windows Media Player', 'd', '06/12/2019 9:16 AM'], ['Windows NT', 'd', '06/12/2019 9:16 AM'],
     ],
     windows: [
@@ -230,6 +246,12 @@
     if (node.type === 'file' && node.app !== 'zip') return FR.openFile(node);
     if (node.empty) { emptyDriveError(node); return null; }
     for (const x of explorers) if (x.cur === node.id && !x.search) { x.win.restore(); x.win.focus(); return x.win; }
+    // (R3b S7) phones: one Explorer window, reused (Back goes to where it was): a checklist chip or a desktop icon
+    // doesn't pile up another full-screen window each time
+    if (FR.mobile) {
+      const x = [...explorers].filter(v => FR.wm.wins.has(v.win.id)).sort((a, b) => (b.win._used || 0) - (a.win._used || 0))[0];
+      if (x && x.go(node.id, true) !== false) { x.win.restore(); x.win.focus(); return x.win; }
+    }
     const X = new Explorer(node.id);
     return X.win;
   }
@@ -338,6 +360,7 @@
       const icn = this.search ? 'search' : iconOf(n);
       if (this._icn !== icn) { this._icn = icn; if (win.setIcon) win.setIcon(icn); }
       this.addr.value = this.search ? 'Search Results' : addrOf(this.cur);
+      if (FR.mobile) setTimeout(() => { this.addr.scrollLeft = this.addr.scrollWidth; }, 0);   // phones: show the end of a long path
       this.root.querySelector('.ex-addr-i').innerHTML = ico(icn, 16);
       const tb = this.root.querySelector('.ex-tb');
       tb.querySelector('[data-a=back]').disabled = !this.back.length && !this.search;
@@ -601,7 +624,8 @@
         case 'delete': {
           if (!sel || sel.fake) return;
           const r = await FR.dialog({ title: sel.type === 'folder' ? 'Confirm Folder Delete' : 'Confirm File Delete', icon: 'question', buttons: ['Yes', 'No'], message: `Are you sure you want to send '${esc(nm)}' to the Recycle Bin?` });
-          if (r.button === 'Yes') return denied('Delete', nm);
+          // only files the player made (Paint pictures) can really be deleted; everything of Frank's is protected
+          if (r.button === 'Yes') { if (sel.onDelete) { FR.sound.play('recycle'); this.sel = null; return sel.onDelete(); } return denied('Delete', nm); }
           return;
         }
         case 'publish': return FR.dialog({ title: 'Web Publishing Wizard', icon: 'error', message: 'The Web Publishing Wizard could not connect to the Internet.<br><br>Check your connection settings, or ask your network administrator.' });
@@ -715,11 +739,14 @@
         if (e.target.closest('th')) return;
         if (it) this.select(it.dataset.id); else if (!e.target.closest('.ex-link')) this.select(null);
       });
-      v.addEventListener('dblclick', e => { const it = e.target.closest('.ex-it'); if (it) this.openItem(this.findItem(it.dataset.id)); });
+      v.addEventListener('dblclick', e => { if (FR.mobile) return; const it = e.target.closest('.ex-it'); if (it) this.openItem(this.findItem(it.dataset.id)); });
       v.addEventListener('click', e => {
         const th = e.target.closest('th[data-sort]');
         if (th) { const k = th.dataset.sort; if (['packed', 'pw', 'ratio', 'total', 'free'].includes(k)) return; this.sort = { k, d: this.sort.k === k ? -this.sort.d : 1 }; this.render(); return; }
-        if (e.target.closest('[data-reveal]')) { this.revealed.add(this.cur); this.render(); }
+        if (e.target.closest('[data-reveal]')) { this.revealed.add(this.cur); this.render(); return; }
+        // phones: one tap opens (there is no double-click); a quick second tap (double-tap habit) is ignored
+        const it = FR.mobile && e.target.closest('.ex-it');
+        if (it && Date.now() > (this.tapGuard || 0)) { this.tapGuard = Date.now() + 500; this.openItem(this.findItem(it.dataset.id)); }
       });
       v.addEventListener('contextmenu', e => {
         e.preventDefault();
@@ -846,7 +873,7 @@
   }
 
   function aboutWin() {
-    FR.dialog({ title: 'About Windows', icon: 'info', width: 400, message: 'Windows<br>Version 5.1 (Build 2600.xpsp_sp3)<br><br>This product is licensed to:<br>&nbsp;&nbsp;Frank Warmington<br>&nbsp;&nbsp;Packa Corporation<br><br>Physical memory available to Windows: 1,046,512 KB' });
+    FR.dialog({ title: 'About Windows', icon: 'info', width: 400, message: 'Windows<br>Version 5.1 (Build 2600.xpsp_sp3)<br><br>This product is licensed to:<br>&nbsp;&nbsp;Frank Warmington<br>&nbsp;&nbsp;Packa Corporation<br><br>Physical memory available to Windows: 1,046,512 KB' + (FR.version ? '<br><br><small>Frank\'s Computer (the game) ' + FR.version.full + '</small>' : '') });
   }
   function sysProps() {
     FR.dialog({ title: 'System Properties', icon: 'info', width: 400, message: '<b>System:</b> Windows XP Professional, Version 2002, Service Pack 3<br><br><b>Registered to:</b> Frank Warmington, Packa Corporation<br><br><b>Computer:</b> Pentium(R) 4 CPU 2.80GHz, 1.00 GB of RAM<br><br><b>Computer name:</b> PACKA-FPA-01<br><b>Total disk:</b> 37.6 GB (3.21 GB free)<br><b>Uptime:</b> 2 days, 23 hours (nobody has touched this PC since Friday night)' });
@@ -873,8 +900,28 @@
       root.querySelectorAll('[role=tab]').forEach(x => x.setAttribute('aria-selected', x === b));
       root.querySelectorAll('.sh-pane').forEach(p => (p.hidden = p.dataset.i !== b.dataset.i));
     }));
-    const win = FR.wm.open({ id, title, icon, width, height: 480, resizable: false, className: 'sh-sheetwin', content: root });
-    win.el.style.height = 'auto';
+    // (R7 T6) tablets (both sides at least 600 px): the sheet floats, as wide as it needs and as tall as its page
+    // (never taller than the screen above the taskbar: then its page scrolls, OK / Cancel / Apply stay at its bottom)
+    const tablet = () => FR.mobile && Math.min(innerWidth, innerHeight) >= 600;
+    const float = tablet();
+    const win = FR.wm.open({ id, title, icon, width, height: 480, resizable: false, className: 'sh-sheetwin' + (float ? ' sh-float' : ''), content: root, float });
+    // phones: the sheet fills the screen (the window manager maximizes it); its page scrolls by touch and
+    // OK / Cancel / Apply stay pinned at the bottom
+    if (float) {
+      const place = () => {
+        if (!win.el.isConnected) { removeEventListener('resize', onRz); return; }
+        if (!tablet()) { if (!win.max) win.maximize(true); return; }
+        const host = win.el.parentElement, hw = (host && host.clientWidth) || innerWidth, tbar = document.querySelector('.fr-taskbar');
+        const hh = Math.min((host && host.clientHeight) || innerHeight, tbar ? tbar.getBoundingClientRect().top - (host ? host.getBoundingClientRect().top : 0) : innerHeight);
+        Object.assign(win.el.style, { width: Math.min(Math.max(width, 460), hw - 32) + 'px', height: 'auto', maxHeight: (hh - 24) + 'px' });
+        win.el.style.left = Math.max(12, Math.round((hw - win.el.offsetWidth) / 2)) + 'px';
+        win.el.style.top = Math.max(12, Math.round((hh - win.el.offsetHeight) / 3)) + 'px';
+      };
+      const onRz = () => setTimeout(place, 60);
+      addEventListener('resize', onRz);
+      root.querySelectorAll('[role=tab]').forEach(t => t.addEventListener('click', () => setTimeout(place, 0)));   // (another page, another height)
+      place();
+    } else if (FR.mobile) { if (!win.max) win.maximize(true); } else win.el.style.height = 'auto';
     const apply = root.querySelector('.sh-apply');
     root.addEventListener('change', () => (apply.disabled = false));
     root.addEventListener('input', () => (apply.disabled = false));
@@ -1083,6 +1130,27 @@
   /* ======================================================================================
      NOTEPAD
      ====================================================================================== */
+  // (R3b S10) phones: is this a text hard-wrapped at ~90 columns (most lines long and ending mid-sentence)?
+  const npLong = l => l.length >= 70;
+  function npReflowable(t) {
+    const ls = t.split('\n').filter(l => l.trim());
+    return ls.length >= 8 && ls.filter(npLong).length / ls.length >= 0.4;
+  }
+  // one paragraph per line: a line joins the one before it when that one ran to the margin (≥ 70 columns) and it isn't a
+  // new list item; separators get short, centred headings move to the left, wide gaps (two columns) become " · "
+  function npReflow(t) {
+    const out = []; let prev = null;
+    const sep = l => /^\s*[-=_*]{8,}\s*$/.test(l), item = l => /^(\([a-z0-9]{1,4}\)|\d+[.)]\s|[-•*]\s|Section\s|\[|\.\.\.)/.test(l);
+    t.split('\n').forEach(raw => {
+      const l = raw.trim().replace(/(\S) {3,}(?=\S)/g, '$1 · ');
+      if (!l) { out.push(''); prev = null; return; }
+      if (sep(raw)) { out.push('—————————'); prev = null; return; }
+      if (prev !== null && npLong(prev) && !item(l)) out[out.length - 1] += ' ' + l;
+      else out.push(l);
+      prev = raw;
+    });
+    return out.join('\n');
+  }
   function notepad(node) {
     node = node ? FR.fs.get(node) : null;
     const id = node ? 'np-' + node.id : undefined;
@@ -1096,7 +1164,16 @@
       const v = ta.value.slice(0, ta.selectionStart); const lines = v.split('\n');
       root.querySelector('.np-pos').textContent = `Ln ${lines.length}, Col ${lines[lines.length - 1].length + 1}`;
     };
-    const setWrap = on => { S.wrap = on; ta.setAttribute('wrap', on ? 'soft' : 'off'); ta.classList.toggle('np-nowrap', !on); };
+    // phones: a visible Wrap switch (the Format menu is far away and sideways swiping a wide text is tiring), in its own
+    // slim bar under the text (R3b S10: never floating over the text)
+    const wrapB = FR.mobile ? $('<button class="np-wrapb" aria-label="Word wrap"></button>') : null;
+    // (R3b S10) phones, Wrap on: a text Frank broke into ~90-column lines (the loan agreement) is shown reflowed, one
+    // paragraph per line, headings on their own line, so it wraps cleanly to the screen; Wrap off shows the file as it is
+    const orig = ta.value, reflow = FR.mobile && npReflowable(orig) ? npReflow(orig) : null;
+    const setWrap = on => { S.wrap = on; ta.setAttribute('wrap', on ? 'soft' : 'off'); ta.classList.toggle('np-nowrap', !on);
+      if (reflow && !S.dirty) { const v = on ? reflow : orig; if (ta.value !== v) { ta.value = v; ta.scrollTop = 0; ta.scrollLeft = 0; } }
+      if (wrapB) { wrapB.textContent = on ? 'Wrap: on' : 'Wrap: off'; wrapB.classList.toggle('on', on); } };
+    if (wrapB) { const bar = $('<div class="np-mbar"></div>'); bar.appendChild(wrapB); root.appendChild(bar); wrapB.onclick = e => { e.stopPropagation(); setWrap(!S.wrap); if (S.wrap) setStatus(false); }; }
     const setStatus = on => { S.status = on; root.classList.toggle('np-sbon', on); pos(); };
     const saveDenied = () => FR.dialog({ title: 'Notepad', icon: 'error', message: `Cannot create the ${esc(node ? FR.fs.path(node.parent) + '\\' + node.name : 'Untitled.txt')} file.<br><br>Access is denied. Make sure the path and file name are correct.` });
     const find = async () => {
@@ -1152,7 +1229,7 @@
         { label: 'About Notepad', action: () => FR.dialog({ title: 'About Notepad', icon: 'notepad', message: 'Notepad<br>Version 5.1 (Build 2600.xpsp_sp3)<br><br>This product is licensed to:<br>&nbsp;&nbsp;Frank Warmington<br>&nbsp;&nbsp;Packa Corporation' }) },
       ] },
     ];
-    const wide = node && ['loan', 'agenda', 'boarding', 'packlist', 'k_webinar', 'todo', 'realnotes'].includes(node.id);
+    const wide = node && (node.wide || ['loan', 'agenda', 'boarding', 'packlist', 'k_webinar', 'todo', 'realnotes'].includes(node.id));
     const win = FR.wm.open({
       id, title: `${name} - Notepad`, icon: 'notepad', width: wide ? 800 : 620, height: wide ? 560 : 440, className: 'np-win', menu, content: root,
       onClose: () => {
@@ -1172,7 +1249,25 @@
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'g' && !S.wrap) { e.preventDefault(); goTo(); }
       else if (e.key === 'Tab') { e.preventDefault(); ta.setRangeText('\t', ta.selectionStart, ta.selectionEnd, 'end'); S.dirty = true; }
     });
-    setWrap(true);
+    // phones: Frank's preformatted files (tables, the boarding pass) keep their layout: no wrapping, scroll sideways
+    // (Format › Word Wrap still switches it). Plain prose keeps wrapping.
+    const lines = ta.value.split('\n').filter(l => l.trim()), art = lines.filter(l => /\S {3,}\S|[|+=_\-]{4,}/.test(l)).length;
+    setWrap(!(FR.mobile && lines.length && art / lines.length >= 0.2));
+    // (F15, round 4) phones: a small piece of ASCII art (the boarding pass: 70 columns) shrinks to fit the screen with
+    // Wrap off (no mush, nothing cut off), when that still leaves it readable (≥ 8.5 px); wider files scroll as before
+    if (FR.mobile && !S.wrap) {
+      const cols = Math.max(...ta.value.split('\n').map(l => l.length));
+      const fit = () => {
+        if (!ta.isConnected) return removeEventListener('resize', fit);
+        ta.classList.remove('np-fit');
+        const cs = getComputedStyle(ta), cx = document.createElement('canvas').getContext('2d');
+        cx.font = `100px ${cs.fontFamily}`;
+        const cw = cx.measureText('M').width / 100, room = ta.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 2;
+        const px = Math.floor(Math.min(parseFloat(cs.fontSize), room / (cols * cw)) * 2) / 2;
+        if (cols && px >= 8.5 && px < parseFloat(cs.fontSize)) { ta.style.setProperty('--np-fit', px + 'px'); ta.classList.add('np-fit'); }
+      };
+      setTimeout(fit, 30); addEventListener('resize', fit);
+    }
     setTimeout(() => { ta.focus(); ta.setSelectionRange(0, 0); ta.scrollTop = 0; }, 40);
     return win;
   }
@@ -1572,6 +1667,7 @@
     if (host === 'cheatsheetclub.example') { const sub = (u.pathname.replace(/^\/kristians\/?/, '').split('/')[0] || '').toLowerCase(); return { kind: 'club', url: CLUB + (sub ? '/' + sub : ''), sub: ['sheets', 'gallery', 'webinars', 'links', 'prev', 'next'].includes(sub) ? sub : '' }; }
     if (host === 'championship.example') return { kind: 'champ', url: u.href };
     if (host === 'intranet.packacorp.local') return { kind: 'standings', url: FR.score.url };
+    if (FR.iePages && Object.prototype.hasOwnProperty.call(FR.iePages, host)) return { kind: 'extra', url: u.href, host };
     if (host === 'datarails.com' || host.endsWith('.datarails.com')) return { kind: 'blocked', url: u.href };
     return { kind: 'error', url: u.href };
   }
@@ -1645,7 +1741,14 @@
         let first = true;
         f.onload = () => {
           S.loading = false; status('Done');
-          if (!first) { /* navigated inside the site: we can't read the cross-origin URL */ win.setTitle('Packa Corporation - Internet Explorer'); }
+          // (R6 Q2) a same-origin page tells the screensaver the player is using it (another site's page can't be
+          // listened to: src/boot.js frameInUse covers that)
+          try { const d = f.contentDocument; if (d) ['mousemove', 'mousedown', 'keydown', 'touchstart', 'wheel', 'scroll'].forEach(ev => d.addEventListener(ev, () => FR.idle && FR.idle.poke(), { passive: true, capture: true })); } catch (er) {}
+          // navigated inside the site: the page's own title when the browser lets us read it (same origin), else the
+          // company name (a cross-origin page's title and URL can't be read) (R3b S17)
+          let t = '';
+          try { t = (f.contentDocument && f.contentDocument.title || '').trim(); } catch (er) {}
+          if (!first) win.setTitle(`${t || 'Packa Corporation'} - Internet Explorer`);
           first = false;
         };
         page.appendChild(f);
@@ -1658,6 +1761,10 @@
         // the players' leaderboard on Packa's intranet (src/score.js); it loads from the account server, so it can arrive after a navigation
         win.setTitle(`${FR.score.title} - Internet Explorer`); status('Done');
         FR.score.render(page, () => cur() === r);
+      } else if (r.kind === 'extra') {
+        const xp = FR.iePages[r.host];
+        page.innerHTML = xp.html(r.url); win.setTitle(`${xp.title} - Internet Explorer`); status('Done');
+        if (xp.onShow) xp.onShow(page, r.url);
       } else if (r.kind === 'blank') {
         page.innerHTML = '<div class="ie-blank"></div>'; win.setTitle('about:blank - Internet Explorer'); status('Done');
       } else {
@@ -1682,6 +1789,7 @@
           <div class="ie-fav">${ico('folderOpen', 16)}<b>Links</b></div>${LINKS.map(([t, u]) => `<a class="ie-fl" data-url="${esc(u)}">${g('ieDoc')}<span>${esc(t)}</span></a>`).join('')}
           <a class="ie-fl" data-url="https://online.prairieledgerbank.example/">${g('ieDoc')}<span>Prairie Ledger Bank</span></a>
           <div class="ie-fav">${ico('folderOpen', 16)}<b>Kristians</b></div><a class="ie-fl" data-url="${CLUB}">${ico('star', 16)}<span>Kristians' Cheat Sheet Club</span></a>
+          ${(FR.ieFavs || []).map(([folder, list]) => `<div class="ie-fav">${ico('folderOpen', 16)}<b>${esc(folder)}</b></div>${list.map(([t, u]) => `<a class="ie-fl" data-url="${esc(u)}">${g('ieDoc')}<span>${esc(t)}</span></a>`).join('')}`).join('')}
           <a class="ie-fl" data-tip="1">${g('help')}<span>Tip: View &gt; Source</span></a>`;
       } else if (S.pane === 'history') {
         body = `<div class="ie-pbtn"><button disabled>View</button><button disabled>Search</button></div>` + IEHIST.map(([day, ents]) => `<div class="ie-fav">${g('history')}<b>${esc(day)}</b></div>${ents.map(([t, u]) => `<a class="ie-fl" data-url="${esc(u)}" title="${esc(u)}">${g('ieDoc')}<span>${esc(t)}</span></a>`).join('')}`).join('');
@@ -1696,7 +1804,40 @@
     const tipSource = () => {
       const r = cur(); const u = r && r.kind === 'site' ? r.url : SITE + '/';
       window.open(u, '_blank', 'noopener');
+      if (FR.mobile) return FR.dialog({ title: 'View Source', icon: 'info', message: "Frank's IE can't show source. Opening the page in your phone's browser.<br><br>On Android (Chrome), put <b>view-source:</b> in front of the address. On an iPhone there's no View Source: a laptop is easiest (Ctrl+U)." });
       FR.dialog({ title: 'View Source', icon: 'info', width: 420, message: "Frank's IE can't show source. Opening the page in your real browser.<br><br>When it opens, press <b>Ctrl+U</b> (or <b>&#8984;+Option+U</b> on a Mac) to view the page source." });
+    };
+    // (F12, round 4) Edit › Find (on This Page): Frank's own pages (the intranet leaderboard, the fan club, the
+    // championship…) are searched here: every hit is marked, the first one (then the next, on "Find Next") scrolled into
+    // view. packacorp.com is the live company site in a frame the game can't read; the browser's own Find can.
+    const findOnPage = async () => {
+      const r = cur();
+      if (r && r.kind === 'site') {
+        let doc = null; try { doc = page.querySelector('iframe').contentDocument; } catch (er) {}
+        if (!doc) return FR.dialog({ title: 'Find', icon: 'info', width: 420, message: `This page is on <b>www.packacorp.com</b>, the company's live website. Frank's Internet Explorer can't search inside it, but your own browser can:<br><br>${FR.mobile ? "the browser's menu › <b>Find in page</b> (Chrome), or <b>Share › Find on Page</b> (Safari)." : 'press <b>Ctrl+F</b> (<b>&#8984;+F</b> on a Mac).'}` });
+      }
+      const res = await FR.dialog({ title: 'Find', icon: 'question', message: 'Find what:', input: { label: '', type: 'text', value: S.lastFind || '' }, buttons: ['Find Next', 'Cancel'] });
+      if (res.button !== 'Find Next' || !res.value || !res.value.trim()) return;
+      const q = res.value.trim(); S.lastFind = q;
+      let root_ = page, doc = document;
+      if (r && r.kind === 'site') { try { doc = page.querySelector('iframe').contentDocument; root_ = doc.body; } catch (er) { return; } }
+      root_.querySelectorAll('mark.ie-hit').forEach(m => m.replaceWith(doc.createTextNode(m.textContent)));
+      root_.normalize();
+      const hits = [], ql = q.toLowerCase(), tw = doc.createTreeWalker(root_, NodeFilter.SHOW_TEXT);
+      const nodes = []; for (let n = tw.nextNode(); n; n = tw.nextNode()) if (n.parentElement && !n.parentElement.closest('script, style') && n.nodeValue.toLowerCase().includes(ql)) nodes.push(n);
+      nodes.forEach(n => {
+        let t = n;
+        for (let i = t.nodeValue.toLowerCase().indexOf(ql); i >= 0; i = t.nodeValue.toLowerCase().indexOf(ql)) {
+          const hit = t.splitText(i); t = hit.splitText(q.length);
+          const m = doc.createElement('mark'); m.className = 'ie-hit'; m.style.cssText = 'background:#ffef5a;color:inherit;outline:1px solid #c9a800';
+          hit.replaceWith(m); m.appendChild(hit); hits.push(m);
+        }
+      });
+      if (!hits.length) return FR.dialog({ title: 'Microsoft Internet Explorer', icon: 'info', message: `Finished searching the page. "${esc(q)}" was not found.` });
+      S.hitN = S.lastHitQ === q ? (S.hitN + 1) % hits.length : 0; S.lastHitQ = q;
+      hits[S.hitN].style.background = '#ff9632';
+      hits[S.hitN].scrollIntoView({ block: 'center' });
+      status(`Found ${hits.length} match${hits.length === 1 ? '' : 'es'} for "${q}"${hits.length > 1 ? ` (${S.hitN + 1} of ${hits.length}; Find again for the next)` : ''}`);
     };
     const openReal = () => { const r = cur(); window.open(r && r.kind === 'site' ? r.url : (r ? r.url : SITE + '/'), '_blank', 'noopener'); };
     const menu = [
@@ -1709,7 +1850,7 @@
         { label: 'Properties', action: () => { const r = cur(); FR.dialog({ title: 'Properties', icon: 'info', width: 420, message: `<b>${esc(r ? (PTITLE[r.path] || r.url) : '')}</b><br><br>Protocol: HyperText Transfer Protocol${r && r.url.startsWith('https') ? ' with Privacy' : ''}<br>Type: HTML Document<br>Connection: Not Encrypted (it's 2003 in here)<br>Address (URL): ${esc(r ? r.url : '')}<br>Zone: Internet` }); } },
         { label: 'Close', action: () => win.close() },
       ] },
-      { label: 'Edit', items: [{ label: 'Cut', disabled: true }, { label: 'Copy', disabled: true }, { label: 'Paste', disabled: true }, { sep: true }, { label: 'Select All', disabled: true }, { sep: true }, { label: 'Find (on This Page)...', disabled: true }] },
+      { label: 'Edit', items: [{ label: 'Cut', disabled: true }, { label: 'Copy', disabled: true }, { label: 'Paste', disabled: true }, { sep: true }, { label: 'Select All', disabled: true }, { sep: true }, { label: 'Find (on This Page)...', key: 'Ctrl+F', action: () => findOnPage() }] },
       { label: 'View', items: () => [
         { label: 'Toolbars', disabled: true }, { label: 'Status Bar', checked: true, disabled: true },
         { label: 'Explorer Bar: Favorites', checked: S.pane === 'favorites', action: () => { S.pane = S.pane === 'favorites' ? null : 'favorites'; renderPane(); } },
@@ -1747,6 +1888,7 @@
       else if (a === 'print') printDlg();
     });
     addr.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); go(addr.value); } });
+    root.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f' && e.target !== addr) { e.preventDefault(); findOnPage(); } });
     addr.addEventListener('focus', () => addr.select());
     root.querySelector('.ie-addr .ex-go').onclick = () => go(addr.value);
     root.querySelector('.ie-addr .ex-addr-dd').addEventListener('mousedown', e => {
@@ -1803,6 +1945,7 @@
     const show = () => {
       if (C.err) { d.value = C.err; } else { const s = C.disp; d.value = grp(s) + (s.includes('.') || /e/.test(s) ? '' : '.'); }
       mi.textContent = C.mem ? 'M' : '';
+      FR.bus.emit('calc-display', d.value);
     };
     const val = () => parseFloat(C.disp) || 0;
     const set = n => { const s = fmt(n); if (s === null) { C.err = 'Cannot divide by zero.'; C.acc = null; C.op = null; } else C.disp = s; };

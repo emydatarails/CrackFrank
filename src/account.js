@@ -17,9 +17,12 @@
 
   function api(path, method = 'GET', body, keepalive) {
     const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 8000);
+    const json = body ? JSON.stringify(body) : undefined;
+    // browsers refuse keepalive bodies over 64 KB (a save with Paint pictures in it): send those as a normal request
+    keepalive = !!keepalive && (!json || json.length < 60000);
     return fetch('/api/' + path, {
-      method, credentials: 'same-origin', cache: 'no-store', keepalive: !!keepalive, signal: keepalive ? undefined : ctl.signal,
-      headers: body ? { 'Content-Type': 'application/json' } : undefined, body: body ? JSON.stringify(body) : undefined,
+      method, credentials: 'same-origin', cache: 'no-store', keepalive, signal: keepalive ? undefined : ctl.signal,
+      headers: body ? { 'Content-Type': 'application/json' } : undefined, body: json,
     }).then(async r => { clearTimeout(t); let data = {}; try { data = await r.json(); } catch (e) {} return { ok: r.ok, status: r.status, data }; },
       e => { clearTimeout(t); throw e; });
   }
@@ -45,7 +48,7 @@
     if (!A.user || blocked || !dirty()) return Promise.resolve();
     if (busy) { if (!keepalive) schedule(); return busy; }
     const s = sig(), play = FR.state.playMs || 0;
-    busy = api('save', 'PUT', { state: FR.state, rev: A.rev }, keepalive).then(r => {
+    busy = api('save', 'PUT', { state: FR.state, rev: A.rev, ver: FR.version && FR.version.full }, keepalive).then(r => {
       if (r.ok) { A.rev = r.data.rev; lastSig = s; lastPlay = play; backoff = 0; mark(); }
       else if (r.status === 409) conflict();
       else if (r.status === 401) expired();
@@ -96,13 +99,16 @@
     if (!ONLINE) return Promise.resolve();
     return api('me').then(r => {
       if (r.ok && r.data.user) { A.available = true; adopt(r.data); return; }
-      if (r.status === 401) { A.available = true; return store.get(GUEST) ? null : A.screen('new'); }
+      // signed out: {user: null} (older servers answered 401)
+      if ((r.ok && r.data && 'user' in r.data) || r.status === 401) { A.available = true; return store.get(GUEST) ? null : A.screen('new'); }
       // 404 (static host) / 503 (storage not set up) / anything else: browser-only saves, as before
     }, () => {});
   };
 
   // send any unsaved progress now (the leaderboard page calls this before loading)
-  A.sync = () => flush(false);
+  // (a save already on its way may not have the latest change in it: wait for it, then send what's left)
+  const syncAll = (n = 0) => busy && n < 3 ? Promise.resolve(busy).then(() => syncAll(n + 1), () => syncAll(n + 1)) : flush(false);
+  A.sync = () => syncAll();
 
   A.signOut = () => Promise.resolve(flush(false))
     .then(() => api('logout', 'POST', {}).catch(() => {}))

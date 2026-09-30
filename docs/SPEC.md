@@ -155,3 +155,11 @@ New Frank-flavour nodes (fs.js): desktop folder 'fanclub' "Kristians Fan Club" (
 - v5: Board copy password is now 4406 = SUM(2400, 2006); hint written as a SUM(); decoy hints use SUM()/CONCAT() too.
 
 # v6 — deep QA pass (Sep 28). See qa/FIXPLAN.md for canon decisions (three FINAL files; payroll all-in hourly + salaried monthly; DSCR = test-date balance × rate + next-12-month principal; die-cutter paid 09/25; TLA monthly P&I 183; #212 canon; .example domains; Kristians photos are generated, funny; hints are "Datarails FinanceOS · Emily's trial" cards; Board pw 4406; freight must be negative).
+
+# v7 — extras (Sep 29). Blue Screen after 4 wrong answers in a row (not the log-on riddle; cosmetic, 5 s, input blocked);
+Norton AntiVirus 2003 popup ~3 min into play, then every 8–15 min of active play (never over dialogs, typing, the Blue
+Screen, screensaver or ending; status window with "Scan Frank's inbox"); 15 Easter eggs (FR.state.eggs, "Easter egg found
+(n/15)"; v8 (round 5): +10 each as found, 150 for all, points in src/score_rules.js PER_EGG/EGGS); 9 optional bonus requests by e-mail from people who don't know Frank is missing (answer box in the
+message or a reply; wrong answers cost nothing; +100…+250 each on top of the score, counted for the leaderboard; points in
+src/score_rules.js BONUS); Paint and Solitaire on the desktop and in the Start menu (Solitaire is no longer "uninstalled").
+Details and spoilers: README ("Extras", "Easter eggs"); canon: docs/CANON_DECISIONS.md.

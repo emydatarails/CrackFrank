@@ -18,12 +18,19 @@
 .st-t td { padding: 5px 8px; border: 1px solid #d6cfbf; vertical-align: middle; }
 .st-t tbody tr:nth-child(even) td { background: #faf8f3; }
 .st-rules { margin: 14px 0; padding: 8px 10px; background: #fff; border: 1px solid #d6cfbf; border-left: 4px solid #a33a1e; }
+.st-rules.st-howto { margin: 0 0 12px; line-height: 1.45; }
+.st-howto ul { margin: 4px 0 4px; padding-left: 18px; }
+.st-howto li { margin: 1px 0; }
+.st-howto span { color: #555; font-size: 11px; }
 .st-foot { color: #777; font-size: 10px; }
 .st-mine { background: #fff6d6; border: 1px solid #e3cf6a; padding: 6px 10px; margin: 0 0 12px; font-size: 12px; }
 .st-t td, .st-t th { white-space: nowrap; }
 .st-t td.st-name { white-space: normal; word-break: break-word; font-weight: bold; color: #17263f; }
 .st-t td.st-score { font: bold 13px Verdana, sans-serif; text-align: right; }
 .st-t th:nth-child(3) { text-align: right; }
+.st-t td.st-bonus { text-align: right; color: #1d6b3a; font-weight: bold; }
+.st-pbonus { display: none; }   /* phones only (src/mobile.css), where the Bonus column is hidden */
+.st-t th:nth-child(4) { text-align: right; }
 .st-rank span { display: inline-block; min-width: 20px; text-align: center; font-weight: bold; color: #555; }
 .st-m1 span, .st-m2 span, .st-m3 span { border-radius: 50%; width: 22px; height: 22px; line-height: 22px; color: #fff; text-shadow: 0 1px 1px rgba(0,0,0,.4); }
 .st-m1 span { background: radial-gradient(circle at 35% 30%, #ffe680, #d4a017); }
@@ -36,13 +43,19 @@
 .st-msg small { color: #777; }
 .st-note { margin: 8px 0 0; color: #555; font-size: 11px; }
 .st-count { margin: 6px 0 0; color: #666; font-size: 11px; }
-@media (max-width: 560px) { .st-t th:nth-child(5), .st-t td:nth-child(5), .st-t th:nth-child(7), .st-t td:nth-child(7) { display: none; } }
+@media (max-width: 560px) { .st-t th:nth-child(6), .st-t td:nth-child(6), .st-t th:nth-child(8), .st-t td:nth-child(8) { display: none; } }
 /* score on the checklist footer and the ending screen */
 .ck-foot a.ck-score { color: #0b3fa8; font-weight: 700; }
 .fr-end-stats .fr-end-score { border-color: #ffcf5a; }
 .fr-end-stats .fr-end-score b { color: #ffcf5a; }
+.fr-end-stats .fr-end-bonus b { color: #8fe3a6; }
+/* five boxes (with Bonus) in one row on a monitor */
+.fr-end-stats { gap: 10px; }
+.fr-end-stats div { min-width: 96px; padding: 12px 12px; }
+.ck-foot .ck-bonus { font-weight: 400; color: #1d6b3a; }
 .fr-end-card p.fr-end-rank { font-size: 14px; color: #fff; min-height: 1em; margin: -6px auto 8px; }
 .fr-end-card p.fr-end-rank:empty { display: none; }
+.fr-end-card p.fr-end-calc { font-size: 12px; color: #c9d3e6; margin: -4px auto 10px; }
 /* desktop shortcut to the leaderboard: the little Windows shortcut arrow */
 .fr-dicon-lnk .fr-ico { position: relative; }
 .fr-dicon-lnk .fr-ico::after { content: ''; position: absolute; left: 0; bottom: 0; width: 11px; height: 11px; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11 11'%3E%3Cpath d='M2.5 8.5C3 5.5 4.5 4 7.5 4V2l2.5 2.8-2.5 2.7V5.6C5.5 5.6 4 6.4 2.5 8.5z' fill='%230b3fa8'/%3E%3C/svg%3E") center / 11px no-repeat; border: 1px solid #7a7a7a; box-sizing: border-box; }

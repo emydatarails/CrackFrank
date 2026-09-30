@@ -1,6 +1,6 @@
 """Full honest v3 playthrough via the UI (checklist chips, pickers, Excel typing).
 Usage: python3 test/play.py [W H] [stopAfterItemId]
-packacorp.com is routed to the local *.html pages in the repo root (the website_patch versions)."""
+packacorp.com is routed to the local copies in test/site/ (pages, css and images: test/site_route.py)."""
 import sys, os, re
 from playwright.sync_api import sync_playwright
 
@@ -12,16 +12,8 @@ OUT = os.environ.get('OUT', os.path.join(ROOT, 'test', 'out'))
 os.makedirs(OUT, exist_ok=True)
 URL = 'file://' + ROOT + '/dist/index.html'
 logs, n = [], [0]
-PAGES = {'/': 'home.html', '/index.html': 'home.html'}
-
-
-def site(route):
-    path = re.sub(r'^https?://[^/]+', '', route.request.url).split('?')[0].split('#')[0] or '/'
-    f = os.path.join(ROOT, 'test', 'site', PAGES.get(path, path.lstrip('/')))
-    if os.path.isfile(f) and f.endswith('.html'):
-        route.fulfill(status=200, content_type='text/html', body=open(f, encoding='utf-8').read())
-    else:
-        route.fulfill(status=404, content_type='text/html', body='<h1>404</h1>')
+sys.path.insert(0, os.path.join(ROOT, 'test'))
+from site_route import site  # packacorp.com: the local copies in test/site/ with their css + images (round 5, P1)
 
 
 def shot(pg, name):
@@ -105,7 +97,7 @@ with sync_playwright() as p:
     ctx = b.new_context(viewport={'width': W, 'height': H})
     ctx.route(re.compile(r'https?://(www\.)?packacorp\.com/.*'), site)
     pg = ctx.new_page()
-    pg.on('console', lambda m: logs.append(m.type + ': ' + m.text) if m.type in ('error', 'warning') and '404' not in m.text else None)
+    pg.on('console', lambda m: logs.append(m.type + ': ' + m.text) if m.type in ('error', 'warning') else None)
     pg.on('pageerror', lambda e: logs.append('PAGEERROR ' + str(e)))
     pg.goto(URL); pg.wait_for_timeout(500); shot(pg, 'intro')
 

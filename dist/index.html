@@ -1422,6 +1422,76 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
 .bn-shake { animation: bnShake .3s; }
 @keyframes bnShake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
 
+/* AL PACKA — the alpaca hair salon website in Frank's Internet Explorer (src/apps/xp_salon.js). A small-town
+   business site from about 2003: pastel pinks, a teal nav bar, Georgia headings, a hit counter. */
+.sa { min-height: 100%; background: #fff5f8 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='12' cy='12' r='2' fill='%23f7d6e2'/%3E%3C/svg%3E"); color: #3b2a33; font: 13px/1.5 Verdana, Tahoma, sans-serif; }
+.sa-top { background: #6b2046; color: #ffe6f0; font: bold 11px Verdana, sans-serif; padding: 3px 0; letter-spacing: .5px; }
+.sa-head { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; padding: 14px 20px 10px; background: linear-gradient(#ffd9e8, #ffeef5); border-bottom: 3px double #d98cad; }
+.sa-logo { font: bold 44px/1 Georgia, "Times New Roman", serif; color: #6b2046; text-shadow: 2px 2px 0 #fff, 3px 3px 0 #e8a5c1; white-space: nowrap; }
+.sa-al { color: #1f7f80; margin-right: 8px; font-style: italic; }
+.sa-tag { font: italic 16px Georgia, serif; color: #6b2046; }
+.sa-tag small { font: 11px Verdana, sans-serif; color: #8a5a70; font-style: normal; }
+.sa-nav { display: flex; flex-wrap: wrap; background: #1f7f80; border-bottom: 2px solid #135556; }
+.sa-nav a { color: #fff; padding: 7px 16px; font: bold 12px Verdana, sans-serif; cursor: pointer; border-right: 1px solid #2f9899; }
+.sa-nav a:hover, .sa-nav a.sa-cur { background: #ffd9e8; color: #6b2046; }
+.sa-body { max-width: 900px; margin: 0 auto; padding: 16px 20px 8px; }
+.sa h1, .sa h2, .sa h3 { font-family: Georgia, "Times New Roman", serif; color: #6b2046; }
+.sa h2 { font-size: 20px; border-bottom: 1px dotted #d98cad; margin: 22px 0 8px; }
+.sa h3 { font-size: 16px; margin: 0 0 4px; }
+.sa a[data-url] { cursor: pointer; }
+.sa-body a[data-url] { color: #1f7f80; font-weight: bold; text-decoration: underline; }
+.sa-h1 { font-size: 28px; margin: 4px 0 6px; }
+.sa-lead { font-size: 14px; color: #5a4050; }
+.sa-img { display: block; width: 100%; height: auto; border: 4px solid #fff; box-shadow: 0 2px 6px #6b204633; background: #f3e1e9; }
+.sa-noimg { aspect-ratio: 4 / 3; display: flex; align-items: center; justify-content: center; text-align: center; color: #b08097; font: italic 12px Georgia, serif; padding: 10px; box-sizing: border-box; }
+.sa-hero { position: relative; }
+.sa-hero-i { border-width: 6px; }
+.sa-hero-i.sa-noimg { aspect-ratio: 16 / 9; }
+.sa-hero-t { position: absolute; left: 22px; bottom: 22px; max-width: 60%; background: #fff5f8e6; border: 2px solid #d98cad; padding: 10px 16px; }
+.sa-hero-t h1 { margin: 0; font-size: 30px; line-height: 1.1; }
+.sa-hero-t p { margin: 4px 0 8px; font: italic 15px Georgia, serif; }
+.sa-star { font-size: 10px; color: #8a5a70; margin: 6px 0 12px; }
+.sa .sa-btn { display: inline-block; background: #6b2046; color: #fff; border: 2px outset #b9567f; padding: 5px 14px; font: bold 12px Verdana, sans-serif; text-decoration: none; cursor: pointer; }
+.sa .sa-btn:hover { background: #8a2b5b; }
+.sa-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.sa-box { background: #fff; border: 1px solid #e8a5c1; padding: 10px 12px; }
+.sa-box p { margin: 4px 0 6px; }
+.sa-quote { margin: 18px 0; text-align: center; font: italic bold 28px Georgia, serif; color: #1f7f80; }
+.sa-quote span { display: block; font: italic 12px Verdana, sans-serif; color: #8a5a70; }
+.sa-news li { margin-bottom: 6px; }
+.sa-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+.sa-card { background: #fff; border: 1px solid #e8a5c1; display: flex; flex-direction: column; }
+.sa-card .sa-img { border-width: 0 0 1px; box-shadow: none; }
+.sa-card-t { padding: 8px 12px 10px; }
+.sa-card h3 { display: flex; justify-content: space-between; gap: 8px; }
+.sa-card h3 span { color: #1f7f80; font-family: Verdana, sans-serif; font-size: 15px; }
+.sa-card p { margin: 4px 0; }
+.sa-note { font-size: 11px; font-style: italic; color: #8a5a70; }
+.sa-t { border-collapse: collapse; width: 100%; max-width: 560px; background: #fff; }
+.sa-t td { border-bottom: 1px dotted #e8a5c1; padding: 5px 8px; }
+.sa-t td:last-child { text-align: right; font-weight: bold; color: #1f7f80; white-space: nowrap; }
+.sa-fine { font-size: 11px; color: #8a5a70; }
+.sa-story { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 18px; align-items: start; background: #fff; border: 1px solid #e8a5c1; padding: 12px; margin: 14px 0; }
+.sa-story.sa-rev > .sa-img { order: 2; }
+.sa-story p { margin: 0 0 8px; }
+.sa blockquote { margin: 8px 0 0; padding: 8px 12px; background: #fff0f6; border-left: 4px solid #1f7f80; font: italic 14px Georgia, serif; }
+.sa cite { display: block; margin-top: 4px; font: normal 11px Verdana, sans-serif; color: #8a5a70; }
+.sa-gb { background: #fff; border: 2px inset #e8c0d2; }
+.sa-gbe { padding: 6px 10px; border-bottom: 1px dotted #e8a5c1; }
+.sa-gbe p { margin: 2px 0 0; }
+.sa-stars { color: #d6a000; letter-spacing: 1px; }
+.sa-form { background: #fff; border: 1px solid #e8a5c1; padding: 12px 16px; max-width: 460px; display: flex; flex-direction: column; gap: 8px; }
+.sa-form > label { display: flex; flex-direction: column; font-weight: bold; font-size: 12px; }
+.sa-form input[type=text], .sa-form select { font: 13px Verdana, sans-serif; padding: 3px; margin-top: 2px; }
+.sa-form fieldset { border: 1px solid #e8a5c1; }
+.sa-form fieldset label { display: block; font-size: 12px; }
+.sa-form .sa-chk { flex-direction: row; gap: 6px; align-items: center; font-weight: normal; }
+.sa-rules li { margin-bottom: 4px; }
+.sa-foot { margin-top: 20px; background: #6b2046; color: #ffe6f0; padding: 10px 20px; font-size: 11px; text-align: center; }
+.sa-foot p { margin: 3px 0; }
+.sa-foot .sa-fine { color: #f3b9d0; font-style: italic; }
+.sa-count span { background: #000; color: #3f3; font: bold 11px "Courier New", monospace; padding: 0 4px; letter-spacing: 1px; }
+
 /* ===== FRANK'S COMPUTER — phones and small tablets =====
    Everything in this file is inside the mobile media query (the same one core.js uses for FR.mobile, which also puts
    .fr-m on <html>). A desktop (fine pointer, 1100px+ wide) never matches, so none of this reaches it.
@@ -2213,6 +2283,17 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
 @media (max-width: 760px), (pointer: coarse) and (max-width: 1100px) {
   /* (T2) the fill handle (a 5 px corner; phones use Fill…) caught the second tap of a double-tap on the cell */
   html.fr-m .xl-selbox .xl-fillh { pointer-events: none; }
+}
+@media (max-width: 760px), (pointer: coarse) and (max-width: 1100px) {
+  /* AL PACKA, the alpaca salon website in IE (src/apps/xp_salon.css): stack the stories and the hero caption, keep taps big */
+  html.fr-m .sa-story { grid-template-columns: 1fr; }
+  html.fr-m .sa-story.sa-rev > .sa-img { order: 0; }
+  html.fr-m .sa-hero-t { position: static; max-width: none; margin-top: 8px; }
+  html.fr-m .sa-hero-t h1 { font-size: 24px; }
+  html.fr-m .sa-logo { font-size: 34px; }
+  html.fr-m .sa-body { padding: 12px 12px 6px; }
+  html.fr-m .sa-nav a { padding: 12px 12px; }
+  html.fr-m .sa-form input[type=text], html.fr-m .sa-form select { font-size: 16px; min-height: 36px; }
 }
 
 </style>
@@ -3264,6 +3345,8 @@ FR.apps = FR.apps || {};
   FR.data.images.mewc_dupree = 'data:image/png;base64,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';
   FR.data.images.mewc_micot = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAYAAABccqhmAAASaklEQVR42u2dfYxU5RXGZxYQoSiC7OqSdVfdoiGLFBWVLVKFqPGrfjdq/bYmNn611pQEP1ITKjY0xqpoQlJRq22xKgpR2rS6qIiL1uqKbPxYRwQJK4uuLqKIwE7/aFJznpH3+HrvDDs7v99/h5m59869s4f3ed7znjebz+czAFCZVHELAEgAAEACAAASAACQAACABAAAJAAAIAEAAAkAAEgAAEACAIByZCC3oLwZvMs+ZbWYY8tXH2R5aowAAIAEAAAkAADAA0DDxzPtgKHB1+tqhpT0+6zt2mzij7aPjPq+I4fvbuLODe14BowAAIAEAAAkAABIhyw9AYtLbXVT1A2esNe2qOOXWuOn7REo6hms/Whj8P14BIwAAIAEAAAkAADAAygXzX/yQYO4aQGefGNr1PvxBBgBAAAJAABIAACAB1Asjd/dY+eptTa/3Obpyw2tK2h554vg++lHwAgAAEgAAEACAMADgB1x2Nhmc4O0Nl1r9z3NXzWs1sS9mzq5yUVE6wjqRtl+A/9+s7WiPQFGAAAkAAAgAQBARUFPQIcVubUmjp3nV83f3GDXuy9r70zVMxhTXW/ijg1rUj1+UmKvz3u/vl5Ts5scoV08gY38qBkBAAAJAIAEAAB4AJDJZAr71o9vrBPNb2vPJzc1mbh1dXdQ8+vrqmEV1bStq+3rjUMGBd+f2xz2ILq6PrPvz9QGj+9p8NzmrVHX17EhbQ/Bvq4eR92oT4PPu9LWCjACAEACAAAJAADwAOBrJtSG+9irplfN671eOG+dCWp0naevaWgKfl41v6Ka3fMIvHn3jvb24PXp/VB0ff+Y6kyUh+B5EL3yPFfkGAEAAAkAAEgAAFAxVHw/AJ0H3tk9/bSuYJlo6oIMLvPcsXh1Cp5n4V1fbO2/9/3UA1HPIPZ56efb1ltbrL/vM8AIAAAJAAAkAACoKKgD2MmoRtZ5d4+k6/d1bYEer2OTfqI+6viq+VVzK6rhve/30Xapc+iyHkb9/vuner8YAQAACQAASAAAgAdQvowcvrv8y7aSnj92XjxtYjVx7PV6mj8puk/DqL2SfT9GAABAAgAAEgAA4AH0H2Jr/71a86S16LEaOmmte7E/79XWd/dYza4eTF1NrKcwMNXr170e+3vPQEYAAEgAACABAAAeQCXjzVvHzmvHvr/lnS+CGjmTifMkiu05eOe79ZwJJr776fes5q6Nu9/qKQAjAAAgAQAACQAAvjUV1xPQqwMoNqph60ZZjX/ImD1MvKjV1t7rPLV3fO/9aV//lcfsH9T8owZ0Rx1f6wYuPn6cibWn4eVzn8+k+XzVk6EOAABIAABAAgCAMoZJ1Z2s+edcOtXENz/wmGj48PEUT/Orph3fWGdiXV+veNf/5hrbZHBFbq2JC+sawtd/8/QL7OuHH2jiVR/b948XzyGT6eZHyAgAAEgAAEACAAA8gJIQq5m9eXCPlp6461ONfuGRe5pY9yocW98QdfyZpx8cfF33Gpw0dZqJx4zeNfj5/ezlFtQhzJi/MegxMAIAABIAAJAAAAAPANLCq31XTf3E9Iader06zz5gl0Emzmbt2pF83pbGH5oZF3U+PV4sen2FHkUbP0JGAABAAgAAEgAA4AH8TyGmvH5ej6c98ZJqck8DJ6VQk+dT1fDqGWic/Hot105rNPGS9rejnh8jAAAgAQAACQAA8ABgR5pRa/dja+d1bcC8pa+Z+P5/rEz1+rUfgK5V8DwIRdfn337/o6lev/YTeGL6qUV9vl7/AkYAAEACAAASAADgAZQPqtnbMlbzxdYF6Hr6WM0/Y36bibWfgLe+3iO3eauJezd1Bq8nKXp87evfOCRZHcNpsxeaOGndhf4e8AAAgAQAACQAAMADKF9U06nGVtrWx/WUG1NdH3U9Xj8A1eRdXZ+Z+KbHX0t0P5J6Coper96P21tyQc2teHUKR00M9x/o6lopz3NglObv3NCe7c9/D4wAAJAAAEACAAA8gP6Mar4PFt1g4u1f2Xnya26bb+JFrWtKer13y153h4zZI/h+nWd/teNTE2vffD3+lcfYPv1ej0C9X+oBaN2Bei6eB6PfV/dOvPmiMxM9/2kHDBWPgBEAAJAAAIAEAAB4AP2Vdzs3W43/sK0tb24YWVQPQDV228tvBzX7idffZjX+tNODx/c+P7b+zuD1DBxsfyJ5acHn9SS89uKzgvf3kRUbgpp/5tz7TLx41nWp3v+pTXL/1+cYAQAACQAASAAAgAfQT+nJWc2n+9Vr7b3OW6/IrY063/DGxqCGnjilycYZG+ffbzGx1sZ7rHooTvMr3t6Ayn572uOdcrbt4XfUxLDm7m59ysQXnHdi8Pxal/DcKyv5K2cEAAAkAAAgAQAAHsA3amBF15NPqN0sHkDc+VQTx+6tp+9Xz6DU6PWce9ZxJta6hoLrHR13/ar59fzqYaink3b/A0YAAEACAAASAADgAZQPf330nyb29vK77AQ7Dz2memVQc+q8vzfP3tfx5v29tQEd676092/0rok8h9jrU3QtAiMAACABAAAJAADwAPoP2vd9WXu7iXUe29srz+tLr2sNYue9i41qckXrFpLi3Q9vnj+pR6AezYqc3Vdhy1cfZCvp74ERAAASAABIAACAB9Cf0b3eaqubjGi8TGrX1RNQtNa9r7Fty7ZEGv2qOYtNvLbLroXw+vL/8e/281pH4V1fuddNMAIAABIAAJAAAAAPoO+ge8XNW2rnhe90+gUk3auu2Jp/1cc21nl91fxa9zC5SeoWJNT3aw/Fgs87uP0DHGLXAjACAAASAACQAAAAD6By0NrvwbvsY+oCejfdbjPmsNqder1eH3ztb6Asl1jXQsQyprrexB0b1kgcPt9kx0PQfgqx/QP0eJW+/p8RAACQAACABACABwA79gR0rUAmYzVud88XJp4qe9F5/QIUncfXWnjV/Hfc81hQg2vtfl3NkFQ1/y+uODPoQXgew8NLXgmf8OGFJtS9Bb9fG/d9dC/HSlv/zwgAAEgAAEACAMADgB2j/QMUrRtIqvG1Fv7QI8Megmp+1eh/esGubZjZZNc2aI88D903Qa/X21dBmfFGm9X4zeG6goKegrX2/rzbaT0PnffXnpCMAACABAAAJAAAqCCy+Xyeu5Ai6gk8f8sF5vUJ0l8gtuedrgX4zwsrg8dXvLUCpWbS1Gkm1nl97/vpXoT6/h/d8KCJK33enxEAAJAAAIAEAFDRUAdQYrx5fm9vO309tmfeBeeF+/J7PQRT/wEWeCBx32/bFrs24jlZiwGMAACABAAAJAAAwAMoFVfNW2LiK4/Z377hBRsmrRNIrsGtB6Cehe4D4KHz/LE9/RStg9Dr09p/5v0ZAQAACQAASAAAgAdQKibU2vXpdz/9nonnXBpeXx9bJ5CUglp8WX4fu4/A+T89SVV8Is2v6/113l97/gEjAAAgAQAACQAAvpaU9ANIF68fwLyltkffqx2fiicwNewpOOvh0/YIvP4DWheQ9rx/x7ovTbx8SYuJL5/7vImZ92cEAAAkAAAgAQDADqEOoMRcOuVgE/duWmxiXTvwk/HVic7n7Sugml7X33v9ByZmmqI0vKL9Bry1BzPmt6H5GQEAAAkAAEgAAPDdoA4gZbw6gFjUE9Ba95mnW0/hqInjghraq+Wf3GQ1vc7rq2bXHoLKbXPuijqfwjw/IwAAIAEAAAkAAPAAytUD0Fp+1dA9uVxQw3d1fWbimx63awvGN9YFr2/UgG4T19UMCf8PMazWxI1DBgXfn9ts+/T3buoMvv/JN7YGX+/u2YgHwAgAAEgAAEACAAA8gJ1CbXVTPqRRVYM/eMtlJtaee1prr7Xz6gl4aL+BRa1rgpp65PDdTTxhr22p3q+29QMzMfdL903QOgC93s4N7XgCjAAAgAQAACQAAPh20A9A0Hl85eLjxwU1trd+3+vZpz30OjKNUZ6A9htobhhpYq+OoKWnuPdX759er4d6CPq88AgYAQAACQAASAAAsGNJ2t/rALx5e9WM+rpq1plz7zPxyaf+0sSvty0zsa4F0J56HtqXf/tXtnZee+iVG8Mbrceh/QZ2P/bGKA/htNkLMzHPu9I9AkYAACQAACABAEBFUXZ1AIeNbTaafu1HG4OaT1ENqNQfOMXEr33Ya4/f+pSJn1z4h6AnoJr0CTmf5wlo3cDAwQODn9+2ZVuf9ghU82vdg16/0rJqhIlnzr3GxPs88p79wKo3gser9DoCRgAASAAAIAEAQEXR5+sAvNp81WzD9v5B8HiDBn9P/qXXyYn29enNdr3+RXf9OXi+Iw4/x8QfiCZ9YvqpURo5Fq0jUHRvwLTRvQnV0/DqHO645zETP7pqqIlfenm+iX9+yglBz8Bj04evm9jzlMq9RyEjAAAkAACQAACgoih5HUBsbX5yjR9L2BOYvdz29Bv7++tNfPivZ5lY6wRuuvwSE2udQN0o+31b510dvFqvv4D3euzahO/gQvSpH/ygweF9EPT3NWzvsEegv2ePvlZXwAgAAAkAACQAAKgoUq8D8ObtFa29L9RsOg8+IEqzx2v+2DtoJd30SZtN7NUJPHD1eSa+5dl8UHNeO83WCRw1cVyJNX1CR8CpS3joL3atxYz5bSZ+fcUzwc8ffcqNzgVkI59/7O9pu4k+Wf2SiftaXQEjAAAkAACQAAAADyCEN48fq/n92vxi57y0NaA93pTR60ysPQVravcycVfnehNPPu5XwbONGGLPd/DetrG/7gtw7lnHBY+n/QbS1vxa63/NbbaW/7UPhwe/j94/7c9wxqwXI59fcZ+/snWL9Yi8tQfF9gQYAQAgAQCABAAAeAAhvB5qIxqOMLE3D1p8T0C/X1JJVZXq9S24/ocmHtl8komra/cOfl7rCHStwifvtwY/v89+B5n4iiNsncXY+oZE32/eUrv3oO6lOGLfZhN7dRRvL7hXNP8y5/l6z0t/HwMin68ef3vk7y0f/HvxSLq2gBEAABIAAEgAAIAHkETzF2oee/ytW2xPPZ0H1fXY3vrt/vdE7P1bMMNq5APP+JncbXt/tY5A58mVH//mmZJ+vYcu3NfE+51v+/qr51Gg+W8VTyN6LUvanlC6fLJ6efDvYc3bS02ctE6AEQAAEgAASAAAgAcQ8gAK5+2TaXSvNnpEw6Q+fQN1eXk2n+zzhQ8oziNQYusKis2Gzg9NrB7F7fc/auKl6+qcI5a2lj/t/2O3bvnc+f3H1dXEegKMAACQAABAAgCAyvYAvD7ne+w7KZHmLb4nkHT9d7oav9SeQuETDvcsLDWtq7tF44+OfJ6xGj1tD6BKnldv5POqCnoASmFPTEtuxb/wAAAACQAAJAAA+LYUNIDTecXG8ceKSC3uBXmaRz2CwjqEpPsExGrwdGvLs/l0PQw1FWa3Dk2oqZNq9NGRx+/tY38ysZpfsf0CvLUw3/ALMZGuzdG6Hc8TYAQAgAQAABIAAFSWB+Ct9y/9eulsUBN5tdKF19tb0uuNz7G9TlzVt3K21BUk94RS9jxSP15pKfS0wje40DN4nREAAJAAAIAEAAA79AB8TdHXyfax6ymyBpWJZ68fgN8337l+Od+zi35r4psuv8TE8ev37bz4lNGdJta9AI8+5UaRyNni3u+EaN2KT1xdidePw6sLYAQAgAQAABIAAFS2B1B8ya7zyPlEGsfbdyD+eMXOmXG181NGrzXxtRefZWLdJ0BZIPGFv7Prxzf17mbi+86uNrH27a+RnoKq0bXH3xmzXgw+/wUzwnsj6vnUg1g86zoTz27dNeHzSncvyqS1/rHo8bt7ljICAAASAACQAADg/x6A1v4XauTIHKELpPP5KM1foKiyYY2jfdLLr44hzNJ1tSa+NJcLKka9u8uXtIjmHyr312reS/7WZTX3+RnnDBbt61+w/l+ev75/pngAHrNbBxf5/8Tw2ozYnoC6t5/us5G0v4TXT4MRAACQAACABABQ2R5AoWZOmBMKarOTrc8vdh/+nZ8jPc0Z1oBdstfet7ijcn+rom74WwvmmXhkpGaP5a0F9zrnG1Di30Nvqr9Pr04g3pOz16cen+77wQgAAAkAACQAAKgosmMPvSyZiimY9/c0f7L18t7egYqvqYqdI2P3r3fe762lcNdaVMU9z1jyCT+fjayFj+4HUOznab+/1qnovhuq0ZN7APr38nnw74URAAASAABIAABQUSTvB5BP2he/xDmpQCMXu6dgyt8/7/yDV4fheTax9yObT1fDuxZCb/DrFV5/VZGfZ7huw1uf769dKa5nwwgAAAkAACQAAKgo/gs3fcbVjvXSvQAAAABJRU5ErkJggg==';
 })();
+
+;
 
 ;
 /* FRANK'S COMPUTER — sampled UI sounds.
@@ -11437,6 +11520,8 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
         { label: 'Add to Favorites...', disabled: true }, { label: 'Organize Favorites...', disabled: true }, { sep: true },
         ...LINKS.map(([t, u]) => ({ label: t, action: () => go(u) })), { sep: true },
         { label: "Kristians' Cheat Sheet Club", action: () => go(CLUB) }, { sep: true },
+        // the extras' favourites (src/apps/xp_*.js), in file order: Frank's karaoke bar, then AL Packa last
+        ...(FR.ieFavs || []).flatMap(([, list]) => list.map(([t, u]) => ({ label: t, action: () => go(u) }))), ...((FR.ieFavs || []).length ? [{ sep: true }] : []),
         { label: 'Tip: View > Source', action: tipSource },
       ] },
       { label: 'Tools', items: [
@@ -13633,6 +13718,128 @@ I'm taking Thursday off.
   }
 
   FR.norton = { pop, statusWin, state: st, FIRST, MIN, MAX, VARIANTS, PLAIN };
+})();
+
+;
+/* FRANK'S COMPUTER — AL PACKA, "Missouri's greatest alpaca hair salon", a Packa Holdings company.
+   A website in Frank's Internet Explorer (the last Favorite). Photos: FR.data.images.sa_<key> (src/salon_images.js,
+   made in Magnific, packed by tools/make_salon_images.py); a missing photo shows as an empty frame. No puzzle numbers here. */
+(() => {
+  const esc = FR.esc;
+  const HOST = 'alpacka.example', URL0 = 'http://www.alpacka.example/';
+  const at = p => URL0 + p;
+  const img = (k, alt, cls = '') => {
+    const src = FR.data.images && FR.data.images['sa_' + k];
+    return src ? `<img class="sa-img ${cls}" src="${src}" alt="${esc(alt)}">` : `<div class="sa-img sa-noimg ${cls}">${esc(alt)}</div>`;
+  };
+  const PAGES = [['', 'Home'], ['styles.html', 'Styles &amp; Prices'], ['stories.html', 'Client Stories'], ['book.html', 'Book a Chair'], ['about.html', 'About Al']];
+
+  const STYLES = [
+    ['pompadour', 'The King', '$65', 'The classic pompadour. Twelve coats of lanolin pomade, one sculpted quiff, zero apologies. Thank you. Thank you very much.', 'Not for use near cacti.'],
+    ['mullet', 'The Missouri Mullet', '$45', 'Business at the front, pasture at the back. Our best seller at the State Fair three years running, and the only haircut allowed in a pickup truck commercial.', 'Most requested by: alpacas named Dale.'],
+    ['beehive', 'The Beehive', '$80', 'A foot of lift and an hour of lacquer, finished with a silk ribbon. Holds through a thunderstorm, a church picnic and one mild stampede.', 'Please duck under ceiling fans.'],
+    ['mohawk', 'The Neon Mohawk', '$95', 'Three colours, one attitude. Vegetable dyes only: washes out in six to eight weeks, or after one enthusiastic roll in the mud.', 'Sides clipped with love, spikes set with sugar water.'],
+    ['afro', 'The Full Fleece', '$110', 'Twice the volume, all of the funk. We pick it out by hand, strand by strand, while the stylist plays Earth, Wind &amp; Fire on the boombox.', 'Pick included. Door frames not included.'],
+    ['ceo', 'The Quarterly Review', '$55', 'For the alpaca who presents to the Board. A firm side part, a light gel and an expression that says "the forecast is conservative".', 'Very popular with Packa Corporation management the week before a Board meeting.'],
+  ];
+  const ADDONS = [['Chin fringe shape-up (for the dramatic beard)', '$15'], ['Fringe-only touch-up, walk-in', '$20'], ['Spit guard cape (for the stylist, highly recommended)', '$5'], ['Glitter finish (seasonal, prom and weddings)', '$12'], ['Emotional support goat in the waiting area', 'free']];
+
+  const head = cur => `<div class="sa-top"><marquee scrollamount="4">&#10022; NOW BOOKING PROM &amp; WEDDING SEASON &#10022; WALK-INS WELCOME (ALPACAS ONLY) &#10022; LLAMAS BY APPOINTMENT, AND ONLY IF THEY BEHAVE &#10022; NEW: GLITTER FINISH &#10022;</marquee></div>
+    <div class="sa-head"><div class="sa-logo"><span class="sa-al">AL</span><span class="sa-pk">PACKA</span></div>
+      <div class="sa-tag">Hair Design for the Discerning Alpaca<br><small>Sedalia, Missouri &middot; Est. 1998 &middot; a Packa Holdings company</small></div></div>
+    <div class="sa-nav">${PAGES.map(([p, t]) => `<a data-url="${at(p)}"${p === cur ? ' class="sa-cur"' : ''}>${t}</a>`).join('')}</div>`;
+  const foot = () => `<div class="sa-foot">
+      <p><b>AL PACKA</b> &middot; 214 South Ohio Avenue, Sedalia, MO &middot; Tue&ndash;Sat 9&ndash;6 &middot; Closed Mondays (Al is at the feed store)</p>
+      <p>A <b>Packa Holdings</b> company. Also in the family: Packa Corporation (boxes), Irene's Pies (closed Sundays), and a storage unit in Warsaw we don't talk about.</p>
+      <p class="sa-fine">Packa Corporation staff get 15% off. It's intercompany, so Frank says it "eliminates on consolidation". Steve, stop expensing these. &mdash;Diane</p>
+      <p class="sa-count">You are visitor <span>0 0 4 7 1 9</span> &middot; Best viewed in Internet Explorer at 800&times;600. Alpacas: any resolution.</p></div>`;
+  const wrap = (cur, body) => `<div class="sa">${head(cur)}<div class="sa-body">${body}</div>${foot()}</div>`;
+
+  function home() {
+    return wrap('', `
+      <div class="sa-hero">${img('salon', 'Inside the salon: a client gets the full blowout', 'sa-hero-i')}
+        <div class="sa-hero-t"><h1>Say hello to my little fringe.</h1><p>Missouri's greatest alpaca hair salon.<sup>*</sup></p><a class="sa-btn" data-url="${at('book.html')}">Book a chair &raquo;</a></div></div>
+      <p class="sa-star"><sup>*</sup>And, according to the Missouri Department of Agriculture, Missouri's only alpaca hair salon. Still counts.</p>
+      <div class="sa-3">
+        <div class="sa-box"><h3>&#9986; Cut &amp; Style</h3><p>From a humble fringe trim to a foot-tall beehive. Six signature looks, or bring us a photo of an alpaca you saw on TV.</p><a data-url="${at('styles.html')}">See the styles &raquo;</a></div>
+        <div class="sa-box"><h3>&#127942; Show Ready</h3><p>Fair season? Our stylists have groomed more blue-ribbon winners than any salon between Kansas City and the Lake of the Ozarks.</p><a data-url="${at('stories.html')}">Client stories &raquo;</a></div>
+        <div class="sa-box"><h3>&#128141; Weddings</h3><p>Ring bearers, flower alpacas, the whole herd. Updos, veils and baby's breath. We travel within 60 miles (Al's truck won't go further).</p><a data-url="${at('book.html')}">Book a wedding &raquo;</a></div>
+      </div>
+      <div class="sa-quote">&ldquo;Hoo-ah!&rdquo;<span>&mdash; Al Packa, every time a client stands up from the chair</span></div>
+      <h2>This month at the salon</h2>
+      <ul class="sa-news"><li><b>Prom season is here.</b> The Beehive is booked every Saturday until May. The Missouri Mullet is always available. It is always the right choice.</li>
+        <li><b>Welcome Brandi!</b> Our newest stylist comes to us from a very upscale poodle parlor in Branson. She has already been spat on twice and says she "loves it here".</li>
+        <li><b>Reminder:</b> we do not cut llamas. Llamas know what they did.</li></ul>`);
+  }
+  function styles() {
+    return wrap('styles.html', `<h1 class="sa-h1">Styles &amp; Prices</h1><p class="sa-lead">Every service includes a lanolin wash, a gentle blow-dry and a carrot. Prices are per alpaca. Twins are not a discount, they are twice the work.</p>
+      <div class="sa-grid">${STYLES.map(([k, n, p, d, s]) => `<div class="sa-card">${img(k, n)}<div class="sa-card-t"><h3>${n}<span>${p}</span></h3><p>${d}</p><p class="sa-note">${s}</p></div></div>`).join('')}</div>
+      <h2>Add-ons</h2><table class="sa-t">${ADDONS.map(([a, p]) => `<tr><td>${a}</td><td>${p}</td></tr>`).join('')}</table>
+      <p class="sa-fine">We use only natural products: lanolin, vegetable dye, sugar water and Al's secret conditioner (it's mayonnaise). Cash, check or hay.</p>`);
+  }
+  function stories() {
+    const S = [
+      ['fair', 'Duchess, 6 &middot; Blue ribbon, Missouri State Fair', 'Duchess came in the week before the Fair looking, in her owner\'s words, "like a mop somebody dropped in a creek". Brandi wove a crown of braids and tucked sunflowers into every one of them. The judge gave her Best in Show, then asked for Al\'s number, then asked if we do people.', 'Earl, from the Sedalia Rotary', 'Forty years I\'ve shown alpacas. First time the judge cried. First time I cried, too. Don\'t tell the Rotary.'],
+      ['wedding', 'Pickles &middot; Ring bearer, Jolene &amp; Travis\'s barn wedding, Boonville', 'Jolene wanted her alpaca in the wedding. Travis wanted "no animals at the altar". They compromised: Pickles carried the rings in a bridal updo, a lace veil and more baby\'s breath than the bouquet.', 'Jolene, the bride', 'Everyone said the bride looked beautiful. Then they saw Pickles. I\'m not mad. I\'m a little mad. Pickles looked incredible.'],
+      ['beforeafter', 'Gustavo, 9 &middot; The Glow-Up', 'Gustavo spent three years cutting his own fleece on a barbed-wire fence. It showed. Four hours, two stylists, a bottle of Al\'s conditioner and one emotional support goat later, he walked out with a Hollywood blowout and hasn\'t stopped looking at his reflection in the water trough.', 'Maria, Gustavo\'s owner', 'He used to hide behind the barn when visitors came. Now he poses for them. He has an attitude now. I created a monster and I love him.'],
+      ['mohawk', 'Sid Fleecious &middot; Lead singer, The Spitters', 'Sid had a gig at the Mid-Missouri Battle of the Bands and a look that said "petting zoo". We gave him the Neon Mohawk in three colours. The Spitters came second. Sid says it was political.', 'The Spitters (via their manager, Todd)', 'Sid won\'t let anyone else touch the mohawk. Not even the bass player. Especially not the bass player.'],
+    ];
+    const GB = [
+      ['frank_w', 'Came in for the Quarterly Review before a Board meeting. Left with the Missouri Mullet. No regrets. Steve had regrets.', 5],
+      ['Kristians', 'Can you make my alpaca look like an Excel spreadsheet? Green, gridlines, the works. Al said "no". Al said it twice. Four stars because Al was polite about it.', 4],
+      ['Linda W.', 'Very nice salon. My son works at Packa, maybe you know him? He never calls. Tell him to call his mother.', 5],
+      ['llama_lover_77', 'Why won\'t you cut llamas??? What did they do??', 1],
+      ['Al Packa (owner)', 'They know what they did.', 5],
+    ];
+    return wrap('stories.html', `<h1 class="sa-h1">Client Stories</h1><p class="sa-lead">Every alpaca who sits in our chair leaves with a story. These are some of our favourites, shared with permission (the owners signed; the alpacas spat on the form, which in Missouri counts).</p>
+      ${S.map(([k, t, story, who, q], i) => `<div class="sa-story${i % 2 ? ' sa-rev' : ''}">${img(k, t.replace(/&middot;.*/, '').replace(/&[a-z]+;/g, ''), 'sa-story-i')}<div><h3>${t}</h3><p>${story}</p><blockquote>&ldquo;${q}&rdquo;<cite>&mdash; ${who}</cite></blockquote></div></div>`).join('')}
+      <h2>Guestbook</h2><div class="sa-gb">${GB.map(([n, t, s]) => `<div class="sa-gbe"><b>${esc(n)}</b> <span class="sa-stars">${'&#9733;'.repeat(s)}${'&#9734;'.repeat(5 - s)}</span><p>${t}</p></div>`).join('')}</div>`);
+  }
+  function book() {
+    return wrap('book.html', `<h1 class="sa-h1">Book a Chair</h1><p class="sa-lead">Fill in the form and Al will call you back from the salon phone. It's a rotary phone. Please allow some time.</p>
+      <form class="sa-form" onsubmit="return false">
+        <label>Alpaca's name <input type="text" class="sa-f-name" placeholder="e.g. Duchess"></label>
+        <label>Your name <input type="text" placeholder="e.g. Earl"></label>
+        <label>Style <select class="sa-f-style">${STYLES.map(([, n, p]) => `<option>${n} (${p})</option>`).join('')}<option>Surprise me (Al picks)</option></select></label>
+        <fieldset><legend>Temperament</legend>
+          <label><input type="radio" name="sa-t" checked> Calm</label><label><input type="radio" name="sa-t"> Spits sometimes</label><label><input type="radio" name="sa-t" class="sa-f-spit"> Spits always, at everyone, on purpose</label></fieldset>
+        <label class="sa-chk"><input type="checkbox"> My alpaca is not a llama. (We check.)</label>
+        <button class="sa-btn sa-f-go" type="button">Book my chair</button>
+      </form>
+      <p class="sa-fine">Cancellations: please give us 24 hours' notice, or one carrot per hour less than that.</p>`);
+  }
+  function about() {
+    return wrap('about.html', `<h1 class="sa-h1">About Al</h1>
+      <div class="sa-story">${img('salon', 'Al\'s salon on South Ohio Avenue', 'sa-story-i')}<div>
+        <p><b>Alfonso "Al" Packa</b> grew up in the family box business in Sedalia, the son of Gerald Packa and a cousin of Steve, who runs Packa Corporation today. Al could fold a box by hand before he could ride a bike. He hated every minute of it.</p>
+        <p>In 1998 he walked out of the corrugator room, told his father "I'm not a box man, Pop. I'm an artist," bought three alpacas and a professional hair dryer, and never looked back. His father didn't speak to him for a year. Then Gerald's own alpaca needed a trim for the Fair, and that was that.</p>
+        <p>Today AL PACKA is part of <b>Packa Holdings</b>, the family's holding company, next to Packa Corporation and Irene's Pies. Al still comes to the Packa Christmas party. He still refuses to talk about boxes.</p></div></div>
+      <h2>Al's rules of the chair</h2>
+      <ol class="sa-rules"><li>Every alpaca is beautiful. Some just need a little help.</li><li>Never turn your back on a client mid-rinse.</li><li>We do not cut llamas.</li><li>Just when you think you're out of conditioner, Al pulls you back in.</li><li>Hoo-ah.</li></ol>
+      <div class="sa-quote">&ldquo;I'm not a box man. I'm an artist.&rdquo;<span>&mdash; Al Packa, 1998, and at every Thanksgiving since</span></div>`);
+  }
+  const ROUTES = { '': home, 'index.html': home, 'styles.html': styles, 'stories.html': stories, 'book.html': book, 'about.html': about };
+  const pathOf = url => { try { return new URL(url).pathname.replace(/^\/+/, ''); } catch (e) { return ''; } };
+  const TITLES = { '': 'AL PACKA — Hair Design for the Discerning Alpaca', 'styles.html': 'Styles & Prices — AL PACKA', 'stories.html': 'Client Stories — AL PACKA', 'book.html': 'Book a Chair — AL PACKA', 'about.html': 'About Al — AL PACKA' };
+
+  FR.ieFavs = (FR.ieFavs || []).concat([['Packa Holdings', [['AL Packa — Alpaca Hair Salon', URL0]]]]);
+  FR.iePages = Object.assign(FR.iePages || {}, {
+    [HOST]: {
+      title: TITLES[''],
+      html: url => (ROUTES[pathOf(url)] || home)(),
+      onShow: (page, url) => {
+        const w = FR.wm.wins.get('ie'), p = pathOf(url);
+        if (w && TITLES[p]) w.setTitle(`${TITLES[p]} - Internet Explorer`);
+        const go = page.querySelector('.sa-f-go');
+        if (go) go.onclick = () => {
+          const name = (page.querySelector('.sa-f-name').value || '').trim() || 'your alpaca';
+          const style = page.querySelector('.sa-f-style').value.replace(/ \(.*/, '');
+          const spit = page.querySelector('.sa-f-spit').checked;
+          FR.dialog({ title: 'AL PACKA', icon: 'info', width: 380, message: `Thank you! <b>${esc(name)}</b> is pencilled in for <b>${esc(style)}</b>.<br><br>Al will call you back from the rotary phone.${spit ? '<br><br>Brandi has been told. Brandi is wearing the cape.' : ''}` });
+        };
+      },
+    },
+  });
 })();
 
 ;

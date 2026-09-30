@@ -790,3 +790,14 @@
   /* (T2) the fill handle (a 5 px corner; phones use Fill…) caught the second tap of a double-tap on the cell */
   html.fr-m .xl-selbox .xl-fillh { pointer-events: none; }
 }
+@media (max-width: 760px), (pointer: coarse) and (max-width: 1100px) {
+  /* AL PACKA, the alpaca salon website in IE (src/apps/xp_salon.css): stack the stories and the hero caption, keep taps big */
+  html.fr-m .sa-story { grid-template-columns: 1fr; }
+  html.fr-m .sa-story.sa-rev > .sa-img { order: 0; }
+  html.fr-m .sa-hero-t { position: static; max-width: none; margin-top: 8px; }
+  html.fr-m .sa-hero-t h1 { font-size: 24px; }
+  html.fr-m .sa-logo { font-size: 34px; }
+  html.fr-m .sa-body { padding: 12px 12px 6px; }
+  html.fr-m .sa-nav a { padding: 12px 12px; }
+  html.fr-m .sa-form input[type=text], html.fr-m .sa-form select { font-size: 16px; min-height: 36px; }
+}

@@ -1,0 +1,69 @@
+/* AL PACKA — the alpaca hair salon website in Frank's Internet Explorer (src/apps/xp_salon.js). A small-town
+   business site from about 2003: pastel pinks, a teal nav bar, Georgia headings, a hit counter. */
+.sa { min-height: 100%; background: #fff5f8 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='12' cy='12' r='2' fill='%23f7d6e2'/%3E%3C/svg%3E"); color: #3b2a33; font: 13px/1.5 Verdana, Tahoma, sans-serif; }
+.sa-top { background: #6b2046; color: #ffe6f0; font: bold 11px Verdana, sans-serif; padding: 3px 0; letter-spacing: .5px; }
+.sa-head { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; padding: 14px 20px 10px; background: linear-gradient(#ffd9e8, #ffeef5); border-bottom: 3px double #d98cad; }
+.sa-logo { font: bold 44px/1 Georgia, "Times New Roman", serif; color: #6b2046; text-shadow: 2px 2px 0 #fff, 3px 3px 0 #e8a5c1; white-space: nowrap; }
+.sa-al { color: #1f7f80; margin-right: 8px; font-style: italic; }
+.sa-tag { font: italic 16px Georgia, serif; color: #6b2046; }
+.sa-tag small { font: 11px Verdana, sans-serif; color: #8a5a70; font-style: normal; }
+.sa-nav { display: flex; flex-wrap: wrap; background: #1f7f80; border-bottom: 2px solid #135556; }
+.sa-nav a { color: #fff; padding: 7px 16px; font: bold 12px Verdana, sans-serif; cursor: pointer; border-right: 1px solid #2f9899; }
+.sa-nav a:hover, .sa-nav a.sa-cur { background: #ffd9e8; color: #6b2046; }
+.sa-body { max-width: 900px; margin: 0 auto; padding: 16px 20px 8px; }
+.sa h1, .sa h2, .sa h3 { font-family: Georgia, "Times New Roman", serif; color: #6b2046; }
+.sa h2 { font-size: 20px; border-bottom: 1px dotted #d98cad; margin: 22px 0 8px; }
+.sa h3 { font-size: 16px; margin: 0 0 4px; }
+.sa a[data-url] { cursor: pointer; }
+.sa-body a[data-url] { color: #1f7f80; font-weight: bold; text-decoration: underline; }
+.sa-h1 { font-size: 28px; margin: 4px 0 6px; }
+.sa-lead { font-size: 14px; color: #5a4050; }
+.sa-img { display: block; width: 100%; height: auto; border: 4px solid #fff; box-shadow: 0 2px 6px #6b204633; background: #f3e1e9; }
+.sa-noimg { aspect-ratio: 4 / 3; display: flex; align-items: center; justify-content: center; text-align: center; color: #b08097; font: italic 12px Georgia, serif; padding: 10px; box-sizing: border-box; }
+.sa-hero { position: relative; }
+.sa-hero-i { border-width: 6px; }
+.sa-hero-i.sa-noimg { aspect-ratio: 16 / 9; }
+.sa-hero-t { position: absolute; left: 22px; bottom: 22px; max-width: 60%; background: #fff5f8e6; border: 2px solid #d98cad; padding: 10px 16px; }
+.sa-hero-t h1 { margin: 0; font-size: 30px; line-height: 1.1; }
+.sa-hero-t p { margin: 4px 0 8px; font: italic 15px Georgia, serif; }
+.sa-star { font-size: 10px; color: #8a5a70; margin: 6px 0 12px; }
+.sa .sa-btn { display: inline-block; background: #6b2046; color: #fff; border: 2px outset #b9567f; padding: 5px 14px; font: bold 12px Verdana, sans-serif; text-decoration: none; cursor: pointer; }
+.sa .sa-btn:hover { background: #8a2b5b; }
+.sa-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.sa-box { background: #fff; border: 1px solid #e8a5c1; padding: 10px 12px; }
+.sa-box p { margin: 4px 0 6px; }
+.sa-quote { margin: 18px 0; text-align: center; font: italic bold 28px Georgia, serif; color: #1f7f80; }
+.sa-quote span { display: block; font: italic 12px Verdana, sans-serif; color: #8a5a70; }
+.sa-news li { margin-bottom: 6px; }
+.sa-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+.sa-card { background: #fff; border: 1px solid #e8a5c1; display: flex; flex-direction: column; }
+.sa-card .sa-img { border-width: 0 0 1px; box-shadow: none; }
+.sa-card-t { padding: 8px 12px 10px; }
+.sa-card h3 { display: flex; justify-content: space-between; gap: 8px; }
+.sa-card h3 span { color: #1f7f80; font-family: Verdana, sans-serif; font-size: 15px; }
+.sa-card p { margin: 4px 0; }
+.sa-note { font-size: 11px; font-style: italic; color: #8a5a70; }
+.sa-t { border-collapse: collapse; width: 100%; max-width: 560px; background: #fff; }
+.sa-t td { border-bottom: 1px dotted #e8a5c1; padding: 5px 8px; }
+.sa-t td:last-child { text-align: right; font-weight: bold; color: #1f7f80; white-space: nowrap; }
+.sa-fine { font-size: 11px; color: #8a5a70; }
+.sa-story { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 18px; align-items: start; background: #fff; border: 1px solid #e8a5c1; padding: 12px; margin: 14px 0; }
+.sa-story.sa-rev > .sa-img { order: 2; }
+.sa-story p { margin: 0 0 8px; }
+.sa blockquote { margin: 8px 0 0; padding: 8px 12px; background: #fff0f6; border-left: 4px solid #1f7f80; font: italic 14px Georgia, serif; }
+.sa cite { display: block; margin-top: 4px; font: normal 11px Verdana, sans-serif; color: #8a5a70; }
+.sa-gb { background: #fff; border: 2px inset #e8c0d2; }
+.sa-gbe { padding: 6px 10px; border-bottom: 1px dotted #e8a5c1; }
+.sa-gbe p { margin: 2px 0 0; }
+.sa-stars { color: #d6a000; letter-spacing: 1px; }
+.sa-form { background: #fff; border: 1px solid #e8a5c1; padding: 12px 16px; max-width: 460px; display: flex; flex-direction: column; gap: 8px; }
+.sa-form > label { display: flex; flex-direction: column; font-weight: bold; font-size: 12px; }
+.sa-form input[type=text], .sa-form select { font: 13px Verdana, sans-serif; padding: 3px; margin-top: 2px; }
+.sa-form fieldset { border: 1px solid #e8a5c1; }
+.sa-form fieldset label { display: block; font-size: 12px; }
+.sa-form .sa-chk { flex-direction: row; gap: 6px; align-items: center; font-weight: normal; }
+.sa-rules li { margin-bottom: 4px; }
+.sa-foot { margin-top: 20px; background: #6b2046; color: #ffe6f0; padding: 10px 20px; font-size: 11px; text-align: center; }
+.sa-foot p { margin: 3px 0; }
+.sa-foot .sa-fine { color: #f3b9d0; font-style: italic; }
+.sa-count span { background: #000; color: #3f3; font: bold 11px "Courier New", monospace; padding: 0 4px; letter-spacing: 1px; }

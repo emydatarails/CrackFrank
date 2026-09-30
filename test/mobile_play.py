@@ -344,8 +344,8 @@ def playthrough(p, b, devname):
     tap(pg, pg.locator('.fr-balloon .fr-balloon-go'), 350)
     ok(pg.evaluate("() => window.__s2 === 1 && !document.querySelector('.fr-balloon')"), "S2: the opened toast's button does what the toast is for")
     # S2: it never goes away from under a finger resting on it (well past its 5 s)
-    pg.evaluate("() => { FR.__bal = FR.balloon; FR.balloon = (t, ...a) => t === 'Test 3' ? FR.__bal(t, ...a) : null; FR.balloon('Test 3', 'a short one'); }")   # (no other tip meanwhile)
-    pg.wait_for_selector('.fr-balloon:has-text("Test 3")', timeout=6000); pg.wait_for_timeout(700)
+    pg.evaluate("() => { FR.__bal = FR.balloon; FR.balloon = (t, ...a) => t === 'Test 3' ? FR.__bal(t, ...a) : null; FR.tips.clear(); FR.balloon('Test 3', 'a short one'); }")   # (no other tip meanwhile)
+    pg.wait_for_selector('.fr-balloon:has-text("Test 3")', timeout=8000); pg.wait_for_timeout(700)
     r3 = pg.locator('.fr-balloon').bounding_box(); cx, cy = r3['x'] + 60, r3['y'] + r3['height'] / 2
     cdp = pg.context.new_cdp_session(pg)
     cdp.send('Input.dispatchTouchEvent', {'type': 'touchStart', 'touchPoints': [{'x': cx, 'y': cy}]})

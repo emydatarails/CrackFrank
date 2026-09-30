@@ -489,7 +489,7 @@
     wrap.innerHTML = `<div class="ck-head">${FR.icon('checklist', 34)}<div><h2>BOARD PACK — due Tue 9:00 AM</h2><p>Frank's to-do list. Get all ten done and Packa survives.</p></div></div>
       <div class="ck-prog"><progress max="${ITEMS.length}" value="${done}"></progress><b>${done} of ${ITEMS.length} done</b></div>
       <div class="ck-list"></div>
-      <div class="ck-foot"><span class="ck-meta">${FR.score.available() ? '<a href="#" class="ck-score">' : '<b class="ck-score">'}Score: ${FR.score.fmt(sc.score)}${sc.bonus ? ` <span class="ck-bonus">(incl. +${FR.score.fmt(sc.bonus)} bonus)</span>` : ''}${FR.score.available() ? '</a>' : '</b>'} · ${sc.freeLeft ? `Free hints left: ${sc.freeLeft}` : `Hints: −${FR.score.rules.PER_HINT} each`} · Time: <span class="ck-time">${FR.clock.dur(FR.clock.playMs())}</span></span><button class="ck-help">How to play</button></div>`;
+      <div class="ck-foot"><span class="ck-meta">${FR.score.available() ? '<a href="#" class="ck-score">' : '<b class="ck-score">'}Score: ${FR.score.fmt(sc.score)}${sc.bonus ? ` <span class="ck-bonus" title="Bonus requests and Easter eggs, included in the score">(+${FR.score.fmt(sc.bonus)} bonus)</span>` : ''}${FR.score.available() ? '</a>' : '</b>'} · ${sc.freeLeft ? `Free hints left: ${sc.freeLeft}` : `Hints: −${FR.score.rules.PER_HINT} each`} · Time: <span class="ck-time">${FR.clock.dur(FR.clock.playMs())}</span></span><button class="ck-help">How to play</button></div>`;
     wrap.querySelector('.ck-help').onclick = openHelp;
     const scoreLink = wrap.querySelector('a.ck-score');
     if (scoreLink) scoreLink.onclick = e => { e.preventDefault(); FR.score.open(); };

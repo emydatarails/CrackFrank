@@ -121,7 +121,7 @@ Score = max(0, riddles − wrong guesses − paid hints) + bonus: the main score
 eat into bonus points. A perfect game is 10,000, or 11,450 with every bonus. Wrong bonus answers cost nothing. Change
 the numbers in `src/score_rules.js` only (`BONUS` is the bonus table): the game and the server both load that file.
 
-- The score shows in the checklist footer (with the free hints left and, once there is any, "incl. +N bonus") and on the
+- The score shows in the checklist footer (with the free hints left and, once there is any, "(+N bonus)") and on the
   ending screen (with a separate "+N Bonus" box), with the player's rank. The leaderboard has a Bonus column.
 - The leaderboard is **"Board Pack Rescue - Who Covered for Frank?"**, a page on Packa Corporation's intranet
   (`http://intranet.packacorp.local/who-covered-for-frank`), shown in Frank's Internet Explorer: the company's list of

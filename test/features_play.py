@@ -295,7 +295,7 @@ with sync_playwright() as p:
     pg.locator('.fr-pack').click(); pg.wait_for_timeout(400)
     foot = pg.inner_text('.ck-wrap .ck-foot')
     bn = st(pg, 'FR.score.now().bonus')
-    ok(f'incl. +{bn:,} bonus' in foot, 'checklist footer: ' + foot.split('How to')[0].strip())
+    ok(f'(+{bn:,} bonus)' in foot, 'checklist footer: ' + foot.split('How to')[0].strip())
     st(pg, "(FR.puzzle.ORDER.forEach(id => FR.state.solved[id] = FR.state.solved[id] || Date.now()), FR.state.finishedAt = Date.now(), FR.state.finishPlayMs = FR.clock.playMs(), FR.save(), FR.ending())")
     pg.wait_for_selector('.fr-end', timeout=4000); pg.wait_for_timeout(500)
     ok(pg.inner_text('.fr-end-bonus b') == f'+{bn:,}' and pg.inner_text('.fr-end-score b') == f"{st(pg, 'FR.score.now().score'):,}", f'ending: Score {pg.inner_text(".fr-end-score b")} and a separate "Bonus +{bn}"')

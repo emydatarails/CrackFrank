@@ -25,7 +25,7 @@
     // open the leaderboard in Frank's Internet Explorer (closing the ending screen, which sits on top of the desktop)
     open: () => { document.querySelectorAll('.fr-end').forEach(e => e.remove()); FR.apps.ie(URL_); },
     render,
-    rulesLine: () => `Each riddle solved +${fmt(R.PER_SOLVED)} · each wrong answer −${R.PER_WRONG} · ${R.FREE_HINTS} free hints, then −${R.PER_HINT} per hint`,
+    rulesLine: () => `Each riddle solved +${fmt(R.PER_SOLVED)} · each wrong answer −${R.PER_WRONG} · ${R.FREE_HINTS} free hints, then −${R.PER_HINT} per hint · bonus requests and Easter eggs add up to +${fmt(R.BONUS_MAX)} on top`,
   };
 
   // Packa's intranet, circa 2006: the company's own frame around the leaderboard
@@ -43,14 +43,14 @@
 
   const medal = r => r <= 3 ? ` st-m${r}` : '';
   const row = (e, me) => `<tr class="${me ? 'st-me' : ''}"><td class="st-rank${medal(e.rank)}"><span>${e.rank}</span></td>
-    <td class="st-name">${esc(e.name)}${me ? ' <i>(you)</i>' : ''}</td><td class="st-score">${fmt(e.score)}</td>
+    <td class="st-name">${esc(e.name)}${me ? ' <i>(you)</i>' : ''}</td><td class="st-score">${fmt(e.score)}</td><td class="st-bonus">${e.bonus ? '+' + fmt(e.bonus) : '&mdash;'}</td>
     <td>${e.finished ? '<span class="st-done">Board Pack sent</span>' : `At Frank's desk &middot; ${e.solved}/${R.ITEMS.length}`}</td>
     <td>${e.hints}</td><td>${e.wrong}</td><td>${esc(dur(e.timeMs))}</td></tr>`;
 
   // fill an IE page element; isCurrent() is false once the player has navigated away (the answer arrives late)
   function render(page, isCurrent = () => true) {
     const c = FR.score.now();
-    const mine = c.solved ? `<div class="st-mine"><b>Your Board Pack right now:</b> ${fmt(c.score)} points &middot; ${c.solved}/${c.total} done &middot; ${c.hints} hint${c.hints === 1 ? '' : 's'} (${c.freeLeft} free left) &middot; ${c.wrong} wrong</div>` : '';
+    const mine = c.solved ? `<div class="st-mine"><b>Your Board Pack right now:</b> ${fmt(c.score)} points${c.bonus ? ` (incl. +${fmt(c.bonus)} bonus)` : ''} &middot; ${c.solved}/${c.total} done &middot; ${c.hints} hint${c.hints === 1 ? '' : 's'} (${c.freeLeft} free left) &middot; ${c.wrong} wrong</div>` : '';
     if (!FR.score.available()) {
       page.innerHTML = shell(`${mine}<div class="st-msg">The intranet is offline. (The server is also in Vegas.)<br><small>The leaderboard is in the online game, for players with a player account.</small></div>`);
       return;
@@ -64,9 +64,9 @@
         : d.me.finished && !c.finished ? `<p class="st-note">Your place is from your first finished Board Pack: ${fmt(d.me.score)} points.</p>` : '';
       if (!d.top.length) { page.innerHTML = shell(`${mine}<div class="st-msg">Nobody has covered for Frank yet. Be the first.</div>${note}`); return; }
       const meRank = d.me ? d.me.rank : -1;
-      page.innerHTML = shell(`${mine}<table class="st-t"><thead><tr><th>#</th><th>Player</th><th>Points</th><th>Status</th><th>Hints</th><th>Wrong</th><th>Time</th></tr></thead><tbody>
+      page.innerHTML = shell(`${mine}<table class="st-t"><thead><tr><th>#</th><th>Player</th><th>Points</th><th title="Bonus requests and Easter eggs, included in Points">Bonus</th><th>Status</th><th>Hints</th><th>Wrong</th><th>Time</th></tr></thead><tbody>
         ${d.top.map(e => row(e, e.rank === meRank)).join('')}
-        ${d.me && !d.me.inTop ? `<tr class="st-gap"><td colspan="7">&hellip;</td></tr>${row(d.me, true)}` : ''}
+        ${d.me && !d.me.inTop ? `<tr class="st-gap"><td colspan="8">&hellip;</td></tr>${row(d.me, true)}` : ''}
         </tbody></table><p class="st-count">${fmt(d.players)} ${d.players === 1 ? 'person has' : 'people have'} covered for Frank so far</p>${note}`);
       const me = page.querySelector('.st-me'); if (me) me.scrollIntoView({ block: 'nearest' });
     }, () => { if (isCurrent() && page.isConnected) page.innerHTML = shell(`${mine}<div class="st-msg">The leaderboard didn't load. Press Refresh to try again.</div>`); });

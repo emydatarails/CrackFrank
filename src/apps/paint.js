@@ -419,7 +419,7 @@
       return w;
     }
     S = build();
-    openNode(node && node.paintId ? node : null);
+    openNode(node && (node.paintId || node.paintImage) ? node : null);
     return S.win;
   }
 
@@ -538,6 +538,13 @@
     S.undo = []; S.redo = []; S.dirty = false; S.name = name; S.fileId = fileId; title();
   }
   async function openNode(n) {
+    // a built-in picture (a node with paintImage() → ImageData, e.g. from FR.fs.extra): opens like Frank's original
+    if (n && n.paintImage && !n.paintId) {
+      ++S.loading; resetDoc(n.name, null); setImage(n.paintImage());
+      S.zoom = baseZoom(); layout(); S.ws.scrollTop = S.ws.scrollLeft = 0; S.root.dataset.ready = String(S.loading);
+      FR.bus.emit('paint-open', n.name);
+      return;
+    }
     const f = n ? files().find(x => x.id === n.paintId) || (n.paintId === 'k' ? null : undefined) : null;
     if (f === undefined) return FR.dialog({ title: 'Paint', icon: 'error', message: `Paint cannot open ${esc(n.name)}.<br><br>The file was deleted.` });
     const tok = ++S.loading;

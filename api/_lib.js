@@ -30,7 +30,7 @@ const K = {
   sess: h => `fc:sess:${h}`,
   rate: (kind, id) => `fc:rl:${kind}:${id}`,
   board: 'fc:board',            // sorted set: player id → RULES.rankValue
-  boardInfo: 'fc:board:info',   // hash: player id → {name, score, solved, hints, wrong, finished, timeMs, at}
+  boardInfo: 'fc:board:info',   // hash: player id → {name, score, bonus, solved, hints, wrong, finished, timeMs, at}
 };
 
 /* ---------- passwords + sessions ---------- */
@@ -136,7 +136,7 @@ async function updateBoard(id, prevState, state) {
   const next = RULES.calc(state);
   if (prevState) {
     const prev = RULES.calc(prevState);
-    if (prev.score === next.score && prev.solved === next.solved && prev.hints === next.hints && prev.wrong === next.wrong) return;
+    if (prev.score === next.score && prev.solved === next.solved && prev.hints === next.hints && prev.wrong === next.wrong && prev.bonus === next.bonus) return;
   }
   const raw = await redis('HGET', K.boardInfo, id);
   const cur = raw ? JSON.parse(raw) : null;
@@ -146,7 +146,7 @@ async function updateBoard(id, prevState, state) {
     return;
   }
   const user = JSON.parse((await redis('GET', K.user(id))) || '{}');
-  const entry = { name: user.name || id, score: next.score, solved: next.solved, hints: next.hints, wrong: next.wrong, finished: next.finished, timeMs: next.timeMs, at: Date.now() };
+  const entry = { name: user.name || id, score: next.score, bonus: next.bonus, solved: next.solved, hints: next.hints, wrong: next.wrong, finished: next.finished, timeMs: next.timeMs, at: Date.now() };
   await redis('HSET', K.boardInfo, id, JSON.stringify(entry));
   await redis('ZADD', K.board, RULES.rankValue(next), id);
 }

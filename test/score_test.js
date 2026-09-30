@@ -20,6 +20,19 @@ ok(R.calc(st(1, {}, 1000)).score === 0, 'score never goes below 0');
 ok(R.calc(st(0, {}, 'x')).wrong === 0 && R.calc(st(0, {}, -5)).wrong === 0, 'nonsense wrong counts are 0');
 ok(R.calc(st(10)).finished && !R.calc(st(9)).finished, 'finished = all 10 done');
 ok(R.rankValue({ score: 5000, timeMs: 600000 }) > R.rankValue({ score: 5000, timeMs: 900000 }), 'tie on score: faster ranks higher');
+// bonus requests and Easter eggs: points on top of the main score, from the table only
+const B = id => ({ [id]: { solvedAt: 123, pts: 99999 } });
+ok(R.calc(st(3, {}, 0, { bonus: B('tom_comm') })).score === 3000 + R.BONUS.tom_comm, 'a solved bonus request adds its table points on top');
+ok(R.calc(st(3, {}, 0, { bonus: B('tom_comm') })).bonus === R.BONUS.tom_comm && R.calc(st(3, {}, 0, { bonus: B('tom_comm') })).main === 3000, 'calc returns main and bonus separately');
+ok(R.calc(st(3, {}, 0, { bonus: { hack: { solvedAt: 1, pts: 5000 }, __proto__x: 1 } })).bonus === 0, 'unknown bonus ids are ignored');
+ok(R.calc(st(3, {}, 0, { bonus: { tom_comm: true, mum_fx: { solvedAt: 0 }, dale_var: { solvedAt: 'x' }, steve_margin: null } })).bonus === 0, 'malformed bonus entries count as zero');
+ok(R.calc(st(3, {}, 0, { bonus: [1, 2] })).bonus === 0 && R.calc(st(3, {}, 0, { bonus: 'x' })).bonus === 0, 'a bonus that is not an object counts as zero');
+ok(R.calc(st(1, {}, 1000, { bonus: B('vending_ci') })).score === R.BONUS.vending_ci, 'penalties floor the main score at 0; bonus is added after the floor');
+const allB = Object.fromEntries(Object.keys(R.BONUS).map(id => [id, { solvedAt: 5 }]));
+const perfect = R.calc(st(10, {}, 0, { bonus: allB }));
+ok(perfect.score === 10000 + R.BONUS_MAX && perfect.score > 10000 && perfect.bonusDone === perfect.bonusTotal, `a perfect game with every bonus = 10,000 + ${R.BONUS_MAX} = ${perfect.score}`);
+ok(Object.values(R.BONUS).every(v => v >= 100 && v <= 300), 'every bonus is worth +100 to +300');
+ok(R.rankValue({ score: 10100, timeMs: 9e12 }) > R.rankValue({ score: 10000, timeMs: 0 }), 'bonus points count for the rank');
 ok(R.rankValue({ score: 5000, timeMs: 9e12 }) > R.rankValue({ score: 4950, timeMs: 0 }), 'more points always beats time');
 
 /* ---------- API ---------- */
@@ -65,9 +78,23 @@ ok(R.rankValue({ score: 5000, timeMs: 9e12 }) > R.rankValue({ score: 4950, timeM
   await b('save', 'PUT', { state: st(1), rev: 2 });
   r = await b('scores'); ok(r.data.me && r.data.me.score === 1000, 'and you are back once you solve a riddle');
 
+  // a save that only adds a bonus request updates the board (score and bonus)
+  r = await c('scores'); const cara0 = r.data.me;
+  await c('save', 'PUT', { state: st(5, {}, 2, { playMs: 1000, bonus: { steve_margin: { solvedAt: 7, pts: 200 } } }), rev: 1 });
+  r = await c('scores');
+  ok(r.data.me.score === cara0.score + R.BONUS.steve_margin && r.data.me.bonus === R.BONUS.steve_margin, `a bonus-only save updates the board: ${cara0.score} → ${r.data.me.score} (bonus ${r.data.me.bonus})`);
+  ok(r.data.top[0].name === 'Alice' && r.data.top.find(e => e.name === 'Cara').bonus === R.BONUS.steve_margin && r.data.top.find(e => e.name === 'Bob').bonus === 0, 'the board lists each player\'s bonus (0 without)');
+  ok(r.data.rules.bonus && r.data.rules.bonus.steve_margin === R.BONUS.steve_margin, 'the bonus table is published with the rules');
+  // a bogus bonus id in a save changes nothing
+  await c('save', 'PUT', { state: st(5, {}, 2, { playMs: 1000, bonus: { steve_margin: { solvedAt: 7 }, free_money: { solvedAt: 1, pts: 1e6 } } }), rev: 2 });
+  r = await c('scores'); ok(r.data.me.score === cara0.score + R.BONUS.steve_margin, 'a made-up bonus id in the save earns nothing on the board');
+  // after the first finished game the entry (bonus included) is locked
+  await a('save', 'PUT', { state: st(10, {}, 0, { finishedAt: 9, finishPlayMs: 60000, bonus: allB }), rev: 4 });
+  r = await a('scores'); ok(r.data.me.score === 9750 && r.data.me.bonus === 0, 'bonus earned after the first finished game does not change the locked entry');
+
   // play-clock-only saves don't touch the board (cheap saves)
   const before = (await anon('scores')).data.top.find(e => e.name === 'Cara');
-  await c('save', 'PUT', { state: st(5, {}, 2, { playMs: 999999 }), rev: 1 });
+  await c('save', 'PUT', { state: st(5, {}, 2, { playMs: 999999, bonus: { steve_margin: { solvedAt: 7 } } }), rev: 3 });
   const after = (await anon('scores')).data.top.find(e => e.name === 'Cara');
   ok(before.timeMs === after.timeMs, 'a save that only moves the play clock leaves the board alone');
 

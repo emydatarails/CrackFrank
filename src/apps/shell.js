@@ -204,7 +204,7 @@
   const FAKE = {
     progfiles: [
       ['Common Files', 'd', '06/12/2019 9:14 AM'], ['Internet Explorer', 'd', '06/12/2019 9:15 AM'], ['Outlook Express', 'd', '06/12/2019 9:15 AM'],
-      ['Microsoft Office', 'd', '11/03/2019 2:41 PM'], ['Prairie Ledger BankLink', 'd', '03/15/2024 10:22 AM'], ['Solitaire (uninstalled)', 'd', '10/03/2026 1:20 AM'],
+      ['Microsoft Office', 'd', '11/03/2019 2:41 PM'], ['Prairie Ledger BankLink', 'd', '03/15/2024 10:22 AM'], ['Solitaire (MEWC face cards)', 'd', '10/03/2026 1:20 AM'],
       ['Speedrun Trainer for Spreadsheets', 'd', '09/19/2026 1:37 AM'], ['Windows Media Player', 'd', '06/12/2019 9:16 AM'], ['Windows NT', 'd', '06/12/2019 9:16 AM'],
     ],
     windows: [
@@ -1195,7 +1195,7 @@
         { label: 'About Notepad', action: () => FR.dialog({ title: 'About Notepad', icon: 'notepad', message: 'Notepad<br>Version 5.1 (Build 2600.xpsp_sp3)<br><br>This product is licensed to:<br>&nbsp;&nbsp;Frank Warmington<br>&nbsp;&nbsp;Packa Corporation' }) },
       ] },
     ];
-    const wide = node && ['loan', 'agenda', 'boarding', 'packlist', 'k_webinar', 'todo', 'realnotes'].includes(node.id);
+    const wide = node && (node.wide || ['loan', 'agenda', 'boarding', 'packlist', 'k_webinar', 'todo', 'realnotes'].includes(node.id));
     const win = FR.wm.open({
       id, title: `${name} - Notepad`, icon: 'notepad', width: wide ? 800 : 620, height: wide ? 560 : 440, className: 'np-win', menu, content: root,
       onClose: () => {
@@ -1618,6 +1618,7 @@
     if (host === 'cheatsheetclub.example') { const sub = (u.pathname.replace(/^\/kristians\/?/, '').split('/')[0] || '').toLowerCase(); return { kind: 'club', url: CLUB + (sub ? '/' + sub : ''), sub: ['sheets', 'gallery', 'webinars', 'links', 'prev', 'next'].includes(sub) ? sub : '' }; }
     if (host === 'championship.example') return { kind: 'champ', url: u.href };
     if (host === 'intranet.packacorp.local') return { kind: 'standings', url: FR.score.url };
+    if (FR.iePages && Object.prototype.hasOwnProperty.call(FR.iePages, host)) return { kind: 'extra', url: u.href, host };
     if (host === 'datarails.com' || host.endsWith('.datarails.com')) return { kind: 'blocked', url: u.href };
     return { kind: 'error', url: u.href };
   }
@@ -1708,6 +1709,10 @@
         // the players' leaderboard on Packa's intranet (src/score.js); it loads from the account server, so it can arrive after a navigation
         win.setTitle(`${FR.score.title} - Internet Explorer`); status('Done');
         FR.score.render(page, () => cur() === r);
+      } else if (r.kind === 'extra') {
+        const xp = FR.iePages[r.host];
+        page.innerHTML = xp.html(r.url); win.setTitle(`${xp.title} - Internet Explorer`); status('Done');
+        if (xp.onShow) xp.onShow(page, r.url);
       } else if (r.kind === 'blank') {
         page.innerHTML = '<div class="ie-blank"></div>'; win.setTitle('about:blank - Internet Explorer'); status('Done');
       } else {
@@ -1732,6 +1737,7 @@
           <div class="ie-fav">${ico('folderOpen', 16)}<b>Links</b></div>${LINKS.map(([t, u]) => `<a class="ie-fl" data-url="${esc(u)}">${g('ieDoc')}<span>${esc(t)}</span></a>`).join('')}
           <a class="ie-fl" data-url="https://online.prairieledgerbank.example/">${g('ieDoc')}<span>Prairie Ledger Bank</span></a>
           <div class="ie-fav">${ico('folderOpen', 16)}<b>Kristians</b></div><a class="ie-fl" data-url="${CLUB}">${ico('star', 16)}<span>Kristians' Cheat Sheet Club</span></a>
+          ${(FR.ieFavs || []).map(([folder, list]) => `<div class="ie-fav">${ico('folderOpen', 16)}<b>${esc(folder)}</b></div>${list.map(([t, u]) => `<a class="ie-fl" data-url="${esc(u)}">${g('ieDoc')}<span>${esc(t)}</span></a>`).join('')}`).join('')}
           <a class="ie-fl" data-tip="1">${g('help')}<span>Tip: View &gt; Source</span></a>`;
       } else if (S.pane === 'history') {
         body = `<div class="ie-pbtn"><button disabled>View</button><button disabled>Search</button></div>` + IEHIST.map(([day, ents]) => `<div class="ie-fav">${g('history')}<b>${esc(day)}</b></div>${ents.map(([t, u]) => `<a class="ie-fl" data-url="${esc(u)}" title="${esc(u)}">${g('ieDoc')}<span>${esc(t)}</span></a>`).join('')}`).join('');
@@ -1854,6 +1860,7 @@
     const show = () => {
       if (C.err) { d.value = C.err; } else { const s = C.disp; d.value = grp(s) + (s.includes('.') || /e/.test(s) ? '' : '.'); }
       mi.textContent = C.mem ? 'M' : '';
+      FR.bus.emit('calc-display', d.value);
     };
     const val = () => parseFloat(C.disp) || 0;
     const set = n => { const s = fmt(n); if (s === null) { C.err = 'Cannot divide by zero.'; C.acc = null; C.op = null; } else C.disp = s; };

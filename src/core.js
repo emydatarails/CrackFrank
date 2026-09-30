@@ -36,12 +36,16 @@ FR.apps = FR.apps || {};
   };
 
   /* ---------- state ---------- */
-  const fresh = () => ({ solved: {}, flags: {}, hintsUsed: {}, readMail: {}, answers: {}, startedAt: null, finishedAt: null, playMs: 0, wrong: 0 });
-  const OBJ_KEYS = ['solved', 'flags', 'hintsUsed', 'readMail', 'answers', 'unlockedAt', 'nudged'];
+  const fresh = () => ({ solved: {}, flags: {}, hintsUsed: {}, readMail: {}, answers: {}, startedAt: null, finishedAt: null, playMs: 0, wrong: 0, missStreak: 0 });
+  const OBJ_KEYS = ['solved', 'flags', 'hintsUsed', 'readMail', 'answers', 'unlockedAt', 'nudged', 'bonus', 'eggs'];
   // merge a saved state over a fresh one; anything malformed (null, wrong type) falls back to the default
   const harden = st => {
     OBJ_KEYS.forEach(k => { if (st[k] !== undefined && (!st[k] || typeof st[k] !== 'object' || Array.isArray(st[k]))) st[k] = {}; });
-    ['playMs', 'wrong'].forEach(k => { if (typeof st[k] !== 'number' || !isFinite(st[k]) || st[k] < 0) st[k] = 0; });
+    ['playMs', 'wrong', 'missStreak'].forEach(k => { if (typeof st[k] !== 'number' || !isFinite(st[k]) || st[k] < 0) st[k] = 0; });
+    // bonus requests (src/apps/xp_bonus.js): { id: { solvedAt, pts } }; Easter eggs (src/apps/xp_eggs.js): { id: foundAtMs }
+    const okId = k => typeof k === 'string' && k.length <= 32 && /^[a-z0-9_]+$/.test(k);
+    if (st.bonus) Object.keys(st.bonus).forEach(k => { const b = st.bonus[k]; if (!okId(k) || !b || typeof b !== 'object' || !(+b.solvedAt > 0)) delete st.bonus[k]; else st.bonus[k] = { solvedAt: +b.solvedAt, pts: isFinite(+b.pts) ? +b.pts : 0 }; });
+    if (st.eggs) Object.keys(st.eggs).forEach((k, i) => { if (!okId(k) || !(+st.eggs[k] > 0) || i >= 64) delete st.eggs[k]; else st.eggs[k] = +st.eggs[k]; });
     Object.keys(st.hintsUsed).forEach(k => { const n = +st.hintsUsed[k]; st.hintsUsed[k] = isFinite(n) ? Math.max(0, Math.min(3, n)) : 0; });
     // Paint's saved pictures (src/apps/paint.js): keep only well-formed ones
     if (st.paint !== undefined) {
@@ -161,13 +165,21 @@ FR.apps = FR.apps || {};
     solve(id) {
       if (FR.state.solved[id]) return true;
       if (!this.isUnlocked(id)) return false;
-      FR.state.solved[id] = Date.now(); FR.save();
+      FR.state.solved[id] = Date.now(); FR.state.missStreak = 0; FR.save();
       FR.sound.play(id === 'frank' ? 'tada' : 'unlock');
       FR.bus.emit('solved', id);
       return true;
     },
-    // a wrong guess anywhere (checklist, password boxes) counts toward the final score
-    miss() { FR.state.wrong = (FR.state.wrong || 0) + 1; FR.save(); },
+    // a wrong guess anywhere (checklist, password boxes) counts toward the final score. Every one except the Windows
+    // log-on screen's ({ login: true }) also counts toward a streak of wrong answers in a row (4 in a row = the Blue
+    // Screen, src/apps/xp_bsod.js); a correct answer or a solved item ends the streak (FR.puzzle.hit()).
+    miss(o) {
+      FR.state.wrong = (FR.state.wrong || 0) + 1;
+      if (!(o && o.login)) FR.state.missStreak = (FR.state.missStreak || 0) + 1;
+      FR.save();
+      if (!(o && o.login)) FR.bus.emit('miss', FR.state.missStreak);
+    },
+    hit() { if (FR.state.missStreak) { FR.state.missStreak = 0; FR.save(); } },
     // answer checkers for checklist input items
     check: {
       version: v => norm(v).includes('v5finaluse'),
@@ -482,12 +494,15 @@ FR.apps = FR.apps || {};
   // false = it no longer applies, e.g. a nudge about an item that got solved meanwhile, and it is dropped) }
   FR.balloon = (title, text, onClick, opts = {}) => {
     if (document.querySelector('.fr-end')) return;
+    // never over the Blue Screen (src/apps/xp_bsod.js): it waits until Windows "returns to normal"
+    if (document.querySelector('.bs-screen')) { const n = (opts.tries || 0) + 1; if (n < 20) setTimeout(() => FR.balloon(title, text, onClick, Object.assign({}, opts, { tries: n })), 1500); return; }
+    // phones: the tip queue decides when it may show (never under a finger, while typing, or over menus/dialogs)
     if (FR.mobile) return tipQueue(title, text, onClick, opts);
     if (opts.still && !opts.still()) return;
     if (!opts.silent && Date.now() - (FR._lastSound || 0) > 400) FR.sound.play('notify');
     const tray = document.querySelector('.fr-tray');
     document.querySelectorAll('.fr-balloon').forEach(b => b.remove());
-    const b = $(`<div class="fr-balloon"><div class="fr-balloon-t">${FR.icon('info', 16)}<b></b><span class="fr-balloon-x">&#x2715;</span></div><div class="fr-balloon-b"></div></div>`);
+    const b = $(`<div class="fr-balloon${opts.cls ? ' ' + opts.cls : ''}"><div class="fr-balloon-t">${opts.icon || FR.icon('info', 16)}<b></b><span class="fr-balloon-x">&#x2715;</span></div><div class="fr-balloon-b"></div></div>`);
     b.querySelector('b').textContent = title; b.querySelector('.fr-balloon-b').innerHTML = text;
     document.body.appendChild(b);
     if (tray) { const r = tray.getBoundingClientRect(); b.style.right = Math.max(6, window.innerWidth - r.right + 4) + 'px'; }
@@ -546,7 +561,7 @@ FR.apps = FR.apps || {};
     if (!opts.silent && !t.shown && Date.now() - (FR._lastSound || 0) > 400) FR.sound.play('notify');
     t.shown = true;
     document.querySelectorAll('.fr-balloon').forEach(x => x.remove());
-    const b = $(`<div class="fr-balloon fr-balloon-pass"><div class="fr-balloon-t">${FR.icon('info', 16)}<b></b><span class="fr-balloon-x">&#x2715;</span></div><div class="fr-balloon-b"></div></div>`);
+    const b = $(`<div class="fr-balloon fr-balloon-pass${opts.cls ? ' ' + opts.cls : ''}"><div class="fr-balloon-t">${opts.icon || FR.icon('info', 16)}<b></b><span class="fr-balloon-x">&#x2715;</span></div><div class="fr-balloon-b"></div></div>`);
     b.querySelector('b').textContent = title; b.querySelector('.fr-balloon-b').innerHTML = text;
     // opened up, the toast shows what a tap on it does as a real button (e.g. "Open the checklist")
     if (onClick) { const go = $(`<div class="fr-balloon-acts"><button class="fr-balloon-go"></button></div>`); go.firstChild.textContent = opts.act || 'Open'; b.appendChild(go); }

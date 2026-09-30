@@ -1062,6 +1062,7 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
     if (!m) { p.innerHTML = '<div class="oe-pbody oe-pempty"></div>'; return; }
     p.innerHTML = `<div class="oe-ph">${hdrHTML(m)}</div><div class="oe-pbody">${renderBody(m)}</div>`;
     wireChips(p, m.attach || []); wireBody(p);
+    if (m.bonus && FR.bonus) FR.bonus.mount(p.querySelector('.oe-pbody'), m);
   }
   function renderStart() {
     const s = V.el.querySelector('.oe-start');
@@ -1144,6 +1145,7 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
       w.close(); openMsg(n);
     }
     wireChips(el, m.attach || []); wireBody(el);
+    if (m.bonus && FR.bonus) FR.bonus.mount(el.querySelector('.oe-mbody'), m);
     return w;
   }
 
@@ -1168,14 +1170,17 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
   }
 
   /* ================= compose ================= */
-  const KNOWN = Object.values(P).concat([ME, FRANK_OFFGRID]);
+  // people outside the address book who write to Frank (the bonus requests, src/apps/xp_bonus.js) can be replied to
+  const EXTRA = [];
+  const people = () => Object.values(P).concat(EXTRA);
+  const KNOWN = { find: f => Object.values(P).concat([ME, FRANK_OFFGRID], EXTRA).find(f) };
   function resolve(tok) {
     tok = tok.trim(); if (!tok) return null;
     const em = (tok.match(/<([^>]+)>/) || [])[1] || (/@/.test(tok) ? tok.replace(/^"|"$/g, '') : null);
     if (em) { const e = em.trim().toLowerCase(); return KNOWN.find(p => p.email === e) || { name: '', email: e }; }
     const t = tok.replace(/"/g, '').toLowerCase();
     if (t === 'frank' || t === 'frank warmington' || t === 'me') return ME;
-    const hit = Object.values(P).find(p => p.name.toLowerCase() === t) || Object.values(P).find(p => p.name.toLowerCase().split(' ').includes(t)) || Object.values(P).find(p => p.name.toLowerCase().startsWith(t) && t.length >= 3);
+    const hit = people().find(p => p.name.toLowerCase() === t) || Object.values(P).find(p => p.name.toLowerCase().split(' ').includes(t)) || Object.values(P).find(p => p.name.toLowerCase().startsWith(t) && t.length >= 3);
     return hit || { unresolved: tok };
   }
   const parseList = s => String(s || '').split(/[;,]/).map(resolve).filter(Boolean);
@@ -1300,6 +1305,7 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
         body = qi >= 0 ? (body.slice(0, qi).replace(/\s+$/, '') + '\n\n' + block + '\n' + body.slice(qi)).replace(/^\s+/, '') : body.replace(/\s+$/, '') + '\n\n' + block;
       }
       const m = { id: newId('s'), folder: 'sent', from: ME, to: to, cc: cc, subject: $sub.value || '(no subject)', body, t: FR.clock.now().getTime(), read: true, attach: atts(), pri: el.classList.contains('oe-hipri') ? 1 : 0 };
+      if (o.replyOf) m.replyOf = o.replyOf;
       if (o.draftOf) box().gone[o.draftOf] = true;
       sent = true;
       addMsg(m, false);
@@ -1345,6 +1351,8 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
   }
   function afterSend(m, rcpt, hasPack) {
     const s = m.subject;
+    // a reply to a bonus request is answered by its sender (src/apps/xp_bonus.js), not by an auto-reply
+    if (m.replyOf && FR.bonus && FR.bonus.onReply(m, byId(m.replyOf))) return;
     const seen = new Set();
     rcpt.forEach(r => {
       if (!r.email || seen.has(r.email)) return; seen.add(r.email);
@@ -1380,5 +1388,6 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
     }
     return openMain();
   };
-  FR.mail = { deliver: key => deliverKey(key, true), incoming, open: id => { const m = byId(id); if (m) openMsg(m); }, compose, catchUp, messages: all };
+  FR.mail = { deliver: key => deliverKey(key, true), incoming, open: id => { const m = byId(id); if (m) openMsg(m); }, compose, catchUp, messages: all,
+    byId, refresh, bodyText, addContact: p => { if (p && p.email && !EXTRA.some(x => x.email === p.email)) EXTRA.push(p); } };
 })();

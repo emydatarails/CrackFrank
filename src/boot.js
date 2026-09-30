@@ -182,7 +182,7 @@
         if (!FR.state.startedAt) { FR.state.startedAt = Date.now(); FR.save(); }
         welcome(back); return;
       }
-      fails++; FR.puzzle.miss(); FR.sound.play('error');
+      fails++; FR.puzzle.miss({ login: true }); FR.sound.play('error');   // (log-on misses never count toward the Blue Screen)
       const u = el.querySelector('.fr-user'); u.classList.remove('fr-shake'); void u.offsetWidth; u.classList.add('fr-shake');
       slot.innerHTML = `<div class="fr-login-err">Did you forget your password? Please type your password again.<br>Be sure to use the correct uppercase and lowercase letters.</div>`;
       inp.value = ''; inp.focus();
@@ -237,6 +237,8 @@
       { n: 'Outlook Express', i: 'mail', a: () => FR.apps.mail(null) },
       { n: 'Microsoft Excel', i: 'excel', a: () => FR.apps.excel(null) },
       { n: 'ShowMe ERP', i: 'erp', a: () => FR.apps.erp() },
+      { n: 'Paint', i: 'paint', a: () => FR.apps.paint(null) },
+      { n: 'Solitaire', i: 'solitaire', a: () => FR.apps.solitaire() },
       { n: 'Board Pack — TO DO', i: 'checklist', a: () => openChecklist() },
       ...(FR.score.available() ? [{ n: 'Who Covered for Frank?', i: 'ie', a: () => FR.score.open(), shortcut: true }] : []),
       ...FR.fs.children('desktop', { showHidden: false }).map(n => ({ n: n.name, i: n.icon, a: () => FR.openFile(n), node: n })),
@@ -264,7 +266,7 @@
     el.querySelector('.fr-wall').oncontextmenu = e => { e.preventDefault(); ctxMenu(e.clientX, e.clientY, [
       { label: 'Arrange Icons By', disabled: true }, { label: 'Refresh', action: () => {} }, { sep: true },
       { label: 'New', disabled: true }, { sep: true },
-      { label: 'Properties', action: () => FR.dialog({ icon: 'warn', title: 'Display Properties', message: 'Frank has locked the display settings.<br>Do not touch the "Do not touch." —F' }) }]); };
+      { label: 'Properties', action: () => FR.dialog({ icon: 'warn', title: 'Display Properties', message: 'Frank has locked the display settings.<br>Do not touch the "Do not touch." —F<br><br>(The Screen Saver tab is still open. Frank needed it.)', buttons: ['Screen Saver...', 'OK'], def: 1 }).then(r => { if (r.button === 'Screen Saver...') saverDlg(); }) }]); };
     // quick launch
     const ql = el.querySelector('.fr-quick');
     [['ie', () => FR.apps.ie(null), 'Launch Internet Explorer'], ['mail', () => FR.apps.mail(null), 'Launch Outlook Express'], ['excel', () => FR.apps.excel(null), 'Microsoft Excel']].forEach(([i, a, t]) => {
@@ -294,6 +296,7 @@
       if (!DEV && !resumed) setTimeout(() => FR.balloon('You have new e-mail', 'Diane Kessler: "Board Pack — 9:00 AM. No excuses."', () => FR.apps.mail(null), { act: 'Open Inbox' }), 2600);
     }
     if (FR.puzzle.isSolved('frank') && !DEV) setTimeout(ending, 800);
+    FR.bus.emit('desktop', el);   // (the Easter eggs, Norton and the bonus requests hook in here: src/apps/xp_*.js)
     if (!DEV) {
       setTimeout(() => kTip(0), resumed ? 20000 : 45000);
       if (!lowDiskShown) { lowDiskShown = true; setTimeout(() => FR.balloon('Low Disk Space', 'You are running out of disk space on Local Disk (C:).<br>47 versions of the model will do that.', null, { silent: false }), 150000); }
@@ -361,6 +364,7 @@
   resetIdle();
   function screensaver() {
     if (document.querySelector('.fr-saver')) return;
+    FR.bus.emit('screensaver');
     const sv = $(`<div class="fr-saver"><img src="${FR.data.images.kristians}" alt=""><div class="fr-saver-m">GET SHEET DONE &nbsp;✦&nbsp; There's always a formula &nbsp;✦&nbsp; Cheat Sheet #212 &nbsp;✦&nbsp; Kristians is my co-pilot &nbsp;✦&nbsp; GET SHEET DONE</div></div>`);
     root.appendChild(sv);
     const img = sv.querySelector('img');
@@ -377,6 +381,11 @@
     ['mousemove', 'mousedown', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, quitH));
   }
   FR.screensaver = screensaver;
+  // Display Properties › Screen Saver (the one tab Frank left unlocked)
+  function saverDlg() {
+    FR.dialog({ icon: 'info', title: 'Display Properties — Screen Saver', width: 400, message: 'Screen saver: <b>Kristians (Marquee)</b><br>Wait: <b>5</b> minutes<br>On resume, password protect: No<br><br>Frank tried to set Wait to 0 minutes. Windows said no. Frank said "there\'s always a formula."', buttons: ['Preview', 'OK'], def: 1 })
+      .then(r => { if (r.button === 'Preview') setTimeout(screensaver, 150); });
+  }
 
   function ctxMenu(x, y, items) {
     document.querySelectorAll('.fr-ctx').forEach(c => c.remove());
@@ -403,9 +412,10 @@
     const L = m.querySelector('.fr-start-l'), R = m.querySelector('.fr-start-r'), F = m.querySelector('.fr-start-foot');
     L.append(it('ie', 'Internet', 'Internet Explorer', () => FR.apps.ie(null)), it('mail', 'E-mail', 'Outlook Express', () => FR.apps.mail(null)), $('<div class="fr-sm-sep"></div>'),
       it('excel', 'Microsoft Excel', '', () => FR.apps.excel(null)), it('erp', 'ShowMe ERP', 'Packa Corporation', () => FR.apps.erp()), it('checklist', 'Board Pack — TO DO', '', openChecklist), it('notepad', 'Notepad', '', () => FR.apps.notepad(null)), it('calc', 'Calculator', '', () => FR.apps.calc()),
+      it('paint', 'Paint', '', () => FR.apps.paint(null)), it('solitaire', 'Solitaire', '', () => FR.apps.solitaire()),
       ...(FR.score.available() ? [it('ie', 'Who Covered for Frank?', 'Board Pack Rescue leaderboard', () => FR.score.open())] : []),
       ...(FR.puzzle.isSolved('frank') ? [it('star', 'Show the ending again', '', () => ending())] : []),
-      $('<div class="fr-sm-sep"></div>'), it('star', 'All Programs', '', () => FR.dialog({ icon: 'info', title: 'All Programs', message: 'Frank uninstalled everything except Excel, Outlook and Solitaire.<br>Then he uninstalled Solitaire.' }), 'fr-sm-all'));
+      $('<div class="fr-sm-sep"></div>'), it('star', 'All Programs', '', () => FR.dialog({ icon: 'info', title: 'All Programs', message: 'Frank uninstalled everything except Excel, Outlook, Paint and Solitaire.<br>Priorities.' }), 'fr-sm-all'));
     R.append(it('mydocs', 'My Documents', '', () => FR.apps.explorer('mydocs')), it('image', 'My Pictures', '', () => FR.apps.explorer('pics')), it('computer', 'My Computer', '', () => FR.apps.explorer('mycomputer')),
       $('<div class="fr-sm-sep"></div>'), it('controlpanel', 'Control Panel', '', () => FR.dialog({ icon: 'error', title: 'Control Panel', message: 'Access is denied.<br><br>Contact your system administrator. (IT is also in Vegas.)' })),
       it('help', 'Help and Support', '', openHelp), it('search', 'Search', '', () => FR.apps.explorer('mydocs')), it('question', 'Run...', '', runBox));
@@ -419,8 +429,10 @@
     FR.dialog({ icon: 'question', title: 'Run', message: 'Type the name of a program, folder, document, or Internet resource, and Windows will open it for you.', input: { label: 'Open:', value: '' }, buttons: ['OK', 'Cancel'] }).then(r => {
       if (r.button !== 'OK') return;
       const v = (r.value || '').trim().toLowerCase().replace(/\.exe$/, '');
-      const map = { solitaire: () => FR.dialog({ icon: 'error', title: 'solitaire', message: 'Uninstalled. Frank had a problem.' }), sol: () => FR.dialog({ icon: 'error', title: 'sol', message: 'Uninstalled. Frank had a problem.' }), kristians: () => FR.dialog({ icon: 'error', title: 'kristians', message: "Windows cannot find 'kristians'. Neither can Rachel." }), excel: () => FR.apps.excel(null), calc: () => FR.apps.calc(), notepad: () => FR.apps.notepad(null), iexplore: () => FR.apps.ie(null), msimn: () => FR.apps.mail(null), outlook: () => FR.apps.mail(null), explorer: () => FR.apps.explorer('mydocs'), cmd: () => FR.dialog({ icon: 'error', title: 'cmd', message: 'Frank disabled the command prompt after "the incident".' }) };
+      const map = { solitaire: () => FR.apps.solitaire(), sol: () => FR.apps.solitaire(), mspaint: () => FR.apps.paint(null), pbrush: () => FR.apps.paint(null), paint: () => FR.apps.paint(null), kristians: () => FR.dialog({ icon: 'error', title: 'kristians', message: "Windows cannot find 'kristians'. Neither can Rachel." }), excel: () => FR.apps.excel(null), calc: () => FR.apps.calc(), notepad: () => FR.apps.notepad(null), iexplore: () => FR.apps.ie(null), msimn: () => FR.apps.mail(null), outlook: () => FR.apps.mail(null), explorer: () => FR.apps.explorer('mydocs'), cmd: () => FR.dialog({ icon: 'error', title: 'cmd', message: 'Frank disabled the command prompt after "the incident".' }) };
       if (map[v]) return map[v]();
+      // more commands (some of them Frank's secrets) live in FR.runCommands (src/apps/xp_eggs.js)
+      if (FR.runCommands && Object.prototype.hasOwnProperty.call(FR.runCommands, v)) return FR.runCommands[v](r.value);
       if (/^https?:|^www\./.test(v)) return FR.apps.ie(v.startsWith('www.') ? 'https://' + v : v);
       FR.dialog({ icon: 'error', title: esc(r.value || ''), message: `Windows cannot find '${esc(r.value || '')}'. Make sure you typed the name correctly, and then try again.` });
     });
@@ -454,6 +466,8 @@
     return w;
   }
   FR.apps.checklist = openChecklist;
+  // re-draw the open checklist (the bonus requests change the score in its footer: src/apps/xp_bonus.js)
+  FR.checklistRender = () => { const w = FR.wm.wins.get('checklist'); if (w) renderChecklist(w); };
 
   let justSolved = null;
   // hints are "provided by" Emily's FinanceOS trial on Frank's machine (story frame only; hint content unchanged)
@@ -477,7 +491,7 @@
     wrap.innerHTML = `<div class="ck-head">${FR.icon('checklist', 34)}<div><h2>BOARD PACK — due Tue 9:00 AM</h2><p>Frank's to-do list. Get all ten done and Packa survives.</p></div></div>
       <div class="ck-prog"><progress max="${ITEMS.length}" value="${done}"></progress><b>${done} of ${ITEMS.length} done</b></div>
       <div class="ck-list"></div>
-      <div class="ck-foot"><span class="ck-meta">${FR.score.available() ? '<a href="#" class="ck-score">' : '<b class="ck-score">'}Score: ${FR.score.fmt(sc.score)}${FR.score.available() ? '</a>' : '</b>'} · ${sc.freeLeft ? `Free hints left: ${sc.freeLeft}` : `Hints: −${FR.score.rules.PER_HINT} each`} · Time: <span class="ck-time">${FR.clock.dur(FR.clock.playMs())}</span></span><button class="ck-help">How to play</button></div>`;
+      <div class="ck-foot"><span class="ck-meta">${FR.score.available() ? '<a href="#" class="ck-score">' : '<b class="ck-score">'}Score: ${FR.score.fmt(sc.score)}${sc.bonus ? ` <span class="ck-bonus" title="Bonus requests and Easter eggs, included in the score">(+${FR.score.fmt(sc.bonus)} bonus)</span>` : ''}${FR.score.available() ? '</a>' : '</b>'} · ${sc.freeLeft ? `Free hints left: ${sc.freeLeft}` : `Hints: −${FR.score.rules.PER_HINT} each`} · Time: <span class="ck-time">${FR.clock.dur(FR.clock.playMs())}</span></span><button class="ck-help">How to play</button></div>`;
     wrap.querySelector('.ck-help').onclick = openHelp;
     const scoreLink = wrap.querySelector('a.ck-score');
     if (scoreLink) scoreLink.onclick = e => { e.preventDefault(); FR.score.open(); };
@@ -706,7 +720,7 @@
       <div class="fr-kicker">Board Pack delivered · Survival package approved</div>
       <h1>Packa Corp is saved.<br>Frank is in Vegas.</h1>
       <p>You rebuilt Packa's numbers from a pile of "FINAL" files, a hidden folder, a change log and one man's head. The Board saw the real runway, the bank got a true covenant certificate, and the emergency plan passed.</p>
-      <div class="fr-end-stats"><div class="fr-end-score"><b>${FR.score.fmt(sc.score)}</b><span>Score</span></div><div><b>${t}</b><span>Time at Frank's desk</span></div><div><b>${hints}</b><span>Hints used</span></div><div><b>${FR.state.wrong || 0}</b><span>Wrong guesses</span></div></div>
+      <div class="fr-end-stats"><div class="fr-end-score"><b>${FR.score.fmt(sc.score)}</b><span>Score</span></div><div><b>${t}</b><span>Time at Frank's desk</span></div><div><b>${hints}</b><span>Hints used</span></div><div><b>${FR.state.wrong || 0}</b><span>Wrong guesses</span></div><div class="fr-end-bonus"><b>+${FR.score.fmt(sc.bonus || 0)}</b><span>Bonus</span></div></div>
       <p class="fr-end-rank"></p>
       <div class="fr-end-line"></div>
       <p><b style="color:#fff">Packa doesn't run on Datarails.</b> So when Frank walked through the wall, the truth nearly went with him.</p>

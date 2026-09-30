@@ -345,6 +345,8 @@
     },
     COUNTIF(A, E, S) { const rg = E(A[0]); if (!rg || !rg.rg) return ERR('#VALUE!'); const f = critFn(S(A[1])); return this.rv(rg).flat().filter(f).length; },
     CONCATENATE(A, E, S) { let s = ''; for (const a of A) { const v = S(a); if (isErr(v)) return v; s += toStr(v); } return s; },
+    // Easter egg (src/apps/xp_eggs.js): Frank's favourite function. There's always a formula.
+    KRISTIANS() { if (typeof FR !== 'undefined' && FR.bus) FR.bus.emit('xl-kristians'); return "There's always a formula."; },
     CONCAT(A, E) { let s = ''; for (const a of A) { const v = E(a); if (v && v.rg) { for (const x of this.rv(v).flat()) { if (isErr(x)) return x; s += toStr(x); } continue; } if (isErr(v)) return v; s += toStr(v); } return s; },
     LEN(A, E, S) { const v = S(A[0]); return isErr(v) ? v : toStr(v).length; },
     UPPER(A, E, S) { const v = S(A[0]); return isErr(v) ? v : toStr(v).toUpperCase(); },
@@ -1331,6 +1333,8 @@
     S.set('A19', 'Best INDEX/MATCH', { b: 1 }); S.set('C19', '=MIN(C6,C7,C9,C12,C15,C17)', { b: 1, f: 'ms1' });
     S.set('A20', 'Best Lookup relay', { b: 1 }); S.set('C20', '=MIN(C8,C10,C13,C16)', { b: 1, f: 'ms1' });
     S.cm('A3', FRANK, "Out-of-office NOT on. If Drew sees 'Excel' and 'championship' in one sentence he'll want to come.");
+    // Easter egg: white on white in the very last cell (Ctrl+End finds it)
+    S.set('J36', "You pressed Ctrl+End. Kristians would be proud. Nobody else would. —F", { fc: '#FFFFFF' });
     const P = sheet('Packing list', { nc: 6, nr: 30 });
     P.w({ A: 30, B: 380 });
     P.h(1, 20);
@@ -1951,6 +1955,7 @@
       else { st.ar = r; st.ac = c; st.anchor = { r, c }; st.focus = { r, c }; }
       drawSel();
       ensureVisible(extend ? r : st.ar, extend ? c : st.ac);
+      if (!extend && FR.bus) FR.bus.emit('xl-select', { book: book.name, sheet: book.sheets[st.si] && book.sheets[st.si].name, r, c });
     }
     function ensureVisible(r, c) {
       const x = colX[c], y = rowY[r], w = colWd[c], h = rowHt[r];

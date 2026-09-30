@@ -315,7 +315,10 @@ with sync_playwright() as p:
     touch([[at(m, 300, 250)], [at(m, 330, 252)], [at(m, 360, 255)]])
     ok(px(m, 330, 252) == [255, 0, 0], 'brush by touch in red')
     # zoom in, then two fingers pan without drawing
-    touch([[center('.pt-tool[data-t="mag"]')]]); m.wait_for_selector('.pt-tool.on[data-t="mag"]', timeout=3000); touch([[at(m, 240, 180)]])
+    for _ in range(4):   # (a tap right after the options popover closes can be swallowed: tap again, like a person would)
+        touch([[center('.pt-tool[data-t="mag"]')]]); m.wait_for_timeout(700)
+        if m.locator('.pt-tool.on[data-t="mag"]').count(): break
+    m.wait_for_selector('.pt-tool.on[data-t="mag"]', timeout=3000); touch([[at(m, 240, 180)]])
     m.wait_for_function("() => document.querySelector('.pt-ws').scrollWidth > document.querySelector('.pt-ws').clientWidth * 2", timeout=3000)
     h0 = stats(m)['hash']; sl0 = m.evaluate("() => [document.querySelector('.pt-ws').scrollLeft, document.querySelector('.pt-ws').scrollTop]")
     touch([[center('.pt-tool[data-t="pencil"]')]]); m.wait_for_selector('.pt-tool.on[data-t="pencil"]', timeout=3000)

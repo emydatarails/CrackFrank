@@ -75,7 +75,7 @@ def swipe(pg, x1, y1, x2, y2, steps=14):
     cdp.detach(); pg.wait_for_timeout(350)
 
 
-def tap(pg, loc, wait=350, what=''):
+def tap(pg, loc, wait=350, what='', only_reach=False):
     loc.wait_for(state='attached', timeout=10000)
     h = None; waited = False
     for _ in range(14):
@@ -90,6 +90,7 @@ def tap(pg, loc, wait=350, what=''):
         swipe(pg, h['sx'] - dx / 2, h['sy'] - dy / 2, h['sx'] + dx / 2, h['sy'] + dy / 2)
     if not h['ok']:
         ok(False, f'touch: cannot reach {what or loc} by finger ({h})'); raise SystemExit(1)
+    if only_reach: return h['x'], h['y']
     pg.touchscreen.tap(h['x'], h['y']); pg.wait_for_timeout(wait)
 
 
@@ -1217,10 +1218,261 @@ def r6_desktop(p, b):
     ctx.close()
 
 
+
+def fully_visible(pg, sel_js):
+    """the element is on screen, inside every scrolling box around it, and on top at its centre"""
+    return pg.evaluate("""(sel) => { const e = eval(sel); if (!e) return false; const r = e.getBoundingClientRect(); if (!r.width) return false;
+      for (let p = e.parentElement; p && p !== document.body; p = p.parentElement) { const cs = getComputedStyle(p); if (/auto|scroll|hidden/.test(cs.overflowX + cs.overflowY)) { const q = p.getBoundingClientRect(); if (r.left < q.left - 1 || r.right > q.right + 1 || r.top < q.top - 1 || r.bottom > q.bottom + 1) return false; } }
+      const h = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return r.left >= 0 && r.right <= innerWidth && r.top >= 0 && r.bottom <= innerHeight && !!h && (h === e || e.contains(h)); }""", sel_js)
+
+
+def dbltap(pg, x, y):
+    pg.touchscreen.tap(x, y); pg.wait_for_timeout(80); pg.touchscreen.tap(x, y); pg.wait_for_timeout(450)
+
+
+def r7_checks(p, b, devname, land=False):
+    """round 7 (iPad Mini player): bonus e-mail grading + the pinned "Answer" button + replies to replies (T5), Frank's
+    sticky notes always reachable (T1), double-tap edits a cell (T2), a tap on a new tip is for the new tip (T3), a
+    window that opens by itself ignores taps for a moment / the checklist comes with the desktop (T4), property sheets
+    sized to their page on a tablet (T6), what Run… opens comes to the front (T7)"""
+    dev = dict(p.devices[devname]); dev.pop('default_browser_type', None)
+    if land: dev['viewport'] = {'width': max(dev['viewport'].values()), 'height': min(dev['viewport'].values())}
+    PFX[0] = 'r7_' + devname.replace(' ', '') + ('_land' if land else '') + '_'
+    print('== round 7 checks on', devname, 'sideways' if land else '', flush=True)
+    ctx = b.new_context(**dev); ctx.route(re.compile(r'https?://(www\.)?packacorp\.com/.*'), site)
+    pg = ctx.new_page()
+    pg.on('console', lambda m: logs.append(m.type + ': ' + m.text) if m.type in ('error', 'warning') else None)
+    pg.on('pageerror', lambda e: logs.append('PAGEERROR ' + str(e)))
+    pg.goto(URL + '?dev=1&solve=unlock'); pg.wait_for_selector('.fr-desktop'); pg.wait_for_timeout(900)
+    pg.evaluate(MUTE)
+    tablet = min(dev['viewport'].values()) >= 600
+
+    # ---- T1: Frank's sticky notes on the Board copy: a chip shows while one is off the screen, a tap brings it in
+    tap(pg, pg.locator('.fr-win .ck-item.open .ck-chip', has_text='Budget_FY27_BOARD.xls').first, 1300)
+    xl_type(pg, 11, 2, '=C7-C9-C10-C11')
+    NOTE = "document.querySelector('.fr-win:not(.fr-inactive) .xl-sticky')"
+    CHIP = "document.querySelector('.fr-win:not(.fr-inactive) .xl-stickchip:not([hidden])')"
+    has_note = pg.evaluate(f"() => !!{NOTE} && /quarters are still/.test({NOTE}.textContent)")
+    ok(has_note, 'T1: the near-miss sticky note ("The quarters are still #REF!") is on the sheet')
+    vis = fully_visible(pg, NOTE); chipped = pg.evaluate(f"() => !!{CHIP}")
+    ok(vis != chipped, f'T1: the chip shows exactly while the note is out of sight (note visible {vis}, chip {chipped})')
+    if chipped:
+        shot(pg, 'sticky_chip')
+        tap(pg, pg.locator(TOP + ' .xl-stickchip'), 600)
+    ok(fully_visible(pg, NOTE) and not pg.evaluate(f"() => !!{CHIP}"), 'T1: the note is on screen in full (not under the frozen column A), the chip is gone')
+    shot(pg, 'sticky_shown')
+    g = pg.locator(TOP + ' .xl-scroll').bounding_box()
+    for _ in range(6):   # back to the left, by finger
+        if pg.evaluate("() => FR.wm.active.el.querySelector('.xl-scroll').scrollLeft") < 1: break
+        swipe(pg, g['x'] + g['width'] * 0.4, g['y'] + g['height'] * 0.6, g['x'] + g['width'] * 0.95, g['y'] + g['height'] * 0.6)
+    for c in (4, 5, 6, 7): xl_type(pg, 11, c, f'={"CEFGH"[c - 3]}7-{"CEFGH"[c - 3]}9-{"CEFGH"[c - 3]}10-{"CEFGH"[c - 3]}11')
+    pg.wait_for_timeout(600)
+    notes = pg.evaluate("() => [...document.querySelectorAll('.fr-win:not(.fr-inactive) .xl-sticky')].map(n => n.textContent)")
+    ok('ebitda' in solved(pg) and len(notes) == 1 and 'Bank.zip' in notes[0], f'T1: row fixed: the stale #REF! note is gone, only the Bank.zip note is left {notes}')
+    pg.evaluate("() => { const s = FR.wm.active.el.querySelector('.xl-scroll'); s.scrollLeft = 0; s.scrollTop = 0; }"); pg.wait_for_timeout(300)
+    vis = fully_visible(pg, NOTE); chipped = pg.evaluate(f"() => !!{CHIP}")
+    ok(vis != chipped, f'T1: the Bank.zip note: chip exactly while it is out of sight (visible {vis}, chip {chipped})')
+    if chipped: tap(pg, pg.locator(TOP + ' .xl-stickchip'), 600)
+    ok(fully_visible(pg, NOTE), 'T1: the Bank.zip password clue can be read in full')
+
+    # ---- T2: double-tap on a cell = edit it (formula bar, with the cell showing what's typed); not after one tap
+    pg.keyboard.press('Escape'); pg.evaluate("() => { const s = FR.wm.active.el.querySelector('.xl-scroll'); s.scrollLeft = 0; s.scrollTop = 0; }"); pg.wait_for_timeout(300)
+    cell = lambda r, c: pg.locator(f'{TOP} .xl-grid td[data-r="{r}"][data-c="{c}"]').first
+    tap(pg, cell(8, 4), 500)
+    ok(pg.evaluate("() => document.activeElement.className") != 'xl-fin', 'T2: one tap on a new cell only selects it (no edit, no keyboard)')
+    x, y = tap(pg, cell(9, 4), only_reach=True); dbltap(pg, x, y)
+    t2 = pg.evaluate("() => { const w = FR.wm.active.el, ed = w.querySelector('.xl-editor'), td = w.querySelector('td[data-r=\"9\"][data-c=\"4\"]').getBoundingClientRect(), r = ed.getBoundingClientRect();"
+                     " return [document.activeElement.className, w.querySelector('.xl-nb-in').value, ed.classList.contains('xl-editor-mirror') && getComputedStyle(ed).display !== 'none' && Math.abs(r.left - td.left) < 3 && Math.abs(r.top - td.top) < 3, ed.value]; }")
+    ok(t2[0] == 'xl-fin' and t2[1] == 'E10' and t2[2] and t2[3] == '105', f'T2: a double-tap edits the cell: formula bar focused on E10, the cell shows "{t2[3]}" {t2}')
+    pg.keyboard.type('106'); pg.wait_for_timeout(150)
+    ok(pg.evaluate("() => FR.wm.active.el.querySelector('.xl-editor').value") == '106', 'T2: what is typed shows in the cell as well')
+    pg.keyboard.press('Escape'); pg.wait_for_timeout(250)
+    # a cell cut off at the right edge: the first tap scrolls the grid, the second (same spot) still edits THAT cell
+    edge = pg.evaluate("""() => { const w = FR.wm.active.el, s = w.querySelector('.xl-scroll').getBoundingClientRect();
+      const td = [...w.querySelectorAll('td[data-r="4"]')].find(t => { const r = t.getBoundingClientRect(); return r.left < s.right - 14 && r.right > s.right + 6; });
+      if (!td) return null; const r = td.getBoundingClientRect(); return [+td.dataset.c, (r.left + s.right) / 2, r.top + r.height / 2]; }""")
+    if edge:
+        dbltap(pg, edge[1], edge[2])
+        e2 = pg.evaluate("() => [document.activeElement.className, FR.wm.active.el.querySelector('.xl-nb-in').value]")
+        want = chr(65 + edge[0]) + '5'
+        ok(e2[0] == 'xl-fin' and e2[1] == want, f'T2: double-tap on a cell cut off at the edge (the grid scrolls under the finger) edits {want}: {e2}')
+        pg.keyboard.press('Escape'); pg.wait_for_timeout(250)
+    else:
+        print('     (T2: no cell cut off at the right edge on this screen)')
+    closeall(pg)
+
+    # ---- T3: a tip that fades out, and a new one right behind it: the new one waits until a tap aimed at the old
+    # one can't be taken for it; then a tap on it is for it (it opens), never for the old one
+    pg.evaluate("() => { FR.__T = Object.assign({}, FR.tips.TIP); FR.tips.TIP.MIN = FR.tips.TIP.MAX = 1500; window.__t3 = []; window.__nb = 0; window.__nbi = setInterval(() => { window.__nb = Math.max(window.__nb, document.querySelectorAll('.fr-balloon').length); }, 30); }")
+    pg.evaluate("() => FR.balloon('T-old', 'Board Pack: 5 of 10 done', () => __t3.push('old'), { act: 'Open' })")
+    pg.wait_for_timeout(2600)   # (shown, 1.5 s up, then it fades: leaving)
+    pg.wait_for_function("() => !FR.tips.state().cur || FR.tips.state().cur.state === 'leaving'", timeout=8000)
+    pg.evaluate("() => FR.balloon('T-new', 'New request from Packa IT Asset Audit', () => __t3.push('new'), { act: 'Open it' })")
+    old_box = pg.evaluate("() => { const b = document.querySelector('.fr-balloon'); if (!b) return null; const r = b.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }")
+    pg.wait_for_function("() => !FR.tips.state().cur || FR.tips.state().cur.title !== 'T-old'", timeout=4000)
+    t_gone = pg.evaluate('() => Date.now()')
+    if old_box: pg.touchscreen.tap(old_box[0], old_box[1]); pg.wait_for_timeout(100)   # aimed at the old one as it went
+    st3 = pg.evaluate('() => FR.tips.state().cur')
+    ok(not st3 or st3['title'] != 'T-new' or pg.evaluate('() => Date.now()') - t_gone > 900, f'T3: the new tip does not appear while the old one\'s ghost is there {st3}')
+    ok(pg.evaluate('() => __t3.length') == 0, 'T3: the tap aimed at the fading tip pressed nothing')
+    pg.wait_for_function("() => FR.tips.state().cur && FR.tips.state().cur.title === 'T-new' && FR.tips.state().cur.state === 'shown'", timeout=6000)
+    shot(pg, 'tip_new')
+    tap(pg, pg.locator('.fr-balloon'), 400)
+    if pg.evaluate("() => !!document.querySelector('.fr-balloon.fr-balloon-open')"): tap(pg, pg.locator('.fr-balloon .fr-balloon-go'), 400)
+    t3 = pg.evaluate('() => [__t3, __nb]')
+    ok(t3[0] == ['new'] and t3[1] <= 1, f'T3: a tap on the new tip opens the new one (never the old one), one tip on screen at a time {t3}')
+    pg.evaluate("() => { clearInterval(__nbi); Object.assign(FR.tips.TIP, FR.__T); }")
+    closeall(pg); pg.evaluate(MUTE)
+
+    # ---- T7: Run… → calc comes to the front, over the Excel that was on top; Start menu, desktop too
+    tap(pg, pg.locator('.fr-win .ck-item .ck-chip', has_text='Budget_FY27_BOARD.xls').first if pg.locator('.fr-win .ck-item .ck-chip', has_text='Budget_FY27_BOARD.xls').count() else pg.locator('.fr-pack'), 1200)
+    if not pg.evaluate("() => FR.wm.active && /xl/.test(FR.wm.active.el.className)"): pg.evaluate("() => FR.apps.excel(null)"); pg.wait_for_timeout(1200)
+    tap(pg, pg.locator('.fr-startbtn'), 500)
+    tap(pg, pg.locator('.fr-sm-item', has_text='Run...').first, 700)
+    dlg_type(pg, 'calc', 'OK'); pg.wait_for_timeout(700)
+    t7 = pg.evaluate("() => { const a = FR.wm.active, top = [...FR.wm.wins.values()].filter(w => !w.min).sort((x, y) => (+y.el.style.zIndex) - (+x.el.style.zIndex))[0]; return [a && a.el.querySelector('.fr-title').textContent, top && top.el.querySelector('.fr-title').textContent, !!a && !a.el.classList.contains('fr-inactive')]; }")
+    ok(t7[0] == 'Calculator' and t7[1] == 'Calculator' and t7[2], f'T7: Run… calc: the Calculator is in front and active {t7}')
+    shot(pg, 'run_calc')
+    ok(fully_visible(pg, "document.querySelector('.fr-win:not(.fr-inactive) .ca-k[data-k=\"7\"]')"), 'T7: its keys are on screen and tappable')
+    closeall(pg)
+
+    # ---- T4: a window that opens by itself ignores taps for 600 ms; one opened by a tap: 250 ms as before
+    pg.wait_for_timeout(700)
+    pg.evaluate("() => { window.__c4 = 0; setTimeout(() => FR.apps.calc(), 0); }"); pg.wait_for_timeout(120)
+    k7 = pg.locator(TOP + ' .ca-k[data-k="7"]'); bb = k7.bounding_box()
+    disp = lambda: pg.evaluate("() => document.querySelector('.fr-win:not(.fr-inactive) .ca-disp').value")
+    d0 = disp()
+    pg.wait_for_timeout(250); pg.touchscreen.tap(bb['x'] + bb['width'] / 2, bb['y'] + bb['height'] / 2); pg.wait_for_timeout(100)
+    ok(disp() == d0, f'T4: a tap 0.4 s after a window opened by itself presses nothing ({d0!r} -> {disp()!r})')
+    pg.wait_for_timeout(400); pg.touchscreen.tap(bb['x'] + bb['width'] / 2, bb['y'] + bb['height'] / 2); pg.wait_for_timeout(200)
+    ok(disp().rstrip('.').endswith('7'), f'T4: after 0.6 s taps work ({disp()!r})')
+    closeall(pg)
+
+    # ---- T6: Properties: a tablet floats it, sized to its page (buttons right under it); a phone fills the screen
+    pg.evaluate("() => FR.apps.properties('model47')"); pg.wait_for_timeout(800)
+    t6 = pg.evaluate("""() => { const w = document.querySelector('.sh-sheetwin'), r = w.getBoundingClientRect(), ok = w.querySelector('.sh-ok').getBoundingClientRect(), pn = w.querySelector('.sh-panes');
+      const tb = document.querySelector('.fr-taskbar').getBoundingClientRect();
+      return { max: w.classList.contains('fr-max'), h: Math.round(r.height), vh: innerHeight, top: Math.round(r.top), bottom: Math.round(r.bottom), tb: Math.round(tb.top), okIn: ok.bottom <= r.bottom + 1 && ok.top >= r.top, gap: Math.round(r.bottom - ok.bottom), left: Math.round(r.left), right: Math.round(innerWidth - r.right), scroll: pn.scrollHeight > pn.clientHeight + 2 }; }""")
+    if tablet:
+        ok(not t6['max'] and t6['h'] < 0.75 * t6['vh'] and t6['okIn'] and t6['gap'] < 20 and abs(t6['left'] - t6['right']) < 4 and t6['bottom'] <= t6['tb'], f'T6: tablet: Properties floats, sized to its page, centred, OK at its bottom {t6}')
+        ok(topmost_is_visible(pg, '.sh-sheet .sh-ok') and topmost_is_visible(pg, '.sh-sheet .sh-cancel'), 'T6: OK / Cancel on screen')
+        shot(pg, 'props_tablet')
+        tap(pg, pg.locator('.sh-sheet .sh-cancel'), 400)
+        # Folder Options (the longest page): still fits the screen, the page scrolls, buttons pinned
+        tap(pg, pg.locator('.fr-startbtn'), 500); tap(pg, pg.locator('.fr-sm-item', has_text='My Documents').first, 900)
+        tap(pg, pg.locator(TOP + ' .fr-mi', has_text='Tools'), 300) if pg.locator(TOP + ' .fr-mi', has_text='Tools').is_visible() else (tap(pg, pg.locator(TOP + ' .fr-mbtn'), 300), tap(pg, pg.locator(TOP + ' .fr-mi', has_text='Tools'), 300))
+        tap(pg, pg.locator('.fr-menu-item', has_text='Folder Options'), 500)
+        tap(pg, pg.locator('.sh-sheet [role=tab]', has_text='View'), 300)
+        fo = pg.evaluate("() => { const w = document.querySelector('.sh-sheetwin'), r = w.getBoundingClientRect(), tb = document.querySelector('.fr-taskbar').getBoundingClientRect(); return [w.classList.contains('fr-max'), r.top >= 0 && r.bottom <= tb.top + 1, Math.round(r.height)]; }")
+        ok(not fo[0] and fo[1] and topmost_is_visible(pg, '.sh-sheet .sh-ok'), f'T6: tablet: Folder Options floats and fits above the taskbar, OK on screen {fo}')
+        tap(pg, pg.locator('.sh-sheet label', has_text='Show hidden files and folders').last, 200, 'Show hidden files')
+        ok(topmost_is_visible(pg, '.sh-sheet .sh-ok'), 'T6: … the option reached by finger, OK still on screen')
+        shot(pg, 'folder_options_tablet')
+        tap(pg, pg.locator('.sh-sheet .sh-cancel'), 400)
+    else:
+        ok(t6['max'] and t6['okIn'], f'T6: phone: Properties fills the screen, OK / Cancel / Apply pinned at the bottom (as before) {t6}')
+        tap(pg, pg.locator('.sh-sheet .sh-cancel'), 400)
+    closeall(pg)
+
+    # ---- T5: the bonus request answer box is one tap away (pinned "Answer ▸"); replies graded on the answer
+    pg.evaluate("() => FR.bonus.deliver('steve_margin', true)"); pg.wait_for_timeout(300)
+    pg.evaluate("() => FR.apps.mail(null)"); pg.wait_for_timeout(1200)
+    row = pg.locator(TOP + ' tr[data-id="bn_steve_margin"]').first
+    tap(pg, row, 800)
+    host = "(document.querySelector('.fr-win:not(.fr-inactive) .oe-mbody') || document.querySelector('.fr-win:not(.fr-inactive) .oe-prev .oe-pbody'))"
+    pg.wait_for_timeout(300)
+    box_vis = fully_visible(pg, host + ".querySelector('.bn-box .bn-inp')")
+    jump_vis = fully_visible(pg, host + ".querySelector('.bn-jump')")
+    ok(box_vis or jump_vis, f'T5: the answer box, or the pinned "Answer ▸" button, is on screen when the message opens (box {box_vis}, button {jump_vis})')
+    if not box_vis:
+        shot(pg, 'bonus_jump')
+        tap(pg, pg.locator(TOP + ' .bn-jump'), 900)
+        ok(fully_visible(pg, host + ".querySelector('.bn-box .bn-inp')") and pg.evaluate("() => document.activeElement && document.activeElement.classList.contains('bn-inp')"), 'T5: a tap on "Answer ▸" brings the box into view with the cursor in it')
+    # the player's own first reply, in the box: right
+    inp = pg.locator(TOP + ' .bn-box .bn-inp').first
+    tap(pg, inp, 200); pg.keyboard.type('a 25% markup on cost is a 20% gross margin (25/125). Say 20%.', delay=2)
+    tap(pg, pg.locator(TOP + ' .bn-box .bn-go').first, 600)
+    ok(pg.evaluate("() => !!(FR.state.bonus || {}).steve_margin"), 'T5: box: "a 25% markup on cost is a 20% gross margin (25/125). Say 20%." is right (+200)')
+    shot(pg, 'bonus_right')
+    # replies: "25%" (wrong: Barb answers), then a reply to Barb's answer (a reply to a reply) is graded too
+    pg.evaluate("() => { delete FR.state.bonus.steve_margin; FR.save(); FR.mail.refresh(); }")
+    pg.evaluate("() => FR.bonus.deliver('tom_comm', true)"); pg.wait_for_timeout(300)
+    closeall(pg); pg.evaluate("() => FR.mail.open('bn_tom_comm')"); pg.wait_for_timeout(900)
+    tap(pg, pg.locator(TOP + ' .oe-tbb', has_text='Reply').first, 900)
+    pg.keyboard.type('6% of 80,000 = 4,800', delay=2)
+    tap(pg, pg.locator(TOP + ' .oe-tbb-send'), 800)
+    pg.wait_for_timeout(3300)
+    re_id = pg.evaluate("() => (FR.mail.messages().filter(m => m.bonusRe === 'tom_comm').pop() || {}).id")
+    ok(bool(re_id) and not pg.evaluate("() => !!(FR.state.bonus || {}).tom_comm"), f'T5: reply "4,800": Tom answers (no points yet) {re_id}')
+    closeall(pg); pg.evaluate(f"() => FR.mail.open('{re_id}')"); pg.wait_for_timeout(900)
+    ok(pg.locator(TOP + ' .bn-box').count() >= 1, "T5: Tom's answer has the answer box too")
+    tap(pg, pg.locator(TOP + ' .oe-tbb', has_text='Reply').first, 900)
+    pg.keyboard.type('Sorry: 4% of $50,000 = $2,000 plus 6% of $30,000 = $1,800, total $3,800.', delay=2)
+    tap(pg, pg.locator(TOP + ' .oe-tbb-send'), 800)
+    pg.wait_for_timeout(600)
+    ok(pg.evaluate("() => !!(FR.state.bonus || {}).tom_comm"), 'T5: a reply to Tom\'s answer (a reply to a reply) is graded: +150')
+    pg.wait_for_timeout(2800)
+    last = pg.evaluate("() => (FR.mail.messages().filter(m => m.bonusRe === 'tom_comm').pop() || {}).body || ''")
+    ok('bass boat' in last, f'T5: … and Tom says thanks ({last[:40]!r})')
+    closeall(pg)
+    ctx.close()
+
+
+def r7_resume(p, b, devname, land=False):
+    """T4: after a reload, "Continue at Frank's desk": the checklist is there together with the desktop"""
+    dev = dict(p.devices[devname]); dev.pop('default_browser_type', None)
+    if land: dev['viewport'] = {'width': max(dev['viewport'].values()), 'height': min(dev['viewport'].values())}
+    PFX[0] = 'r7_' + devname.replace(' ', '') + ('_land' if land else '') + '_resume_'
+    ctx = b.new_context(**dev); pg = ctx.new_page(); pg.on('pageerror', lambda e: logs.append('PAGEERROR ' + str(e)))
+    pg.goto(URL); pg.wait_for_selector('.fr-intro [data-a=go]'); pg.wait_for_timeout(400)
+    tap(pg, pg.locator('.fr-intro [data-a=go]'), 300)
+    pg.wait_for_selector('.fr-login input', timeout=8000); pg.wait_for_timeout(300)
+    tap(pg, pg.locator('.fr-login input'), 200); pg.keyboard.type('sedalia1958'); pg.keyboard.press('Enter')
+    pg.wait_for_selector('.fr-win .ck-wrap', timeout=8000); pg.wait_for_timeout(1500)
+    pg.reload(); pg.wait_for_selector('.fr-intro [data-a=go]'); pg.wait_for_timeout(400)
+    ok('Continue' in pg.inner_text('.fr-intro [data-a=go]'), 'T4: after a reload: "Continue at Frank\'s desk"')
+    tap(pg, pg.locator('.fr-intro [data-a=go]'), 50)
+    gap = pg.evaluate("""() => new Promise(res => { let d0 = 0; const t0 = Date.now(); const f = () => { const d = document.querySelector('.fr-desktop'), c = document.querySelector('.fr-win .ck-wrap');
+      if (d && !d0) d0 = performance.now(); if (d0 && c) return res(Math.round(performance.now() - d0)); if (Date.now() - t0 > 12000) return res(-1); requestAnimationFrame(f); }; f(); })""")
+    ok(0 <= gap <= 120, f'T4: after "Continue at Frank\'s desk" the checklist comes with the desktop ({gap} ms after it; was ~700 ms)')
+    ctx.close()
+
+
+def r7_desktop(p, b):
+    """round 7 on a desktop: double-click edits in the cell as before (no mirror), no sticky chip, no Answer button,
+    Properties sized to its page as before, Run… calc in front"""
+    PFX[0] = 'r7_desktop_'
+    ctx = b.new_context(viewport={'width': 1366, 'height': 800}); pg = ctx.new_page(); pg.on('pageerror', lambda e: logs.append('PAGEERROR ' + str(e)))
+    pg.goto(URL + '?dev=1&solve=unlock'); pg.wait_for_selector('.fr-desktop'); pg.wait_for_timeout(900)
+    pg.evaluate(MUTE)
+    pg.click('.fr-win .ck-item.open .ck-chip:has-text("Budget_FY27_BOARD.xls")'); pg.wait_for_timeout(1200)
+    pg.dblclick('.fr-win:not(.fr-inactive) td[data-r="9"][data-c="4"]'); pg.wait_for_timeout(300)
+    d = pg.evaluate("() => { const ed = FR.wm.active.el.querySelector('.xl-editor'); return [document.activeElement === ed, ed.classList.contains('xl-editor-mirror')]; }")
+    ok(d == [True, False], f'T2 desktop: double-click edits in the cell as before {d}')
+    pg.keyboard.press('Escape')
+    ok(pg.locator('.xl-stickchip').count() == 0, 'T1 desktop: no sticky-note chip')
+    pg.evaluate("() => FR.apps.properties('model47')"); pg.wait_for_timeout(600)
+    ok(pg.evaluate("() => { const w = document.querySelector('.sh-sheetwin'); return !w.classList.contains('fr-max') && !w.classList.contains('sh-float') && w.style.height === 'auto'; }"), 'T6 desktop: Properties as before')
+    pg.click('.sh-sheet .sh-cancel'); pg.wait_for_timeout(300)
+    pg.evaluate("() => FR.apps.excel(null)"); pg.wait_for_timeout(900)
+    pg.click('.fr-startbtn'); pg.wait_for_timeout(300); pg.click('.fr-sm-item:has-text("Run...")'); pg.wait_for_timeout(400)
+    pg.fill('.fr-dialog .fr-dlg-input input', 'calc'); pg.click('.fr-dialog .fr-dlg-btns button:has-text("OK")'); pg.wait_for_timeout(500)
+    ok(pg.evaluate("() => FR.wm.active && FR.wm.active.el.querySelector('.fr-title').textContent === 'Calculator' && document.activeElement.closest('.fr-win') === FR.wm.active.el || FR.wm.active.el.querySelector('.fr-title').textContent === 'Calculator'"), 'T7 desktop: Run… calc is in front of Excel')
+    pg.evaluate("() => FR.bonus.deliver('steve_margin', true)"); pg.evaluate("() => FR.mail.open('bn_steve_margin')"); pg.wait_for_timeout(800)
+    ok(pg.locator('.bn-jump').count() == 0 and pg.locator('.bn-box').count() >= 1, 'T5 desktop: the answer box as before, no Answer button')
+    ctx.close()
+
 os.makedirs(OUT, exist_ok=True)
 with sync_playwright() as p:
     kw = {'executable_path': os.environ['CHROMIUM']} if os.environ.get('CHROMIUM') else {}
     b = p.chromium.launch(**kw)
+    R7_DEV = ['iPad Mini'] + DEVICES
+    for devname in (R7_DEV if not os.environ.get('PLAY_ONLY') else []): r7_checks(p, b, devname)
+    for devname in (R7_DEV if not os.environ.get('PLAY_ONLY') else []): r7_checks(p, b, devname, land=True)
+    for devname in (['iPad Mini', 'iPhone 13'] if not os.environ.get('PLAY_ONLY') else []): r7_resume(p, b, devname); r7_resume(p, b, devname, land=True)
+    if not os.environ.get('PLAY_ONLY'): r7_desktop(p, b)
+    if os.environ.get('R7_ONLY'):   # (developers: only the round-7 checks)
+        print('\n'.join(logs) or 'no console errors'); print('ALL PASS' if not fails[0] and not logs else f'{fails[0]} FAILED'); sys.exit(1 if fails[0] or logs else 0)
     for devname in (DEVICES if not os.environ.get('PLAY_ONLY') else []): r6_checks(p, b, devname)
     for devname in (DEVICES if not os.environ.get('PLAY_ONLY') else []): r6_land(p, b, devname)
     if not os.environ.get('PLAY_ONLY'): r6_desktop(p, b)

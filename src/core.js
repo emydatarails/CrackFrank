@@ -22,7 +22,7 @@ FR.apps = FR.apps || {};
     const onMq = () => {
       const was = FR.mobile; setMobile();
       // turned into a phone layout (e.g. a narrow window): every app window fills the screen
-      if (FR.mobile && !was && FR.wm) FR.wm.wins.forEach(w => { if (!w.max && !w.el.classList.contains('fr-dialog')) w.maximize(true); });
+      if (FR.mobile && !was && FR.wm) FR.wm.wins.forEach(w => { if (!w.max && !w.el.classList.contains('fr-dialog') && !(w.opts && w.opts.float)) w.maximize(true); });
     };
     if (mobileMq.addEventListener) mobileMq.addEventListener('change', onMq); else if (mobileMq.addListener) mobileMq.addListener(onMq);
   }
@@ -408,9 +408,11 @@ FR.apps = FR.apps || {};
           document.addEventListener('mousedown', mshowOff, true);
         }
       }
-      if (!isDlg && (o.maximized || FR.mobile || window.innerWidth < 700 || ((o.className || '').includes('xl-win') && window.innerWidth < 1300))) w.maximize(FR.mobile);
+      if (!isDlg && !o.float && (o.maximized || FR.mobile || window.innerWidth < 700 || ((o.className || '').includes('xl-win') && window.innerWidth < 1300))) w.maximize(FR.mobile);
       el.classList.add('fr-opening'); setTimeout(() => el.classList.remove('fr-opening'), 200);
-      el._frShown = Date.now(); el._frGuard = isDlg ? 500 : 250;
+      // (R7 T4) phones / tablets: a window that opens by itself (no tap in the last 400 ms: a restored checklist, a
+      // timer) ignores taps for its first 600 ms, so a finger already on its way to the desktop can't press its buttons
+      el._frShown = Date.now(); el._frGuard = isDlg ? 500 : (FR.mobile && FR.tapGuard && Date.now() - FR.tapGuard.lastTouch() > 400 ? 600 : 250);
       w.focus();
       return w;
     },
@@ -485,7 +487,8 @@ FR.apps = FR.apps || {};
           } else back = FR.wm.active;
           res({ button, value: inp ? inp.value : undefined });
           // apps (Excel) listen for this to put keyboard focus back into their grid
-          setTimeout(() => { if (!FR.wm.topDialog()) FR.bus.emit('dialog-closed', back && wins.has(back.id) ? back : FR.wm.active); }, 0); }
+          // (R7 T7) … unless something else came to the front meanwhile (Run… → calc): then that one is the window to focus
+          setTimeout(() => { if (!FR.wm.topDialog()) { const a = FR.wm.active; FR.bus.emit('dialog-closed', back && wins.has(back.id) && (!a || a === back) ? back : a); } }, 0); }
         content.querySelectorAll('.fr-dlg-btns button').forEach((b, i) => (b.onclick = () => finish(btns[i])));
         if (inp) { inp.value = o.input.value || ''; setTimeout(() => inp.focus(), 30); inp.onkeydown = e => { if (e.key === 'Enter') finish(btns[0]); if (e.key === 'Escape') finish(btns[btns.length - 1]); }; }
         else setTimeout(() => (content.querySelector('.fr-dlg-btns button.default') || content.querySelector('button')).focus(), 30);
@@ -567,6 +570,10 @@ FR.apps = FR.apps || {};
     }
     tips.q = tips.q.filter(t => Date.now() - t.at < TIP.WAIT);
     if (!tips.q.length) return;
+    // (R7 T3) the next tip never comes while the last one's ghost is still there (a tap aimed at the old one is
+    // swallowed there): it shows once that is over, so a tap on the new one is never taken for the old one
+    const g = balloonGhost;
+    if (g && Date.now() < g.at + (g.ms || 600) + 150) { tips.pump = setTimeout(tipPump, g.at + (g.ms || 600) + 160 - Date.now()); return; }
     if (!tipQuiet(tips.q[0])) { tips.pump = setTimeout(tipPump, tips.q[0].opts.asked ? 100 : 300); return; }
     const t = tips.q.shift();
     if (t.opts.still && !t.opts.still()) { tipLog('stale ' + t.title); return tipPump(); }
@@ -703,7 +710,11 @@ FR.apps = FR.apps || {};
       if (t._frShown && lastTouch < t._frShown + (t._frGuard || 350)) return true;
     }
     const g = balloonGhost;
-    if (g && lastTouch > g.at - 1500 && lastTouch < g.at + (g.ms || 600) && e.clientX >= g.r.left && e.clientX <= g.r.right && e.clientY >= g.r.top && e.clientY <= g.r.bottom) return true;
+    if (g && lastTouch > g.at - 1500 && lastTouch < g.at + (g.ms || 600) && e.clientX >= g.r.left && e.clientX <= g.r.right && e.clientY >= g.r.top && e.clientY <= g.r.bottom) {
+      // (R7 T3) … but a tap on a tip that is up and taking taps is for that tip
+      const on = e.target && e.target.closest && e.target.closest('.fr-balloon');
+      if (!(on && tips.cur && tips.cur.b === on && tips.cur.state !== 'arriving')) return true;
+    }
     return false;
   };
   ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click', 'dblclick'].forEach(ev => window.addEventListener(ev, e => {

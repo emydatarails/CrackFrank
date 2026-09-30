@@ -320,7 +320,8 @@
     document.addEventListener('mousedown', e => { if (startMenu && !startMenu.contains(e.target) && !sb.contains(e.target)) closeStart(); });
 
     if (firstTime || DEV || resumed) {
-      setTimeout(() => openChecklist(), DEV ? 0 : 700);
+      // (R7 T4) phones / tablets: at once, with the desktop (it came ~1 s later, under a finger already on its way to an icon)
+      setTimeout(() => openChecklist(), DEV || FR.mobile ? 0 : 700);
       if (!DEV && !resumed) setTimeout(() => FR.balloon('You have new e-mail', 'Diane Kessler: "Board Pack — 9:00 AM. No excuses."', () => FR.apps.mail(null), { act: 'Open Inbox' }), 2600);
     }
     if (FR.puzzle.isSolved('frank') && !DEV) setTimeout(ending, 800);

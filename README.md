@@ -216,7 +216,10 @@ python3 test/features_play.py            # Blue Screen, Norton, bonus requests, 
   the ending, a menu or typing is going on. It is an ordinary tray balloon, so phones get the usual toast. Clicking it opens
   a small status window ("System Status: OK", "Scan Frank's inbox"…). A generic yellow shield, no real logo.
 - **Bonus requests** (`src/apps/xp_bonus.js`): e-mails from people who don't know Frank is missing, each with a small
-  finance question and an answer box inside the message (or reply with the number). Optional; they arrive one at a time
+  finance question and an answer box inside the message (or reply, also to the sender's answer). One grader for both
+  (`judge()`, tests in `test/bonus_grade_test.js`): the right number anywhere in the text counts, the question's own numbers
+  and the working never count against it; it fails only if no number is right or the text settles on another final answer
+  ("the answer is …", "say …"). On phones/tablets an "Answer ▸" button is pinned at the top of the message. Optional; they arrive one at a time
   after a checklist item, the first 2 minutes into play and then at least 3½ minutes apart, with a toast "New request
   from …". Wrong answers cost nothing and never count toward the Blue Screen; the sender answers in character and, after two
   misses, explains the method. Saved in `FR.state.bonus` (`{ id: { solvedAt, pts } }`); points from `BONUS` in

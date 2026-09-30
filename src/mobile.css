@@ -763,3 +763,30 @@
   html.fr-m .pt.pt-mob .pt-fgbg { width: 40px; height: 40px; align-self: flex-start; margin: 0; }
   html.fr-m .pt.pt-mob .pt-pal { flex: 1 1 auto; min-height: 0; gap: 3px; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(7, minmax(0, 1fr)); }
 }
+/* ===== Round 7 (iPad Mini player) ===== */
+@media (max-width: 760px), (pointer: coarse) and (max-width: 1100px) {
+  /* (T5) a bonus request's answer box is at the end of the message: "★ Answer ▸" stays pinned at the top of the
+     message while the box is out of sight (a tap scrolls to it and puts the cursor in it) */
+  html.fr-m .bn-jump { position: sticky; top: 0; left: 0; z-index: 3; box-sizing: border-box; display: flex; align-items: center; gap: 8px; width: fit-content; max-width: min(100%, 540px); min-height: 40px; margin: 0 0 8px; padding: 6px 10px; border: 1px solid #c9a227; border-left: 4px solid #e0a800; border-radius: 3px; background: #fff4c2; box-shadow: 0 2px 4px rgba(0,0,0,.18); font: 13px Tahoma, Verdana, sans-serif; color: #6b4a00; text-align: left; cursor: pointer; }
+  html.fr-m .bn-jump b { margin-left: auto; padding: 4px 10px; border: 1px solid #a07c10; border-radius: 3px; background: #ffe27a; color: #3a2800; white-space: nowrap; }
+  html.fr-m .bn-jump.bn-jump-off { visibility: hidden; }
+}
+@media (max-width: 760px), (pointer: coarse) and (max-width: 1100px) {
+  /* (T1) Frank's sticky notes off the screen: a yellow chip over the grid's top right corner scrolls to them */
+  html.fr-m .xl-stickchip { position: absolute; z-index: 8; top: 24px; right: 8px; min-height: 36px; padding: 4px 10px; border: 1px solid #b8a200; border-radius: 3px; background: #ffff99; box-shadow: 2px 2px 0 rgba(0,0,0,.25); font: bold 13px "Comic Sans MS", "Segoe Print", Tahoma, sans-serif; color: #202020; cursor: pointer; animation: xl-pop .45s ease-out; }
+  html.fr-m .xl-stickchip[hidden] { display: none; }
+}
+@media (max-width: 760px), (pointer: coarse) and (max-width: 1100px) {
+  /* (T2) editing in the formula bar (tap a cell twice / double-tap): the cell shows what is being typed; taps go through */
+  html.fr-m .xl-editor.xl-editor-mirror { pointer-events: none; caret-color: transparent; outline: 2px solid #316ac5; outline-offset: -1px; }
+}
+@media (max-width: 760px), (pointer: coarse) and (max-width: 1100px) {
+  /* (T6) tablets: a property sheet floats, sized to its page (shell.js places it); the page scrolls if it must */
+  html.fr-m .sh-sheetwin.sh-float { box-shadow: 2px 4px 18px rgba(0,0,0,.45); }
+  html.fr-m .sh-sheetwin.sh-float > .window-body { flex: 1 1 auto; }
+  html.fr-m .sh-sheetwin.sh-float .sh-panes { flex: 0 1 auto; }
+}
+@media (max-width: 760px), (pointer: coarse) and (max-width: 1100px) {
+  /* (T2) the fill handle (a 5 px corner; phones use Fill…) caught the second tap of a double-tap on the cell */
+  html.fr-m .xl-selbox .xl-fillh { pointer-events: none; }
+}

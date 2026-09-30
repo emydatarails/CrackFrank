@@ -900,10 +900,28 @@
       root.querySelectorAll('[role=tab]').forEach(x => x.setAttribute('aria-selected', x === b));
       root.querySelectorAll('.sh-pane').forEach(p => (p.hidden = p.dataset.i !== b.dataset.i));
     }));
-    const win = FR.wm.open({ id, title, icon, width, height: 480, resizable: false, className: 'sh-sheetwin', content: root });
+    // (R7 T6) tablets (both sides at least 600 px): the sheet floats, as wide as it needs and as tall as its page
+    // (never taller than the screen above the taskbar: then its page scrolls, OK / Cancel / Apply stay at its bottom)
+    const tablet = () => FR.mobile && Math.min(innerWidth, innerHeight) >= 600;
+    const float = tablet();
+    const win = FR.wm.open({ id, title, icon, width, height: 480, resizable: false, className: 'sh-sheetwin' + (float ? ' sh-float' : ''), content: root, float });
     // phones: the sheet fills the screen (the window manager maximizes it); its page scrolls by touch and
     // OK / Cancel / Apply stay pinned at the bottom
-    if (FR.mobile) { if (!win.max) win.maximize(true); } else win.el.style.height = 'auto';
+    if (float) {
+      const place = () => {
+        if (!win.el.isConnected) { removeEventListener('resize', onRz); return; }
+        if (!tablet()) { if (!win.max) win.maximize(true); return; }
+        const host = win.el.parentElement, hw = (host && host.clientWidth) || innerWidth, tbar = document.querySelector('.fr-taskbar');
+        const hh = Math.min((host && host.clientHeight) || innerHeight, tbar ? tbar.getBoundingClientRect().top - (host ? host.getBoundingClientRect().top : 0) : innerHeight);
+        Object.assign(win.el.style, { width: Math.min(Math.max(width, 460), hw - 32) + 'px', height: 'auto', maxHeight: (hh - 24) + 'px' });
+        win.el.style.left = Math.max(12, Math.round((hw - win.el.offsetWidth) / 2)) + 'px';
+        win.el.style.top = Math.max(12, Math.round((hh - win.el.offsetHeight) / 3)) + 'px';
+      };
+      const onRz = () => setTimeout(place, 60);
+      addEventListener('resize', onRz);
+      root.querySelectorAll('[role=tab]').forEach(t => t.addEventListener('click', () => setTimeout(place, 0)));   // (another page, another height)
+      place();
+    } else if (FR.mobile) { if (!win.max) win.maximize(true); } else win.el.style.height = 'auto';
     const apply = root.querySelector('.sh-apply');
     root.addEventListener('change', () => (apply.disabled = false));
     root.addEventListener('input', () => (apply.disabled = false));

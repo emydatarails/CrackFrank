@@ -1092,7 +1092,7 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
     if (!m) { p.innerHTML = '<div class="oe-pbody oe-pempty"></div>'; return; }
     p.innerHTML = `<div class="oe-ph">${hdrHTML(m)}</div><div class="oe-pbody">${renderBody(m)}</div>`;
     wireChips(p, m.attach || []); wireBody(p);
-    if (m.bonus && FR.bonus) FR.bonus.mount(p.querySelector('.oe-pbody'), m);
+    if (FR.bonus && FR.bonus.taskOf(m)) FR.bonus.mount(p.querySelector('.oe-pbody'), m);
   }
   function renderStart() {
     const s = V.el.querySelector('.oe-start');
@@ -1179,7 +1179,7 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
       w.close(); openMsg(n);
     }
     wireChips(el, m.attach || []); wireBody(el);
-    if (m.bonus && FR.bonus) FR.bonus.mount(el.querySelector('.oe-mbody'), m);
+    if (FR.bonus && FR.bonus.taskOf(m)) FR.bonus.mount(el.querySelector('.oe-mbody'), m);
     return w;
   }
 
@@ -1387,6 +1387,8 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
     const s = m.subject;
     // a reply to a bonus request is answered by its sender (src/apps/xp_bonus.js), not by an auto-reply
     if (m.replyOf && FR.bonus && FR.bonus.onReply(m, byId(m.replyOf))) return;
+    // (R7 T5) … also a new message to the sender with the request's subject ("Re: Rotary question …")
+    if (!m.replyOf && FR.bonus && rcpt.length === 1 && rcpt[0].email && FR.bonus.onReply(m, { from: rcpt[0], subject: m.subject })) return;
     const seen = new Set();
     rcpt.forEach(r => {
       if (!r.email || seen.has(r.email)) return; seen.add(r.email);

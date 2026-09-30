@@ -1856,9 +1856,46 @@
       wrap.style.width = table.offsetWidth + 'px'; wrap.style.height = h + 'px';
       Object.assign(hit, { rowY, rowHt, colX, colWd, h });
     }
+    /* (R7 T1) phones / tablets: Frank's sticky notes sit right of the statement (column K), off the screen of a tablet
+       held upright or a phone. A yellow "📝 Frank's note ▸" chip over the grid's top right corner shows while a note is
+       out of sight; a tap scrolls the grid to it (the next one, if there are more) and the note pops again */
+    let stickEls = [], stickChip = null;
+    const stickVis = n => {
+      const sl = scroll.scrollLeft, stp = scroll.scrollTop, cw = scroll.clientWidth, ch = scroll.clientHeight, w = n.d.offsetWidth, h = n.d.offsetHeight;
+      return n.l >= sl + RHW + (n.o.c > 0 ? colWd[0] : 0) - 2 && n.l + w <= sl + cw - 6 && n.t >= stp + CHH - 2 && n.t + h <= stp + ch - 6;   // (it is tilted a little)
+    };
+    function stickUpd() {
+      if (!FR.mobile) return;
+      const off = stickEls.filter(n => n.d.isConnected && !stickVis(n));
+      if (!off.length) { if (stickChip) stickChip.hidden = true; return; }
+      if (!stickChip) {
+        stickChip = $('<button class="xl-stickchip" type="button"></button>');
+        stickChip.onmousedown = e => e.stopPropagation();
+        stickChip.onclick = e => {
+          e.stopPropagation();
+          const n = stickEls.find(x => x.d.isConnected && !stickVis(x)); if (!n) { stickUpd(); return; }
+          const cw = scroll.clientWidth, ch = scroll.clientHeight, w = n.d.offsetWidth, h = n.d.offsetHeight;
+          const sl = Math.min(n.l - RHW - (n.o.c > 0 ? colWd[0] : 0) - 4, Math.max(0, n.l + w + 14 - cw));   // (column A is frozen)
+          let stp = scroll.scrollTop;
+          if (n.t < stp + CHH || n.t + h > stp + ch - 6) stp = Math.max(0, Math.min(n.t - CHH - 6, n.t + h + 16 - ch));
+          scroll.scrollTo({ left: Math.max(0, sl), top: stp });
+          n.d.classList.remove('xl-pop'); void n.d.offsetWidth; n.d.classList.add('xl-pop');
+          setTimeout(stickUpd, 60);
+        };
+        q('.xl-main').appendChild(stickChip);
+      }
+      stickChip.innerHTML = `&#128221; ${off.length === 1 && stickEls.length === 1 ? "Frank's note" : `${off.length} of Frank's notes`} &#9656;`;
+      stickChip.setAttribute('aria-label', "Show Frank's sticky note");
+      stickChip.hidden = false;
+    }
+    if (FR.mobile) {
+      scroll.addEventListener('scroll', () => { if (stickEls.length) stickUpd(); }, { passive: true });
+      window.addEventListener('resize', () => setTimeout(() => { if (stickEls.length) stickUpd(); }, 80));
+    }
     function renderObjs() {
       const s = sh();
       objs.innerHTML = '';
+      stickEls = [];
       s.charts.forEach(ch => {
         const d = $(`<div class="xl-chart" style="left:${colX[ch.c] + ch.dx}px;top:${rowY[ch.r] + ch.dy}px;width:${ch.w}px;height:${ch.h}px"></div>`);
         try { d.innerHTML = ch.render(book); } catch (e) { d.textContent = 'Chart error'; }
@@ -1871,10 +1908,17 @@
         d.innerHTML = o.html;
         d.onmousedown = e => e.stopPropagation();
         objs.appendChild(d);
+        if (FR.mobile && /\bxl-sticky\b/.test(o.cls || '')) {
+          // a note never wider than what's left of the screen next to the frozen column A (it wraps instead)
+          const room = scroll.clientWidth - RHW - (o.c > 0 ? colWd[0] : 0) - 16;
+          if (room > 0 && o.w > room) d.style.width = Math.max(96, room) + 'px';
+          stickEls.push({ d, o, l: colX[o.c] + o.dx, t: rowY[o.r] + o.dy });
+        }
       });
       if (st.showCm) {
         for (const k in s.cells) { const cl = s.cells[k]; if (!cl.cm) continue; const [r, c] = k.split(',').map(Number); if (r >= NR || c >= NC) continue; objs.appendChild(cmBox(cl.cm, r, c, true)); }
       }
+      if (FR.mobile) stickUpd();
     }
     function cmBox(cm, r, c, fixed) {
       const x = colX[c] + colWd[c] + 12, y = Math.max(0, rowY[r] - 6);
@@ -2020,7 +2064,11 @@
     }
     function syncEditorVisibility() {
       const ed = st.edit;
-      if (!ed || ed.si !== st.si || ed.from === 'fbar') { editor.style.display = 'none'; return; }
+      // (R7 T2) phones / tablets edit in the formula bar (a finger can't aim inside a 17 px cell), but the cell shows
+      // what is being typed, like Excel does: the in-cell editor as a mirror (taps go through it)
+      const mirror = FR.mobile && ed && ed.from === 'fbar';
+      editor.classList.toggle('xl-editor-mirror', !!mirror);
+      if (!ed || ed.si !== st.si || (ed.from === 'fbar' && !mirror)) { editor.style.display = 'none'; return; }
       const b = boxFor(ed.r, ed.c, ed.r, ed.c);
       Object.assign(editor.style, { display: 'block', left: b.x + 'px', top: b.y + 'px', height: b.h - 1 + 'px', minWidth: b.w - 1 + 'px' });
     }
@@ -2353,13 +2401,23 @@
       wrap.addEventListener('mousedown', e => {
         const p = cellAt(e);
         const lt = st.lastTap;   // only a cell the player tapped already (not the one a workbook opens on)
+        st.redirect = null;
+        // (R7 T2) a double-tap on a cell at the edge of the screen: the first tap scrolled the grid to show the cell, so
+        // the second one lands on its neighbour. A second tap within 450 ms at the same spot of the screen, right after the
+        // grid moved, is the double-tap on the first cell (it edits it, it doesn't select the neighbour)
+        if (p && lt && lt.moved && lt.si === st.si && Date.now() - lt.t < 450 && (lt.r !== p.r || lt.c !== p.c) && !st.edit && Math.abs(e.clientX - lt.x) < 30 && Math.abs(e.clientY - lt.y) < 30 && lt.r === st.ar && lt.c === st.ac) {
+          st.redirect = { r: lt.r, c: lt.c }; e.stopPropagation(); e.preventDefault(); return;
+        }
         st.tapAgain = !!(p && lt && lt.si === st.si && lt.r === p.r && lt.c === p.c && !st.edit && p.r === st.ar && p.c === st.ac && st.anchor.r === st.focus.r && st.anchor.c === st.focus.c);
+        st.tapDown = { sx: scroll.scrollLeft, sy: scroll.scrollTop };
       }, true);
       wrap.addEventListener('click', e => {
+        if (st.redirect) { const rd = st.redirect; st.redirect = null; st.lastTap = null; if (st.ar === rd.r && st.ac === rd.c && !st.edit) editInBar(); return; }
         const p = cellAt(e); if (!p) return;
         tapNote(e.target.closest('td[data-r]'));
         if (st.tapAgain && !st.edit) editInBar();
-        st.tapAgain = false; st.lastTap = { si: st.si, r: p.r, c: p.c };
+        const d = st.tapDown || {};
+        st.tapAgain = false; st.lastTap = { si: st.si, r: p.r, c: p.c, t: Date.now(), x: e.clientX, y: e.clientY, moved: d.sx !== scroll.scrollLeft || d.sy !== scroll.scrollTop };
       });
     }
     // Ctrl+End: the last row and the last column that have anything in them
@@ -2536,7 +2594,7 @@
     app.addEventListener('mousedown', e => { if (e.target.closest('.xl-tabbar, .xl-status')) { e.preventDefault(); } });
 
     // any core dialog (Frank's notes, errors) hands focus back to this window → put the caret back on the grid
-    const onDlgClosed = w => { if (st.closed) { FR.bus.off && FR.bus.off('dialog-closed', onDlgClosed); return; } if (!w || w === win || w.id === win.id) setTimeout(focusGrid, 0); };
+    const onDlgClosed = w => { if (st.closed) { FR.bus.off && FR.bus.off('dialog-closed', onDlgClosed); return; } if ((!w || w === win || w.id === win.id) && (!FR.wm.active || FR.wm.active === win)) setTimeout(() => { if (!st.closed && (!FR.wm.active || FR.wm.active === win)) focusGrid(); }, 0); };
     if (FR.bus) FR.bus.on('dialog-closed', onDlgClosed);
     const api = {
       book, win, refresh, renderObjs, switchSheet, st, focusGrid,
@@ -2641,6 +2699,9 @@
   });
   function revealNote(book, ui, fromChecklist) {
     const pi = book.idx('P&L Summary'), s = book.sheets[pi];
+    // (R7) the last near-miss note ("The quarters are still #REF!…") goes once the row is fixed: it used to stay on top
+    // of the new note
+    const xi = s.shapes.findIndex(x => x.id === 'xnudge'); if (xi >= 0) { s.shapes.splice(xi, 1); if (ui.st.si === pi && !ui.st.closed) ui.renderObjs(); }
     const n = s.shapes.find(x => x.id === 'fnote');
     if (!n || !n.hidden) return;
     n.hidden = false; n.cls = 'xl-sticky xl-pop';

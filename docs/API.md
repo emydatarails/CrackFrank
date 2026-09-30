@@ -51,7 +51,9 @@ Test page: `dist/index.html?dev=1` skips intro/login (logged in, all items unloc
 - Extras (src/apps/xp_*.js): `FR.xp` { LOCAL, noPopups (`?nopopups=1`, LOCAL only), quiet(), ff(ms) (LOCAL only: moves the
   play clock) }; `FR.bsod` { show, hide, active }; `FR.norton` { pop(text?), statusWin() }; `FR.eggs` { list, find(id),
   count(), total, has(id) } with `FR.state.eggs = { id: foundAtMs }`; `FR.bonus` { TASKS, deliver(id, quiet?), award(id),
-  grade(id, value), mount(el, msg), onReply(msg, orig) } with `FR.state.bonus = { id: { solvedAt, pts } }` (points come
+  grade(id, text), judge(id, text) → { ok, msg } (pure: the one grader for the answer box and replies, test/bonus_grade_test.js),
+  numbers(text), taskOf(msg) (the request a message belongs to: `msg.bonus`, the sender's answers `msg.bonusRe`, or sender +
+  subject), mount(el, msg), onReply(msg, orig) } with `FR.state.bonus = { id: { solvedAt, pts } }` (points come
   from `BONUS` in src/score_rules.js). Other files can add Run… commands (`FR.runCommands[name] = fn`), Internet Explorer
   pages (`FR.iePages[host] = { title, html(url), onShow? }`) and Favorites (`FR.ieFavs.push([folder, [[title, url]]])`),
   and built-in Paint pictures (a file node with `app: 'paint'` and `paintImage()` → ImageData, via `FR.fs.extra`).

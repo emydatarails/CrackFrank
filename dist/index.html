@@ -2630,7 +2630,8 @@ FR.apps = FR.apps || {};
       el.classList.add('fr-opening'); setTimeout(() => el.classList.remove('fr-opening'), 200);
       // (R7 T4) phones / tablets: a window that opens by itself (no tap in the last 400 ms: a restored checklist, a
       // timer) ignores taps for its first 600 ms, so a finger already on its way to the desktop can't press its buttons
-      el._frShown = Date.now(); el._frGuard = isDlg ? 500 : (FR.mobile && FR.tapGuard && Date.now() - FR.tapGuard.lastTouch() > 400 ? 600 : 250);
+      el._frShown = Date.now(); el._frGuard = isDlg ? 500 : 250;
+      if (!isDlg && FR.mobile && FR.tapGuard && Date.now() - FR.tapGuard.lastTouch() > 400) { el._frGuard = 600; setTimeout(() => { el._frGuard = 250; }, 650); }   // (later re-shows: as before)
       w.focus();
       return w;
     },

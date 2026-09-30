@@ -211,7 +211,8 @@
   .xl-fx { font-size: 17px; }
   #fr-root .xl-app input.xl-fin { height: 36px !important; font-size: 16px !important; }
   /* (R5 P2) the workbook you're typing into, named under the formula bar in a colour of its own */
-  .xl-fname { flex: 0 0 auto; display: flex; align-items: center; gap: 6px; height: 22px; padding: 0 8px; background: var(--xl-fc, #1d5a2e); color: #fff; font: bold 13px Tahoma, sans-serif; white-space: nowrap; overflow: hidden; }
+  .xl-fbar { flex-wrap: wrap; }
+  .xl-fname { order: 9; flex: 0 0 calc(100% + 6px); box-sizing: border-box; margin: 1px -3px -4px; display: flex; align-items: center; gap: 6px; height: 22px; padding: 0 8px; background: var(--xl-fc, #1d5a2e); color: #fff; font: bold 13px Tahoma, sans-serif; white-space: nowrap; overflow: hidden; }
   .xl-fname b { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
   .xl-fname .fr-ico { flex: 0 0 auto; background: #fff; border-radius: 2px; }
   #fr-root .xl-app input.xl-fin::placeholder { color: #8a8a8a; font-style: italic; font-size: 13px; }
@@ -412,7 +413,7 @@
 /* phones held sideways: little height, so the chrome gets slimmer */
 @media (max-height: 500px) {
   html.fr-m .xl-dock, html.fr-m .xl-status { display: none; }
-  html.fr-m .xl-fname { height: 18px; font-size: 12px; }
+  html.fr-m .xl-fname { order: 0; flex: 0 1 auto; max-width: 42%; min-width: 0; margin: 0 0 0 2px; height: 30px; border-radius: 3px; }   /* sideways: at the end of the formula bar, no extra row */
   html.fr-m .fr-login-top, html.fr-m .fr-login-bot { min-height: 0; height: 44px; }
   html.fr-m .fr-login-mid { flex-direction: row; align-items: flex-start; gap: 14px; padding: 10px 14px; }
   html.fr-m .fr-login-left { width: 36%; }

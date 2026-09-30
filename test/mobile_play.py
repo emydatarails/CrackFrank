@@ -581,6 +581,15 @@ def playthrough(p, b, devname):
     dlg_btn(pg, 'Cancel')
     ok(pg.locator('.fr-end').count() == 1 and 'frank' in solved(pg), 'Q2: Cancel keeps the game')
     tap(pg, pg.locator('.fr-end [data-a=back]'), 400)
+    # (R5 P5) after the ending the tray's checklist button opens the checklist; the ending is a link at its top
+    pg.evaluate(MUTE)
+    tap(pg, pg.locator('.fr-pack'), 700)
+    ok(pg.locator('.fr-end').count() == 0 and pg.evaluate("() => FR.wm.active && FR.wm.active.id") == 'checklist', 'P5: the 10/10 tray button opens the checklist, not the ending')
+    ok(topmost_is_visible(pg, TOP + ' .ck-endlink'), 'P5: the finished checklist has "See how it ended" on screen')
+    shot(pg, 'checklist_done')
+    tap(pg, pg.locator(TOP + ' .ck-endlink'), 1800)
+    ok(pg.locator('.fr-end').count() == 1, 'P5: ... and it brings the ending back')
+    tap(pg, pg.locator('.fr-end [data-a=back]'), 400)
 
     ctx.close()
 
@@ -899,10 +908,110 @@ def r4_checks(p, b, devname):
     ctx.close()
 
 
+SITE_OK = """() => { const cs = getComputedStyle(document.body), imgs = [...document.images];
+  const rules = [...document.styleSheets].reduce((n, s) => { try { return n + s.cssRules.length; } catch (e) { return n; } }, 0);
+  return { font: cs.fontFamily, rules, imgs: imgs.length, broken: imgs.filter(i => !i.complete || !i.naturalWidth).map(i => i.getAttribute('src')) }; }"""
+
+
+def site_frame(pg):
+    fr = [f for f in pg.frames if 'packacorp.com' in f.url]
+    return fr[-1] if fr else None
+
+
+def site_styled(pg, what, bad):
+    fr = site_frame(pg)
+    r = fr.evaluate(SITE_OK) if fr else None
+    good = bool(r) and 'Times' not in r['font'] and r['rules'] > 20 and not r['broken'] and not bad
+    ok(good, f'P1: {what}: packacorp.com styled, images load, no 404 ({(fr.url if fr else "no frame")}, {r and r["rules"]} css rules, broken {r and r["broken"]}, {len(bad)} failed requests {bad[:2]})')
+    bad.clear()
+
+
+def r5_checks(p, b, devname):
+    """round 5 (Pixel player): the company site in IE stays styled across pages (P1), the workbook you type into is
+    named on screen (P2), every Easter egg is worth points and the count shows (P3), Go To Last Cell on a phone (P4)"""
+    dev = dict(p.devices[devname]); dev.pop('default_browser_type', None)
+    PFX[0] = 'r5_' + devname.replace(' ', '') + '_'
+    print('== round 5 checks on', devname, flush=True)
+    ctx = b.new_context(**dev); ctx.route(re.compile(r'https?://(www\.)?packacorp\.com/.*'), site)
+    pg = ctx.new_page(); bad = []
+    pg.on('console', lambda m: logs.append(m.type + ': ' + m.text) if m.type in ('error', 'warning') else None)
+    pg.on('pageerror', lambda e: logs.append('PAGEERROR ' + str(e)))
+    pg.on('response', lambda r: r.status >= 400 and bad.append(f'{r.status} {r.url}'))
+    pg.goto(URL + '?dev=1&solve=bridge'); pg.wait_for_selector('.fr-desktop'); pg.wait_for_timeout(900)
+    pg.evaluate(MUTE)
+
+    # P1: the company site, page after page (chips, the Links / Favorites, a link inside the site, Refresh, Back)
+    pg.evaluate("() => FR.apps.ie('https://www.packacorp.com/')"); pg.wait_for_timeout(1200)
+    site_styled(pg, 'home', bad)
+    for u in ('about.html', 'products.html', 'careers.html', 'quality.html', 'contact.html', 'industries.html'):
+        pg.evaluate(f"() => FR.apps.ie('https://www.packacorp.com/{u}')"); pg.wait_for_timeout(900)
+        site_styled(pg, u, bad)
+    fr = site_frame(pg)
+    fr.evaluate("() => { const t = document.getElementById('navToggle'); if (t && getComputedStyle(t).display !== 'none') t.click(); }"); pg.wait_for_timeout(200)
+    fr.evaluate("() => document.querySelector('.main-nav a[href=\"products.html\"]').click()"); pg.wait_for_timeout(1000)   # (a tap into the cross-origin frame lands off by a frame offset in headless Chromium: mob_server.py)
+    site_styled(pg, 'a link tapped inside the site (Products)', bad)
+    tap(pg, pg.locator(TOP + ' .ie-b[data-a=refresh]'), 1000); site_styled(pg, 'after Refresh', bad)
+    tap(pg, pg.locator(TOP + ' .ie-b[data-a=back]'), 1000); site_styled(pg, 'after Back', bad)
+    pg.screenshot(path=f'{OUT}/mobile_{PFX[0]}site.png')
+    ok(pg.locator(TOP + ' .fr-menubar').is_visible() and not pg.locator(TOP + ' .fr-mbtn').is_visible(), 'P6: upright, IE keeps its menu bar and shows no Menu button')
+    closeall(pg)
+
+    # P2: the workbook's name under the formula bar, in its own colour; the empty formula bar names it too
+    pg.evaluate("() => FR.openFile('bud_v5ut')"); pg.wait_for_timeout(900); pg.evaluate(MUTE)
+    pg.evaluate("() => FR.openFile('bud_v3')"); pg.wait_for_timeout(900)
+    p2 = pg.evaluate("""() => { const w = document.querySelector('.fr-win.xl-win:not(.fr-inactive)'), f = w.querySelector('.xl-fname'), r = f.getBoundingClientRect(), nm = f.querySelector('b').textContent, fb = w.querySelector('.xl-fbar').getBoundingClientRect();
+      return [nm, w.querySelector('.fr-title').textContent, w.querySelector('.xl-fin').placeholder, getComputedStyle(f).backgroundColor, r.height, f.parentElement.classList.contains('xl-fbar') && r.top >= fb.top + 30 && r.bottom <= fb.bottom + 1 && r.width >= innerWidth - 4,
+              [...document.querySelectorAll('.xl-win .xl-fname')].map(x => getComputedStyle(x).backgroundColor)]; }""")
+    ok(p2[0] == 'Budget_FY27_v3.xls' and p2[1].endswith(p2[0]) and p2[2] == 'Typing into Budget_FY27_v3.xls' and p2[4] >= 18 and p2[5], f'P2: the active workbook is named on its own line under the formula bar: {p2[:6]}')
+    ok(len(set(p2[6])) == 2, f'P2: two open workbooks, two colours {p2[6]}')
+    tap(pg, pg.locator('.fr-switch'), 400); tap(pg, pg.locator('.fr-swl-r', has_text='v5_FINAL_USE_THIS').first, 700)
+    ok(pg.evaluate("() => document.querySelector('.fr-win.xl-win:not(.fr-inactive) .xl-fname b').textContent") == 'Budget_FY27_v5_FINAL_USE_THIS.xls', 'P2: switching windows: the strip follows the workbook on top')
+    pg.screenshot(path=f'{OUT}/mobile_{PFX[0]}xl_name.png')
+    closeall(pg)
+
+    # P4: no Ctrl or End on a phone keyboard: Edit › Go To Last Cell (Ctrl+End) finds the white-on-white note
+    pg.evaluate("() => FR.eggs._test.reset()")
+    sc0 = pg.evaluate('() => FR.score.now().score')
+    pg.evaluate("() => FR.openFile('esports')"); pg.wait_for_timeout(900); pg.evaluate(MUTE)
+    tap(pg, pg.locator(TOP + ' .fr-mi', has_text='Edit'), 300)
+    item = pg.locator('.fr-menu-item', has_text='Go To Last Cell')
+    ok(item.count() == 1 and 'Go To Last Cell (Ctrl+End)' in item.inner_text(), 'P4: Edit menu has "Go To Last Cell (Ctrl+End)" on a phone')
+    tap(pg, item, 600)
+    ok(pg.input_value(TOP + ' .xl-nb-in') == 'J36' and pg.evaluate("() => FR.eggs.has('xl_hidden')"), 'P4: it jumps to J36 and finds the egg')
+    # P3: an egg is worth +10 as it's found, the note says so, and the count is in words
+    t = pg.evaluate("() => (document.querySelector('.eg-toast') || {}).textContent || ''")
+    ok('(1/15)' in t and '+10 points' in t and pg.evaluate('() => FR.score.now().score') == sc0 + 10, f'P3: egg note "{t}"; score +10')
+    ok(pg.evaluate('() => FR.score.found()').startswith('1 of 15 Easter eggs') and '1 egg × 10' in pg.evaluate('() => FR.score.breakdown()'), 'P3: egg progress in words: ' + pg.evaluate('() => FR.score.found() + " | " + FR.score.breakdown()'))
+    pg.screenshot(path=f'{OUT}/mobile_{PFX[0]}egg.png')
+    closeall(pg)
+    pg.evaluate("() => FR.apps.ie('http://intranet.packacorp.local/')"); pg.wait_for_timeout(900)
+    howto = pg.inner_text(TOP + ' .st-howto')
+    ok('+10 for each one you find, 15 hidden' in howto and 'up to +1,450' in howto, 'P3: "How points work" says what an egg is worth')
+    ok('1 of 15 Easter eggs' in pg.inner_text(TOP + ' .st-mine'), 'P3: the leaderboard page shows the egg count')
+    closeall(pg)
+    ctx.close()
+
+
+def r5_desktop(p, b):
+    """round 5: none of the phone-only additions reach a desktop (no strip, no Menu button, no Go To Last Cell)"""
+    PFX[0] = 'r5_desktop_'
+    ctx = b.new_context(viewport={'width': 1366, 'height': 800}); pg = ctx.new_page()
+    pg.goto(URL + '?dev=1&solve=bridge'); pg.wait_for_selector('.fr-desktop'); pg.wait_for_timeout(700)
+    pg.evaluate("() => FR.openFile('esports')"); pg.wait_for_timeout(700)
+    pg.locator('.fr-win:not(.fr-inactive) .fr-mi', has_text='Edit').dispatch_event('mousedown'); pg.wait_for_timeout(200)
+    ok(not pg.evaluate('() => FR.mobile') and pg.locator('.xl-fname').count() == 0 and pg.locator('.fr-mbtn').count() == 0 and pg.locator('.fr-menu-item', has_text='Go To Last Cell').count() == 0 and pg.locator('.fr-menu-item', has_text='Go To...').count() == 1,
+       'desktop: no workbook strip, no Menu button, Edit menu unchanged')
+    ctx.close()
+
+
 os.makedirs(OUT, exist_ok=True)
 with sync_playwright() as p:
     kw = {'executable_path': os.environ['CHROMIUM']} if os.environ.get('CHROMIUM') else {}
     b = p.chromium.launch(**kw)
+    for devname in (DEVICES if not os.environ.get('PLAY_ONLY') else []): r5_checks(p, b, devname)
+    if not os.environ.get('PLAY_ONLY'): r5_desktop(p, b)
+    if os.environ.get('R5_ONLY'):   # (developers: only the round-5 checks)
+        print('\n'.join(logs) or 'no console errors'); print('ALL PASS' if not fails[0] and not logs else f'{fails[0]} FAILED'); sys.exit(1 if fails[0] or logs else 0)
     for devname in (DEVICES if not os.environ.get('PLAY_ONLY') else []): r4_checks(p, b, devname)   # (PLAY_ONLY=1: developers, just the playthroughs)
     if os.environ.get('R4_ONLY'):   # (developers: only the round-4 checks)
         print('\n'.join(logs) or 'no console errors'); print('ALL PASS' if not fails[0] and not logs else f'{fails[0]} FAILED'); sys.exit(1 if fails[0] or logs else 0)
@@ -924,7 +1033,39 @@ with sync_playwright() as p:
         tap(p2, p2.locator('.fr-win .ck-item.open .ck-chip', has_text='Budget_FY27_BOARD.xls').first, 1200)
         rows = p2.evaluate("() => { const s = document.querySelector('.fr-win:not(.fr-inactive) .xl-scroll'); return Math.floor((s.getBoundingClientRect().height - 22) / 20.4); }")
         ok(rows >= (7 if min(vw, vh) < 360 else 11), f'P5: landscape Excel shows {rows} rows (slim chrome, no menu bar)')   # SE: 320 px high (R2-D16)
+        # (R5 P2) sideways too, the workbook is named under the formula bar
+        nm = p2.evaluate("""() => { const w = document.querySelector('.fr-win.xl-win:not(.fr-inactive)'), f = w.querySelector('.xl-fname'), r = f.getBoundingClientRect(), i = w.querySelector('.xl-fin').getBoundingClientRect();
+          return r.height >= 24 && Math.abs(r.top + r.height / 2 - (i.top + i.height / 2)) < 3 && r.left >= i.right && r.right <= innerWidth ? f.querySelector('b').textContent : ''; }""")
+        ok(nm == 'Budget_FY27_BOARD.xls', f'P2: landscape Excel: the workbook is named at the end of the formula bar (same row): {nm!r}')
+        # (R5 P6) no menu bar sideways, but a "Menu" button brings it back: Edit › Go To Last Cell is reachable
+        ok(topmost_is_visible(p2, TOP + ' .fr-mbtn') and not p2.locator(TOP + ' .fr-menubar').is_visible(), 'P6: landscape Excel: menu bar hidden, a Menu button in the title bar')
+        tap(p2, p2.locator(TOP + ' .fr-mbtn'), 300)
+        ok(p2.locator(TOP + ' .fr-menubar').is_visible(), 'P6: Menu shows the menu bar')
+        tap(p2, p2.locator(TOP + ' .fr-mi', has_text='Edit'), 300)
+        ok(p2.locator('.fr-menu-item', has_text='Go To Last Cell (Ctrl+End)').count() == 1, 'P6: ... with Edit › Go To Last Cell (Ctrl+End)')
+        tap(p2, p2.locator('.fr-menu-item', has_text='Go To Last Cell'), 400)
+        ok(not p2.locator(TOP + ' .fr-menubar').is_visible(), 'P6: picking a command puts the menu bar away again')
         p2.screenshot(path=f'{OUT}/mobile_{PFX[0]}excel.png')
+        closeall(p2)
+        # (R5 P6) IE sideways: View › Source and Favorites through the Menu button; the site stays styled (P1)
+        p2.evaluate("() => FR.apps.ie('https://www.packacorp.com/products.html')"); p2.wait_for_timeout(1200)
+        fr = site_frame(p2); r = fr.evaluate(SITE_OK) if fr else None
+        ok(bool(r) and 'Times' not in r['font'] and not r['broken'], f'P1: landscape IE: the Products page is styled ({r and r["rules"]} css rules)')
+        ok(topmost_is_visible(p2, TOP + ' .fr-mbtn') and not p2.locator(TOP + ' .fr-menubar').is_visible(), 'P6: landscape IE: a Menu button (the menu bar is hidden for room)')
+        tap(p2, p2.locator(TOP + ' .fr-mbtn'), 300)
+        tap(p2, p2.locator(TOP + ' .fr-mi', has_text='View'), 300)
+        src = p2.locator('.fr-menu-item', has_text='Source').first; bb = src.bounding_box() if src.count() else None
+        ok(bool(bb) and bb['y'] >= 0 and bb['y'] + bb['height'] <= p2.viewport_size['height'], f'P6: View › Source is on screen {bb}')
+        with ctx2.expect_page() as newpg:
+            tap(p2, p2.locator('.fr-menu-item', has_text='Source').first, 600)
+        newpg.value.close()
+        ok('view-source' in p2.inner_text('.fr-dialog'), 'P6: View › Source: the phone dialog (view-source: in Chrome)')
+        dlg_btn(p2, 'OK')
+        tap(p2, p2.locator(TOP + ' .fr-mbtn'), 300)
+        tap(p2, p2.locator(TOP + ' .fr-mi', has_text='Favorites'), 300)
+        tap(p2, p2.locator('.fr-menu-item', has_text="Kristians' Cheat Sheet Club"), 800)
+        ok(p2.locator(TOP + ' .cc').count() == 1 and not p2.locator(TOP + ' .fr-menubar').is_visible(), 'P6: Favorites › the fan club opens, the menu bar goes away')
+        p2.screenshot(path=f'{OUT}/mobile_{PFX[0]}ie_menu.png')
         closeall(p2)
         # Q1: Folder Options sideways, by touch: OK pinned, the list scrolls by a swipe
         tap(p2, p2.locator('.fr-startbtn'), 500)

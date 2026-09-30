@@ -1691,7 +1691,7 @@
           { label: 'Cut', key: 'Ctrl+X', action: () => copySel(true) }, { label: 'Copy', key: 'Ctrl+C', action: () => copySel(false) }, { label: 'Paste', key: 'Ctrl+V', disabled: !st.clip, action: pasteClip }, { sep: 1 },
           { label: 'Clear Contents', key: 'Del', action: clearSel }, dis('Delete...'), dis('Delete Sheet'), dis('Move or Copy Sheet...'), { sep: 1 }, dis('Find...'), dis('Replace...'), { label: 'Go To...', key: 'Ctrl+G', action: () => { nbin.focus(); nbin.select(); } },
           // (R5 P4) a phone keyboard has no Ctrl or End: the same jump as Ctrl+End, from the menu
-          ...(FR.mobile ? [{ label: 'Go To Last Cell', key: 'Ctrl+End', action: () => goLastCell(false) }] : [])] },
+          ...(FR.mobile ? [{ label: 'Go To Last Cell (Ctrl+End)', action: () => goLastCell(false) }] : [])] },
         { label: 'View', items: () => [{ label: 'Normal', checked: true }, dis('Page Break Preview'), { sep: 1 }, dis('Task Pane'), dis('Toolbars'), { label: 'Formula Bar', checked: st.fbar, action: () => { st.fbar = !st.fbar; q('.xl-fbar').style.display = st.fbar ? '' : 'none'; } },
           { label: 'Status Bar', checked: q('.xl-status').style.display !== 'none', action: () => { const s = q('.xl-status'); s.style.display = s.style.display === 'none' ? '' : 'none'; } }, { sep: 1 },
           { label: 'Comments', checked: st.showCm, action: () => { st.showCm = !st.showCm; renderObjs(); } }, { sep: 1 }, dis('Full Screen'), FR.mobile ? { label: 'Zoom: Fit to Width', checked: !!st.fit, action: () => setFit(!st.fit) } : dis('Zoom...')] },
@@ -2308,14 +2308,14 @@
     let finSelAll = false;   // (S6, below)
     const editInBar = () => { if (st.edit) return; fin.focus(); finSelAll = false; try { fin.setSelectionRange(0, fin.value.length); } catch (x) {} };
     if (FR.mobile) {
-      // (R5 P2) every workbook is full-screen on a phone and the title bar is cut short: a strip under the formula bar
+      // (R5 P2) every workbook is full-screen on a phone and the title bar is cut short: a strip at the formula bar
       // names the workbook you're typing into, in a colour of its own (the same file always gets the same colour),
       // and the empty formula bar says it too
       let hue = 0; for (const ch of book.name) hue = (hue * 31 + ch.charCodeAt(0)) % 360;
       const fn = $(`<div class="xl-fname" style="--xl-fc:hsl(${hue},50%,28%)">${FR.icon('excel', 14)}<b></b></div>`);
       fn.querySelector('b').textContent = book.name;
       fn.title = book.name;
-      q('.xl-fbar').after(fn);
+      q('.xl-fbar').appendChild(fn);   // (its own line under the formula bar upright; at the end of the formula bar sideways)
       fin.placeholder = 'Typing into ' + book.name;
       const zb = $('<button class="xl-zoomb" aria-label="Fit the sheet to the screen width">Fit</button>');
       zb.onclick = e => { e.stopPropagation(); setFit(!st.fit); };

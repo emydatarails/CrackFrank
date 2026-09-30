@@ -17,7 +17,7 @@ LOGOS = {'images/logo.svg': 'packa-logo.svg', 'images/favicon.svg': 'packa-logo.
 
 
 def photo(name):
-    """A stand-in for one of the site's photos (warehouse-hero.jpg …): a 4:3 SVG with the photo's name on it."""
+    """A stand-in for one of the site's pictures (warehouse-hero.jpg, map-placeholder.svg …): a 4:3 SVG with the photo's name on it."""
     label = html.escape(re.sub(r'[-_]+', ' ', os.path.splitext(os.path.basename(name))[0]))
     return (f'<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">'
             f'<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c9b79c"/><stop offset="1" stop-color="#8a6d4b"/></linearGradient></defs>'
@@ -33,7 +33,7 @@ def asset(path):
     f = os.path.normpath(os.path.join(SITE_DIR, rel))
     if f.startswith(SITE_DIR + os.sep) and os.path.isfile(f) and os.path.splitext(f)[1] in TYPES:
         return 200, TYPES[os.path.splitext(f)[1]], open(f, 'rb').read()
-    if rel.startswith('images/') and re.search(r'\.(jpe?g|png|gif|webp)$', rel, re.I):
+    if rel.startswith('images/') and re.search(r'\.(jpe?g|png|gif|webp|svg)$', rel, re.I):   # (map-placeholder.svg too)
         return 200, TYPES['.svg'], photo(rel).encode()
     return 404, TYPES['.html'], b'<h1>404 Not Found</h1>'
 

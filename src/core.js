@@ -771,36 +771,54 @@ FR.apps = FR.apps || {};
   // interactive-widget=resizes-content (the layout itself shrinks). baseH = the full height for this orientation.
   let baseH = innerHeight, baseW = innerWidth;
   const inField = a => a && a !== document.body && (/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) || a.isContentEditable);
+  // the part of the layout the player can see (above the keyboard)
+  const visible = () => { const h = vv ? vv.height : innerHeight, t = vv ? vv.offsetTop : 0; return [t, t + h]; };
   const reveal = a => {
-    if (!inField(a)) return;
+    if (!inField(a) || document.activeElement !== a) return;
+    const [top, bottom] = visible(), r = a.getBoundingClientRect();
+    // already in sight: do nothing. Scrolling a field that is visible makes some phones (Samsung Internet, Chrome with a
+    // panned viewport) pan or show/hide their toolbars, which fires more resizes: the screen bounced up and down (S24 Ultra)
+    if (r.top >= top + 2 && r.bottom <= bottom - 2) return;
     try { a.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (err) {}
     // still under the keyboard (nothing scrollable around it): nudge the nearest scroller
-    const h = vv ? vv.height : innerHeight, r = a.getBoundingClientRect();
-    if (r.bottom > h - 6) { let p = a.parentElement; while (p && p !== document.body && !(p.scrollHeight > p.clientHeight + 2 && /auto|scroll/.test(getComputedStyle(p).overflowY))) p = p.parentElement; if (p && p !== document.body) p.scrollTop += r.bottom - h + 16; }
+    const r2 = a.getBoundingClientRect();
+    if (r2.bottom > bottom - 6) { let p = a.parentElement; while (p && p !== document.body && !(p.scrollHeight > p.clientHeight + 2 && /auto|scroll/.test(getComputedStyle(p).overflowY))) p = p.parentElement; if (p && p !== document.body) p.scrollTop += r2.bottom - bottom + 16; }
   };
-  FR.viewportFit = (vh, vtop) => {
+  let fitH = -1, fitT = -1;
+  const applyFit = (vh, vtop) => {
     const root = document.getElementById('fr-root'); if (!root) return;
     if (Math.abs(innerWidth - baseW) > 40) { baseW = innerWidth; baseH = innerHeight; }   // rotated: a new full height
     else if (innerHeight > baseH) baseH = innerHeight;
     if (vh == null && window.scrollY && FR.mobile) window.scrollTo(0, 0);                 // iOS scrolls the page to the field; the game never scrolls
     const h = vh != null ? vh : vv ? vv.height : innerHeight, t = vtop != null ? vtop : vv ? vv.offsetTop : 0;
     const zoomed = vh == null && vv && Math.abs((vv.scale || 1) - 1) > 0.02;
-    const open = FR.mobile && !zoomed && Math.max(baseH, innerHeight) - h > 120;
-    if (open && (innerHeight - h > 60 || t > 0)) { root.style.top = Math.round(t) + 'px'; root.style.bottom = 'auto'; root.style.height = Math.round(h) + 'px'; }
-    else if (root.style.height) { root.style.top = ''; root.style.bottom = ''; root.style.height = ''; }
+    const shrink = Math.max(baseH, innerHeight) - h;
+    // hysteresis: a keyboard's suggestion strip coming and going must not flip the layout
+    const open = FR.mobile && !zoomed && (kbOpen ? shrink > 60 : shrink > 120);
+    const wasOpen = kbOpen, moved = Math.abs(h - fitH) > 3 || Math.abs(t - fitT) > 3;
+    if (open && (innerHeight - h > 60 || t > 0)) {
+      if (moved) { root.style.top = Math.round(t) + 'px'; root.style.bottom = 'auto'; root.style.height = Math.round(h) + 'px'; fitH = h; fitT = t; }
+    } else if (root.style.height) { root.style.top = ''; root.style.bottom = ''; root.style.height = ''; fitH = fitT = -1; }
     if (open !== kbOpen) {
       kbOpen = open; document.documentElement.classList.toggle('fr-kb', open);
       wins.forEach(w => { if (w.el.classList.contains('fr-dialog')) FR.wm.fitDialog(w, false); });
     }
-    if (open) { const a = document.activeElement; setTimeout(() => reveal(a), 60); setTimeout(() => reveal(a), 350); }
+    // only when the keyboard has just come up, once: afterwards the field stays where it is
+    if (open && !wasOpen) { const a = document.activeElement; setTimeout(() => reveal(a), 60); }
   };
-  if (vv) { vv.addEventListener('resize', () => FR.viewportFit()); vv.addEventListener('scroll', () => { if (kbOpen || window.scrollY) FR.viewportFit(); }); }
-  window.addEventListener('resize', () => { if (FR.mobile) FR.viewportFit(); });
+  // The keyboard slides in over ~300 ms and phones fire a burst of resize/scroll events while it does (Samsung also shows
+  // and hides its toolbar): wait until the size has been still for a moment, then fit once.
+  let fitTimer = 0;
+  const settleFit = () => { clearTimeout(fitTimer); fitTimer = setTimeout(() => applyFit(), 140); };
+  FR.viewportFit = (vh, vtop) => { clearTimeout(fitTimer); applyFit(vh, vtop); };   // called directly: fit now (tests, rotation)
+  if (vv) { vv.addEventListener('resize', () => { if (FR.mobile) settleFit(); }); vv.addEventListener('scroll', () => { if (FR.mobile && (kbOpen || window.scrollY)) settleFit(); }); }
+  window.addEventListener('resize', () => { if (FR.mobile) settleFit(); });
   // a field that gets focus: once the keyboard is up (it takes ~300 ms to slide in), make sure the field is above it
   document.addEventListener('focusin', e => {
     if (!FR.mobile || !inField(e.target)) return;
-    const a = e.target; setTimeout(() => { FR.viewportFit(); reveal(a); }, 60); setTimeout(() => { FR.viewportFit(); reveal(a); }, 450);
+    const a = e.target; setTimeout(() => { FR.viewportFit(); reveal(a); }, 450);
   });
-  // Android Chrome: let the keyboard shrink the layout itself (iOS ignores this); phones only
+  // Android Chrome: let the keyboard shrink the layout itself (iOS ignores this). The page's own viewport tag (build.py)
+  // already says so from the start; this covers a page served without it.
   if (FR.mobile) { const vp = document.querySelector('meta[name=viewport]'); if (vp && !/interactive-widget/.test(vp.content)) vp.content += ', interactive-widget=resizes-content'; }
 })();

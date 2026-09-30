@@ -58,7 +58,7 @@ cfg_js = f'<script>window.FR_CONFIG = {json.dumps(game_cfg)};</script>\n' if gam
 
 body = f'<div id="fr-root"></div>\n{cfg_js}<style>\n{css}\n</style>\n<script>\n{js}\n</script>\n'
 os.makedirs(os.path.join(root, 'dist'), exist_ok=True)
-full = f'<!doctype html>\n<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{title}</title>{head_extra}</head><body>\n{body}</body></html>\n'
+full = f'<!doctype html>\n<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content"><title>{title}</title>{head_extra}</head><body>\n{body}</body></html>\n'
 open(os.path.join(root, 'dist', 'index.html'), 'w', encoding='utf-8').write(full)
 open(os.path.join(root, 'dist', 'artifact.html'), 'w', encoding='utf-8').write(f'<title>{title}</title>\n' + body)
 import shutil

@@ -393,6 +393,12 @@
     setTimeout(() => { cascade(); bobParty(first); }, 380);
   }
 
+  // Frank's secret is kept once won: the checklist (item 6) and Game › Frank's Secret… show it again, no second win needed
+  const secretWon = () => !!(FR.flags.get('solSecret') || (FR.state.bonus && FR.state.bonus.sol_win));
+  FR.solSecretWon = secretWon;
+  const secretNote = () => FR.dialog({ title: "Frank's Secret", icon: 'solitaire', width: 360,
+    message: `<div class="so-secret-dlg"><b>FRANK'S SECRET:</b><br>PAYROLL RUN = <u>$196K</u></div>Bob gave it away when you won. It's kept for you here and on Frank's checklist.` });
+
   /* ---------- the win: Bob the panda (Datarails' mascot, 8-bit: src/bob.js) dances on the table ----------
      and gives away Frank's secret: the hourly payroll run he "hid" behind a Solitaire win (item 6, the cash forecast) */
   let bobEl = null;
@@ -402,7 +408,7 @@
     const COL = ['#f4c430', '#1d6f42', '#e8834a', '#2f44c9', '#ffffff', '#d40000'];
     let cf = ''; for (let i = 0; i < 28; i++) cf += `<span class="so-cf" style="left:${(i * 37) % 100}%;background:${COL[i % COL.length]};--t:${((i * 0.29) % 2.4).toFixed(2)}s;--d:${(1.8 + (i % 5) * 0.35).toFixed(2)}s"></span>`;
     const pts = first && FR.scoreRules ? `<i>+${FR.scoreRules.EXTRAS.sol_win} points</i>` : G && G.lucky ? '<i class="so-bob-rig">(rigged deal: no points)</i>' : '';
-    bobEl = $(`<div class="so-bob" aria-hidden="true">${cf}<div class="so-bob-say"><b>SAME SHEET,<br>DIFFERENT DAY!</b>${pts}<span class="so-bob-sec">FRANK'S SECRET:<br>PAYROLL RUN = <u>$196K</u></span></div><img class="so-bob-i" src="${FR.data.images.bob}" alt=""></div>`);
+    bobEl = $(`<div class="so-bob" aria-hidden="true">${cf}<div class="so-bob-say"><b>SAME SHEET,<br>DIFFERENT DAY!</b>${pts}<span class="so-bob-sec">FRANK'S SECRET:<br>PAYROLL RUN = <u>$196K</u>${FR.puzzle && FR.puzzle.isSolved('cash') ? '' : '<small>(kept for you on the checklist)</small>'}</span></div><img class="so-bob-i" src="${FR.data.images.bob}" alt=""></div>`);
     table.appendChild(bobEl);
   }
 
@@ -746,7 +752,7 @@
     cards = {}; lastCompact = null;
     const menu = [
       { label: 'Game', items: () => [
-        { label: 'Deal', key: 'F2', action: () => deal() }, { label: "Frank's Lucky Deal", action: luckyDeal }, { sep: true },
+        { label: 'Deal', key: 'F2', action: () => deal() }, { label: "Frank's Lucky Deal", action: luckyDeal }, { label: "Frank's Secret...", disabled: !secretWon(), action: secretNote }, { sep: true },
         { label: 'Undo', key: 'Ctrl+Z', disabled: !G || !G.undo.length || G.won, action: undo },
         { label: 'Deck...', action: deckDialog }, { label: 'Options...', action: optionsDialog }, { sep: true },
         { label: 'Exit', action: () => win.close() },

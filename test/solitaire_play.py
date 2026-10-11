@@ -210,6 +210,7 @@ with sync_playwright() as p:
     # Bob the panda (8-bit) dances on the table; the first win is +200, once
     ok(pg.locator('.so-table .so-bob img.so-bob-i').count() == 1 and 'DIFFERENT DAY' in pg.inner_text('.so-bob-say'), 'Bob the panda comes out to celebrate ("SAME SHEET, DIFFERENT DAY!")')
     ok(pg.evaluate("() => !!(FR.state.bonus && FR.state.bonus.sol_win) && FR.score.now().solWin && FR.score.now().extraPts === 200") and '+200 points' in pg.text_content('.so-bob-say'), 'the first win is +200 points on top (the "+200 points" line blinks)')
+    ok(pg.evaluate("() => FR.flags.get('solSecret') === true && FR.solSecretWon()") and 'kept for you' in pg.text_content('.so-bob-sec'), "Frank's secret is kept after a win (saved flag; the bubble says so)")
     painted = pg.evaluate("""() => { const c = document.querySelector('.so-fx'); const x = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 3; i < x.length; i += 4 * 97) if (x[i]) n++; return n; }""")
     ok(painted > 50, f'... and paints bouncing cards on the felt ({painted} samples)')
     pg.screenshot(path=f'{OUT}/solitaire_win.png')
@@ -221,6 +222,9 @@ with sync_playwright() as p:
     ok(not s['won'] and len(s['stock']) == 24 and pg.locator('.so-fx').count() == 0, 'Yes deals a new game')
     seed = s['seed']; pg.keyboard.press('F2'); pg.wait_for_timeout(1000)
     ok(st(pg)['seed'] != seed, 'F2 deals again (new seed)')
+    menu(pg, "Game", "Frank's Secret...")
+    ok('PAYROLL RUN = $196K' in dialog_text(pg), "Game › Frank's Secret… shows the number again (no second win needed)")
+    close_dialog(pg)
     pg.evaluate("FR.wm.wins.get('solitaire').close()"); pg.wait_for_timeout(300)
     ok(not pg.evaluate("FR.wm.wins.has('solitaire')"), 'Game › Exit / close')
     pg.close()

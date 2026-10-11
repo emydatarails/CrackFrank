@@ -29,7 +29,7 @@
     original or a saved copy) in Paint leaves "PAID IN CASH ($K): 110" (flag `paintSecret`). Karen's email no longer
     says $110K ("Please tell me it isn't another drawing."); the Capex log and the invoice still show it (the expert's way).
   - 6 cash: the REAL forecast has one payroll input, B14 (week 1); D14, F14 … N14 follow it (`=IF(ISNUMBER($B$14),$B$14,"")`),
-    even weeks blank. The number is Frank's Solitaire secret, shown on every win (flag `solSecret`). "Frank's Lucky Deal"
+    even weeks blank. The number is Frank's Solitaire secret, shown on every win (flag `solSecret`, saved). Once won it is kept: item 6's card shows "Kept from your Solitaire win: … $196K" and Solitaire › Game › Frank's Secret… shows it again, so a win before item 6 never has to be repeated. "Frank's Lucky Deal"
     (Solitaire › Game): A–9 home, tableau [JS,10D] [10S,QD] [JD,KC] [10H,JC,QS] [10C,KH,QH] [JH,QC,KS,KD] [] — rigged, so
     no +200. Rachel: "it's the same as my Solitaire high score". The Budget file's Headcount reconciliation keeps 196.
   - 7 bridge: Norton quarantined `containerboard_calc.xls` (W97M.Macro.Generic, 10/06/2026 1:14 AM; Frank: "IT'S A

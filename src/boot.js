@@ -58,6 +58,8 @@
       hints: ["Bank.zip needs a password. Open Budget_FY27_BOARD.xls: the yellow note Frank left next to the EBITDA row tells you which cell holds it (passwords.txt on the desktop says the same).", "F13 in the certificate wants the capex paid in cash. Frank wrote it in permanent marker, then drew Kristians over it: open kristians_by_frank.bmp (My Pictures) and rub him out with Paint's Eraser.", "Under the drawing: PAID IN CASH 110. Type 110 in F13: (2,860 − 110) ÷ 2,200 = 1.25x. Just."] },
     { id: 'cash', level: 3, t: 'Find the first week cash drops below $250K', d: "Frank kept a REAL cash forecast the Board never saw. Find it, put in one payroll run (Frank hid the number behind a Solitaire win), and pick the first week cash falls below $250K.", pick: 'weeks',
       where: [W.folder('boardroot', 'My Documents › BOARD'), ['Solitaire', () => FR.apps.solitaire()], W.mail("Rachel's email", 'm_rachel_payroll')],
+      // won Solitaire already (even long before this item)? the number stays on the card: no need to win again
+      kept: () => FR.solSecretWon && FR.solSecretWon() ? "Kept from your Solitaire win: Bob said FRANK'S SECRET: PAYROLL RUN = $196K" : '',
       hints: ["The REAL VERSION folder is hidden. In any folder window: Tools › Folder Options › View › Show hidden files and folders.", "B14 in the REAL forecast wants one payroll run. Frank hid the number behind a Solitaire win: win a game and Bob the panda gives it away. (No time? Solitaire › Game › Frank's Lucky Deal.)", "Bob's number: $196K. Type 196 in B14; the runs fall every other Friday, and week 5 is the first red week ($110K)."] },
     { id: 'bridge', level: 3, t: 'Close the Q3 EBITDA bridge', d: "Two bars are missing. Frank worked out the containerboard bar, then Norton quarantined his file as a \"virus\". Rescue it and put the bar in: Freight works itself out and the check says TIES. Or type the Freight bar here.", input: 'Freight ($K)', ph: 'e.g. -25', num: true,
       where: [W.folder('board', 'Board Meeting Oct 20'), ['Norton AntiVirus', () => FR.norton && FR.norton.statusWin()], W.mail('The mill letter', 'm_ozark')],
@@ -593,6 +595,7 @@
       const row = $(`<div class="ck-item ${solved ? 'done' : active ? 'open' : 'locked'} ${justSolved === it.id ? 'ck-just' : ''}"><div class="ck-box">${!solved && !unlocked ? FR.icon('lock', 12) : ''}</div><div class="ck-main">
         <div class="ck-t"><span class="ck-n">${idx + 1}.</span> ${solved ? `<s>${esc(it.t)}</s>` : unlocked ? esc(it.t) : 'Locked — finish the item above first'} ${active && it.id !== 'login' ? pips : ''}</div>
         ${active ? `<div class="ck-d">${esc(it.d)}</div>` : ''}
+        ${active && it.kept && it.kept() ? `<div class="ck-kept">${esc(it.kept())}</div>` : ''}
         ${active && it.where ? `<div class="ck-where"><span>Look in:</span></div>` : ''}
         ${active && it.input ? `<div class="ck-ans"><input type="text" placeholder="${esc(it.ph || '')}" aria-label="${esc(it.input)}" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off"><button>Submit</button></div>` : ''}
         ${active && it.pick ? `<div class="ck-pick ck-pick-${it.pick}"></div>` : ''}

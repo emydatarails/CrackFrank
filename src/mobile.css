@@ -189,7 +189,7 @@
   #fr-root .ck-hbtn { min-height: 36px; padding: 4px 12px; font-size: 12.5px; }
   .ck-hint, .ck-fos-t { font-size: 12.5px; }
   .ck-fos-p { font-size: 11.5px; }
-  .ck-fb, .ck-auto { font-size: 12px; }
+  .ck-fb, .ck-auto, .ck-kept { font-size: 12px; }
   .ck-solved-val { font-size: 12px; }
   /* (R3b S6/S16) one compact row: the score line wraps beside the button (not under it), so the list gets the height
      and nothing ("Time: 29 min") is cut */

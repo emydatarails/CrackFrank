@@ -652,7 +652,7 @@
     S.set('F10', 'Steve, Diane, Drew, Karen, Tom (Tom counted in Mgmt, not Sales!)', ST.note);
     S.set('A13', "Source: Rachel's HRIS export" + (cfg.prod === 78 ? ' (Aug — pre 2nd shift)' : ' (Oct)') + ". Excludes temps & the December peak crew.", ST.note);
     S.set('A14', 'Salaries sit in COGS (Production, Whse) and SG&A (everyone else) — memo only, not linked.', ST.note);
-    S.set('A15', "Avg loaded cost incl. employer taxes, benefits, overtime and bonus accrual. Rachel's $196K bi-weekly run is the ALL-IN payroll cash for the hourly plant & warehouse crew; salaried staff (sales, finance & admin, management) are paid monthly.", ST.note);
+    S.set('A15', "Avg loaded cost incl. employer taxes, benefits, overtime and bonus accrual. Rachel's bi-weekly run is the ALL-IN payroll cash for the hourly plant & warehouse crew; salaried staff (sales, finance & admin, management) are paid monthly.", ST.note);
     S.set('A17', 'Reconciliation to payroll', ST.sec);
     const run = cfg.prod === 78 ? 184 : 196;
     S.set('A18', 'Hourly payroll run, bi-weekly (all-in — plant & warehouse)', { ind: 1 }); S.set('B18', run, ST.inp); S.set('C18', '× 26 runs', ST.note); S.set('D18', '=B18*26', ST.calc);
@@ -752,8 +752,8 @@
     S.set('A12', 'Less: financed under equipment loan', { ind: 1 }); S.set('F12', 300, ST.inp);
     S.cm('F12', FRANK, 'Equipment loan draw schedule says 300 was financed. The rest we paid out of pocket.');
     S.set('A13', 'Unfunded capital expenditures', { ind: 1, b: 1 }); S.set('F13', '?', M(ST.input, { al: 'r', b: 1, bt: 't' }));
-    S.set('H13', 'Karen — which one did we pay cash for??', ST.note);
-    S.cm('F13', FRANK, 'Only capex NOT financed by a loan. =F11-F12, if you believe Karen. See her email + loan agreement §6.1');
+    S.set('H13', "← the cash one. I wrote it in marker, then drew Kristians over it. (My Pictures. Sorry, K.)", ST.note);
+    S.cm('F13', FRANK, "Only capex NOT financed by a loan (§6.1). Karen never wrote it down, so I did: in permanent marker, on the page I then drew Kristians on (My Pictures › kristians_by_frank.bmp). Paint's eraser won't shift marker.");
     S.set('A15', '3. Debt service — per Section 6.1(b)', ST.sec);
     S.set('A16', 'Term Loan A — outstanding principal at the test date (9/30/2026)', { ind: 1 }); S.set('F16', 6000, ST.inp);
     S.set('H16', 'per Debt Schedule / loan agreement §2.1', ST.note);
@@ -765,8 +765,8 @@
     S.set('A20', 'Total debt service', { b: 1 }); S.set('F20', '=F18+F19', ST.tot);
     S.set('A22', '4. Debt Service Coverage Ratio (Section 6.1)', ST.sec);
     S.set('A23', 'DSCR = (TTM EBITDA − Unfunded Capex) ÷ Total debt service', { ind: 1, b: 1 });
-    S.set('F23', "'=?", { b: 1, fc: RED, al: 'r', f: 'x2', bg: '#FFFFCC', bt: 't', bb: 't' });
-    S.cm('F23', FRANK, 'Read 6.1 in the loan agreement. Carefully. Last time I forgot the capex bit and the bank noticed.');
+    S.set('F23', '=IF(ISNUMBER(F13),(F8-F13)/F20,"?")', { b: 1, fc: RED, al: 'r', f: 'x2', bg: '#FFFFCC', bt: 't', bb: 't' });
+    S.cm('F23', FRANK, 'Does itself once F13 has the capex we paid in CASH. Last time I left the capex out and the bank noticed.');
     S.set('A24', 'Covenant minimum', { ind: 1 }); S.set('F24', 1.25, { fc: BLUE, f: 'x2' });
     S.set('H23', '=IF(ISNUMBER(F23),IF(F23>=F24-0.005,"COMPLIANT — "&ROUND(F23,2)&"x","BREACH — "&ROUND(F23,2)&"x"),"")', { b: 1 });
     S.cond('H23', v => typeof v === 'string' && v.startsWith('COMPLIANT'), { fc: '#006100', bg: '#C6EFCE' });
@@ -842,9 +842,10 @@
     S.set('Q11', 'AR aging 10/15. Two big accounts churned in Aug.', ST.note);
     S.set('A13', 'Disbursements', ST.sec);
     S.set('A14', 'Hourly payroll (all-in), bi-weekly', { ind: 1, b: 1 });
-    W.forEach(c => S.set(c + '14', '', ST.input));
-    S.cm('A14', FRANK, 'PAYROLL — get from Rachel. Hourly crew only; salaried are on the line below.');
-    S.set('Q14', "Rachel has the per-run $. Don't assume weekly (did that once. never again). Next run Fri 10/23 = wk 1.", ST.note);
+    // one input (the run, in week 1); the other runs follow it every other Friday: weeks 1, 3, 5 … 13
+    W.forEach((c, i) => S.set(c + '14', i === 0 ? '' : i % 2 ? '' : '=IF(ISNUMBER($B$14),$B$14,"")', i === 0 ? ST.input : ST.calc));
+    S.cm('B14', FRANK, "ONE payroll run, $K, all-in (hourly crew; salaried are the line below). The other runs fill themselves in, every other Friday. The number: I hid it behind a Solitaire win. Win a game and Bob tells you. (Can't win? Game › Frank's Lucky Deal.)");
+    S.set('Q14', "← one run in B14. I hid the number behind a Solitaire WIN (Bob knows). Runs every other Fri from 10/23.", ST.note);
     const lines = [['Salaried payroll & benefits (monthly)', 'sal', 'Sales, F&A, management — ≈ 225/month, last business day (wk 11 = Thu 12/31, holiday)'], ['Past-due AP catch-up (mills on credit hold)', 'ap', 'Ozark Kraft credit hold since 9/8 — pay the old stuff or no board ships'], ['Containerboard & materials', 'mat', 'COD until the hold lifts (+$40/ton since Jul 1)'], ['Freight', 'freight'], ['Utilities & plant', 'util'], ['Rent & leases', 'rent', 'plant + warehouse, monthly'], ['Debt service', 'debt', 'TLA P+I monthly on the 20th (145.8 + interest ≈ 183) — Oct 23 / Nov 20 / Dec 18; Jan 20 is wk 14. Equipment loan auto-debits in Other.'], ['Insurance', 'ins', 'monthly premium'], ['Other', 'other', 'bank fees, equipment loan debit, misc']];
     lines.forEach(([l, k, n], j) => {
       const r = 15 + j; S.set('A' + r, l, { ind: 1 });
@@ -876,7 +877,7 @@
     N.set('A1', 'DO NOT DELETE', M(ST.title, { fc: RED }));
     N.set('A2', 'Frank\'s notes. Drew: "do not delete" means do not delete. —FW', ST.note);
     ['Board version says 182 days. Real: 43. Funding gap by wk 13 = 2,164 + 250 minimum.',
-      'The 2,164 only happens if payroll is in. Put payroll in. (Rachel has the number.)',
+      'The 2,164 only happens if payroll is in. Put payroll in. (The number is my Solitaire secret. Win a game.)',
       'Past-due AP: Ozark Kraft put us on credit hold 9/8. Every old invoice gets paid before they ship board. That\'s the burn.',
       'Min liquidity (6.2) breaks BEFORE cash goes negative. Find the first red week — that\'s the one the bank cares about.',
       'Receipts are real (AR aging 10/15), not Drew\'s "big-box uplift".',
@@ -1214,7 +1215,8 @@
     drv.forEach(([l, v], i) => {
       const r = 7 + i;
       S.set('A' + r, l, { ind: 1 });
-      if (v === '??') S.set('C' + r, '??', M(ST.input, { al: 'r', b: 1 }));
+      if (l === 'Freight') S.set('C' + r, '=IF(ISNUMBER(C9),C12-C6-C7-C8-C9-C10,"??")', M(ST.calc, { al: 'r', b: 1 }));
+      else if (v === '??') S.set('C' + r, '??', M(ST.input, { al: 'r', b: 1 }));
       else S.set('C' + r, v, ST.inp);
     });
     S.set('A12', 'Q3 2026 Actual EBITDA', { b: 1, bt: 't' }); S.set('C12', "='Q3 P&L'!D10", M(ST.link, { b: 1, bt: 't' }));
@@ -1222,8 +1224,8 @@
     S.set('A15', 'Status', { i: 1 }); S.set('C15', '=IF(AND(ISNUMBER(C9),ISNUMBER(C11),ABS(C14)<0.5),"TIES","NO")', { b: 1, al: 'r' });
     S.cond('C15', v => v === 'TIES', { fc: '#006100', bg: '#C6EFCE' });
     S.cond('C15', v => v === 'NO', { fc: RED });
-    S.cm('C9', FRANK, 'Mill letter: +$40/ton. Tons per quarter — see our own website. Do NOT plug this one.');
-    S.cm('C11', FRANK, 'Freight is the residual. Calculate it, don\'t type it.');
+    S.cm('C9', FRANK, 'I worked this one out in containerboard_calc.xls. Then Norton ate it ("virus". It has ONE formula). Norton AntiVirus (shield in the tray) › Quarantine › Restore. Do NOT plug this one.');
+    S.cm('C11', FRANK, 'Freight is the residual: it fills itself in once containerboard is in.');
     S.set('A17', 'See Notes tab before touching anything.', ST.note);
     S.chart({ at: 'E5', dx: 4, dy: 0, w: 470, h: 290, render: bridgeChartSVG });
     const P = sheet('Q3 P&L', { nc: 10, nr: 30 });
@@ -1251,12 +1253,29 @@
     N.w({ A: 30, B: 700 });
     N.h(1, 20);
     N.set('A1', 'Bridge notes', ST.title);
-    ['Mill raised prices July 1. Containerboard bar = $/ton increase × tons we run a quarter (Products page).',
-      'Freight is the residual. Calculate it, don\'t type it.', "DON'T plug the containerboard bar.",
+    ['Containerboard bar: my calc is containerboard_calc.xls. Norton quarantined it (AGAIN). Norton › Quarantine › Restore.',
+      'Freight is the residual. It calculates itself.', "DON'T plug the containerboard bar.",
       'Volume and price from Tom\'s sales cube (the Access database. Yes. Access.)', 'Labor −20 = overtime on the 2nd shift ramp.',
       'Chart updates itself when the ?? cells are filled. I am not redrawing it by hand again.'].forEach((t, i) => { N.set('A' + (3 + i), '•', { al: 'r' }); N.set('B' + (3 + i), t, i < 3 ? { b: i === 2 } : {}); });
     N.set('B11', '—F, 1:12 AM', ST.note);
     return new Book('Q3_EBITDA_Bridge.xls', [S.sh, P.sh, N.sh]);
+  }
+  // containerboard_calc.xls: Frank's one-formula workbook that Norton quarantined (src/apps/xp_norton.js restores it)
+  function cbCalcBook() {
+    const S = sheet('Containerboard', { nc: 6, nr: 24 });
+    S.w({ A: 330, B: 80, C: 330 });
+    S.h(1, 20);
+    S.set('A1', 'Containerboard — Q3 2026 bridge bar', ST.title);
+    S.set('A2', 'FW 10/06/2026 1:10 AM · for Q3_EBITDA_Bridge.xls', ST.sub);
+    S.set('A4', 'Ozark Kraft price increase from July 1 ($/ton)'); S.set('B4', 40, ST.inp); S.set('C4', 'the mill letter (Outlook)', ST.note);
+    S.set('A5', 'Containerboard we run a quarter (tons)'); S.set('B5', 1500, M(ST.inp, { f: 'n0' })); S.set('C5', 'our own website, Products page', ST.note);
+    S.set('A6', 'Extra cost in Q3 ($)'); S.set('B6', '=B4*B5', M(ST.calc, { f: 'n0' }));
+    S.set('A7', 'Extra cost in Q3 ($K)'); S.set('B7', '=B6/1000', ST.calc);
+    S.set('A9', 'Containerboard bar (unfavorable = negative)', { b: 1 }); S.set('B9', '=-B7', M(ST.grand, { bg: '#FFFFCC' }));
+    S.set('C9', '→ Q3_EBITDA_Bridge.xls, cell C9', { b: 1, fc: RED });
+    S.set('A11', 'Freight is the residual: the bridge works it out once this is in.', ST.note);
+    S.set('A12', 'Norton says this is a virus. It has ONE formula, Norton. —F', ST.note);
+    return new Book('containerboard_calc.xls', [S.sh]);
   }
   function bridgeChartSVG(book) {
     const si = book.idx('Bridge');
@@ -2692,7 +2711,8 @@
     nudge: b => {
       const v = b.val('Q3 2026 Certificate', 'F23');
       if (near(v, 1.3, 0.006)) return FNOTE("\"Compliant\" at 1.30x? That's what I sent last time, and the bank sent it back. Section 6.1 takes <b>unfunded capex</b> (row 13) off EBITDA first.");
-      if (near(v, 1.1136, 0.006)) return FNOTE("Only capex we paid for in <b>cash</b> comes off. The glue station and the forklifts went on the equipment loan — Karen's email.");
+      if (near(v, 1.1136, 0.006)) return FNOTE("Only capex we paid for in <b>cash</b> comes off, not all 410. I wrote the cash number down — then drew Kristians over it. Paint. Eraser.");
+      if (near(v, 1.1636, 0.006)) return FNOTE("300 is the part the equipment loan paid for. F13 wants the part we paid in <b>cash</b>. It's under my Kristians drawing.");
       return null;
     } });
   const bridgeHooks = () => solveHook({
@@ -2702,7 +2722,7 @@
       const cb = b.val('Bridge', 'C9');
       if (typeof cb === 'number' && near(Math.abs(cb), 60000, 1)) return FNOTE('Right idea — but the bridge is in <b>$ thousands</b>.');
       if (near(cb, 60, 0.5)) return FNOTE('A cost that went <b>up</b> hurts EBITDA. In this bridge unfavorable is negative: (60).');
-      if (b.val('Bridge', 'C15') === 'TIES' && !near(cb, -60, 0.5)) return FNOTE("It ties — but only because Freight is soaking up the difference. Never plug a bar you can calculate: work out <b>containerboard</b> first ($/ton from the mill letter × tons a quarter from our Products page).");
+      if (b.val('Bridge', 'C15') === 'TIES' && !near(cb, -60, 0.5)) return FNOTE("It ties — it always will, Freight soaks up whatever is left. Containerboard has to be right first: my calc is in <b>Norton's quarantine</b> (the shield in the tray).");
       return null;
     },
   });
@@ -2748,8 +2768,9 @@
       case 'copybudget':
         FR.dialog({ icon: 'error', title: 'Microsoft Excel', width: 440, message: `'${esc(node.name)}' cannot be found. Check the spelling of the file name, and verify that the file location is correct.` });
         return;
-      case 'covenant': return openWorkbook(covenantBook(), Object.assign(o, { startCell: 'F23' }, covenantHooks()));
+      case 'covenant': return openWorkbook(covenantBook(), Object.assign(o, { startCell: 'F13' }, covenantHooks()));
       case 'cash13': return openWorkbook(cashBook(), Object.assign(o, { startCell: 'B14' }));
+      case 'cbcalc': return openWorkbook(cbCalcBook(), Object.assign(o, { startCell: 'B9' }));
       case 'bridge': return openWorkbook(bridgeBook(), Object.assign(o, bridgeHooks(), { startCell: 'C9' }));
       case 'esports': return openWorkbook(esportsBook(), o);
       case 'bud_v2':

@@ -79,6 +79,12 @@
 .so-bob-say i { display: block; color: #d40000; font-style: normal; margin-top: 2px; animation: so-bob-blink 1s steps(1) 1.2s infinite; }
 @keyframes so-bob-say { from { opacity: 0; transform: translateX(-50%) scale(.4); } to { opacity: 1; transform: translateX(-50%) scale(1); } }
 @keyframes so-bob-blink { 50% { color: #c48a00; } }
+.so-bob-say i.so-bob-rig { color: #8a8a8a; animation: none; font-size: 11px; }
+/* Frank's secret (item 6): a yellow sticky stuck to the bottom of Bob's bubble */
+.so-bob-sec { display: block; margin: 6px -4px 0; padding: 4px 6px; background: #fff6a8; border: 2px dashed #18141c; color: #18141c; font-size: 12px;
+  animation: so-bob-sec .3s steps(3) 1.6s both; }
+@keyframes so-bob-sec { from { opacity: 0; transform: scale(.5); } to { opacity: 1; transform: none; } }
+.so-bob-sec u { font-size: 18px; text-decoration: none; color: #d40000; }
 .so-cf { position: absolute; top: -12px; width: 8px; height: 8px; box-shadow: 1px 1px 0 rgba(0,0,0,.25); animation: so-cf-fall var(--d) steps(14) var(--t) infinite; }
 @keyframes so-cf-fall { from { top: -12px; transform: rotate(0); } to { top: 104%; transform: rotate(270deg); } }
-@media (prefers-reduced-motion: reduce) { .so-bob-i { animation: none; transform: translateX(-50%); } .so-cf { display: none; } .so-bob-say, .so-bob-say i { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .so-bob-i { animation: none; transform: translateX(-50%); } .so-cf { display: none; } .so-bob-say, .so-bob-say i, .so-bob-sec { animation: none; } }

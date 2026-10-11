@@ -115,6 +115,33 @@ def chip(pg, label, wait=900):
     return pg.evaluate("() => FR.wm.active && FR.wm.active.el.querySelector('.fr-title').textContent")
 
 
+def paint_erase_touch(pg):
+    """Paint is open on Frank's Kristians drawing: pick the Eraser and rub the picture out with a finger, row by row"""
+    tap(pg, pg.locator('.pt-win .pt-tool[data-t=eraser]'), 200)
+    bb = pg.locator('.pt-win .pt-cv').bounding_box()
+    y = bb['y'] + 3
+    while y < bb['y'] + bb['height']:
+        swipe(pg, bb['x'] + 2, y, bb['x'] + bb['width'] - 2, y, steps=10); y += 16
+
+
+SOL = 'FR.apps.solitaire._test'
+
+
+def sol_lucky_touch(pg):
+    """Solitaire › Game › Frank's Lucky Deal, won by finger: the Auto button sends what it can home, the king of clubs
+    goes to an empty column, the queen of hearts onto it, the king of hearts to another empty column"""
+    tap(pg, pg.locator(TOP + ' .fr-mi', has_text='Game'), 300)
+    tap(pg, pg.locator('.fr-menu-item', has_text="Frank's Lucky Deal"), 900)
+
+    def drag(cid, pile):
+        r = pg.evaluate(f'{SOL}.rect({cid!r})'); t = pg.evaluate(f'{SOL}.pileRect("tab", {pile})')
+        swipe(pg, r['x'] + r['w'] / 2, r['y'] + min(r['h'] * 0.3, 14), t['x'] + t['w'] / 2, t['y'] + t['h'] * 0.3, steps=10)
+
+    def auto(): tap(pg, pg.locator('.so-tools button[data-t=auto]'), 1800)
+    auto(); drag('KC', 6); auto(); drag('QH', 6); drag('KH', 0); auto()
+    pg.wait_for_timeout(2500)
+
+
 def close_top(pg):
     tap(pg, pg.locator(TOP + ':not(.fr-dialog) .title-bar-controls button[aria-label=Close]').first, 300)
 
@@ -405,9 +432,14 @@ def playthrough(p, b, devname):
     ok(pg.evaluate("() => { const t = document.querySelector('.fr-win:not(.fr-inactive) .np-ta'); return t.classList.contains('np-nowrap') && /^ {20,}CREDIT AGREEMENT$/m.test(t.value); }"), 'R3b S10: Wrap off shows the file exactly as it is again')
     shot(pg, 'loan'); close_top(pg)
     ex_tap(pg, 'covenant', 1000)
-    chip(pg, "Karen's email"); close_top(pg)
+    # the cash-paid capex is under Frank's Kristians drawing: My Pictures › Paint › Eraser, by finger
+    chip(pg, 'My Pictures'); ex_tap(pg, 'pt_k', 1200)
+    paint_erase_touch(pg); shot(pg, 'paint_secret')
+    ok(pg.evaluate("() => !!FR.flags.get('paintSecret')"), "5: rubbing out Frank's Kristians drawing by finger uncovers the marker number")
+    pg.evaluate("() => FR.wm.wins.get('paint').close()"); pg.wait_for_timeout(300)
+    if pg.locator('.fr-dialog').count(): dlg_btn(pg, 'No')
     task(pg, 'Covenant')
-    xl_type(pg, 12, 5, '=F11-F12'); xl_type(pg, 22, 5, '=(F8-F13)/F20'); pg.wait_for_timeout(900)
+    xl_type(pg, 12, 5, '110'); pg.wait_for_timeout(900)
     ok('dscr' in solved(pg), '5 dscr by touch')
     shot(pg, 'dscr')
     for d in range(pg.locator('.fr-dialog').count()): dlg_btn(pg, 'OK')
@@ -465,10 +497,13 @@ def playthrough(p, b, devname):
     ex_tap(pg, 'cashdir'); ex_tap(pg, 'realnotes', 500); shot(pg, 'realnotes'); close_top(pg)
     ex_tap(pg, 'cash13', 1000)
     chip(pg, "Rachel's email"); close_top(pg)
-    chip(pg, 'Careers page', 1300); close_top(pg)
+    # the payroll run is Frank's Solitaire secret: win his Lucky Deal by finger and Bob gives it away
+    chip(pg, 'Solitaire', 1200); sol_lucky_touch(pg); shot(pg, 'solitaire_secret')
+    ok(pg.evaluate(f'{SOL}.state().won') and '196' in (pg.text_content('.so-bob-sec') or ''), "6: Frank's Lucky Deal won by finger; Bob gives away the payroll run")
+    pg.evaluate("() => FR.wm.wins.get('solitaire').close()"); pg.wait_for_timeout(300)
     task(pg, 'Cash_13wk')
     wrong0 = pg.evaluate("() => FR.state.wrong")
-    for c in (1, 3, 5, 7, 9, 11, 13): xl_type(pg, 13, c, '196')
+    xl_type(pg, 13, 1, '196')
     shot(pg, 'cash_payroll')
     tap(pg, ck(pg).locator('.ck-weeks button', has_text=re.compile(r'^13$')), 300)
     ok(pg.evaluate("() => FR.state.wrong") == wrong0 and pg.locator('.ck-confirm').count() == 1, 'P2: one tap on a week only picks it (Submit button, no answer yet)')
@@ -483,7 +518,13 @@ def playthrough(p, b, devname):
     # ---- 7 bridge
     pg.wait_for_timeout(3000)
     chip(pg, 'Board Meeting Oct 20'); ex_tap(pg, 'bridge', 1000)
-    xl_type(pg, 8, 2, '=-40*1500/1000'); xl_type(pg, 10, 2, '=C12-C6-C7-C8-C9-C10'); pg.wait_for_timeout(900)
+    # Frank's containerboard calc is in Norton's quarantine: restore it by tap
+    chip(pg, 'Norton AntiVirus', 800)
+    tap(pg, pg.locator('.nv-win .nv-nav', has_text='Quarantine'), 300)
+    tap(pg, pg.locator('.nv-win .nv-main button', has_text='Restore'), 1500); shot(pg, 'cbcalc')
+    ok(pg.evaluate("() => FR.flags.get('nortonRestored') && /containerboard_calc/.test(FR.wm.active.el.querySelector('.fr-title').textContent)"), '7: Norton › Quarantine › Restore by tap opens containerboard_calc.xls')
+    task(pg, 'Q3_EBITDA_Bridge')
+    xl_type(pg, 8, 2, '-60'); pg.wait_for_timeout(900)
     ok('bridge' in solved(pg), '7 bridge by touch')
     for d in range(pg.locator('.fr-dialog').count()): dlg_btn(pg, 'OK')
     closeall(pg)

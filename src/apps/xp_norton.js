@@ -3,7 +3,9 @@
    box, the Blue Screen, the screensaver, the ending, a menu, or while the player is typing (it waits its turn). Now and
    then it says something else. It is an ordinary tray balloon (FR.balloon), so on a phone it follows the toast rules
    (a strip above the taskbar that never vanishes under a finger). Clicking it opens a small Norton-style status window.
-   A nostalgic parody: a generic yellow shield, no real logo. Schedule in FR.state.flags.norton = { next, n }.  Prefix: .nv- */
+   A nostalgic parody: a generic yellow shield, no real logo. Schedule in FR.state.flags.norton = { next, n }.  Prefix: .nv-
+   Item 7 (the EBITDA bridge): Norton quarantined Frank's containerboard_calc.xls as a "macro virus". Its Quarantine page
+   restores it (FR.flags.nortonRestored) into Board Meeting Oct 20; a shield in the tray opens Norton at any time. */
 (() => {
   const $ = FR.$, esc = FR.esc;
   const FIRST = 3 * 60000, MIN = 8 * 60000, MAX = 15 * 60000;
@@ -41,12 +43,29 @@
     s.next = ms + MIN + Math.floor(Math.random() * (MAX - MIN)); FR.save();
   });
 
+  /* ---------- the quarantined file (item 7) ---------- */
+  const QFILE = 'containerboard_calc.xls', QDATE = '10/06/2026 1:14 AM';
+  const restored = () => !!FR.flags.get('nortonRestored');
+  if (FR.fs && FR.fs.extra) FR.fs.extra.push(() => restored() ? [{ id: 'cbcalc', parent: 'board', name: QFILE, type: 'file', app: 'excel', icon: 'xls', size: '14 KB', modified: QDATE, author: 'Frank Warmington' }] : []);
+  function restore() {
+    if (!restored()) { FR.flags.set('nortonRestored', true); FR.bus.emit('fs-change'); FR.sound.play('unlock'); }
+    setTimeout(() => FR.openFile('cbcalc'), 350);
+  }
+  // the shield in the tray: Norton is always one click away (it used to be only the popups)
+  FR.bus.on('desktop', el => {
+    const tray = el && el.querySelector('.fr-tray'), k = tray && tray.querySelector('.fr-ktray');
+    if (!tray || tray.querySelector('.nv-tray')) return;
+    const t = $(`<span class="nv-tray" role="button" title="Norton AntiVirus" aria-label="Norton AntiVirus">${SHIELD}</span>`);
+    t.onclick = () => statusWin();
+    tray.insertBefore(t, k || tray.firstChild.nextSibling);
+  });
+
   /* ---------- the status window ---------- */
-  function statusWin() {
-    if (FR.wm.wins.has('norton')) { const w = FR.wm.wins.get('norton'); w.restore(); w.focus(); return w; }
+  function statusWin(page) {
+    if (FR.wm.wins.has('norton')) { const w = FR.wm.wins.get('norton'); w.restore(); w.focus(); if (page && w.nvShow) w.nvShow(page); return w; }
     const el = $(`<div class="nv">
       <div class="nv-side"><div class="nv-brand"><span class="nv-ico32">${SHIELD}</span><b>Norton <br>AntiVirus</b><small>2003 &middot; Professional</small></div>
-        <a class="nv-nav on" data-p="status">Status</a><a class="nv-nav" data-p="scan">Scan for Viruses</a><a class="nv-nav" data-p="reports">Reports</a><a class="nv-nav nv-dis">Options</a></div>
+        <a class="nv-nav on" data-p="status">Status</a><a class="nv-nav" data-p="scan">Scan for Viruses</a><a class="nv-nav" data-p="quarantine">Quarantine<span class="nv-qn"></span></a><a class="nv-nav" data-p="reports">Reports</a><a class="nv-nav nv-dis">Options</a></div>
       <div class="nv-main"></div></div>`);
     const main = el.querySelector('.nv-main');
     const inbox = () => (FR.mail && FR.mail.messages ? FR.mail.messages().length : 31);
@@ -54,20 +73,34 @@
       status: () => `<div class="nv-ok"><span class="nv-ico32">${SHIELD}</span><div><b>System Status: OK</b><span>Security features are enabled and up to date.</span></div></div>
         <table class="nv-t"><tr><td>Auto-Protect</td><td class="nv-on">On</td></tr><tr><td>E-mail Scanning</td><td class="nv-on">On</td></tr><tr><td>Script Blocking</td><td class="nv-on">On</td></tr>
         <tr><td>Full System Scan</td><td>Not since 2019</td></tr><tr><td>Virus Definitions</td><td>10/16/2026 (up to date)</td></tr>
-        <tr><td>Subscription</td><td class="nv-warn">Expires in 3 days (it has said that since 2004)</td></tr><tr><td>Automatic LiveUpdate</td><td class="nv-on">On</td></tr></table>
+        <tr><td>Subscription</td><td class="nv-warn">Expires in 3 days (it has said that since 2004)</td></tr><tr><td>Automatic LiveUpdate</td><td class="nv-on">On</td></tr>
+        <tr><td>Quarantine</td><td${restored() ? '>Empty' : ` class="nv-warn"><a class="nv-go" data-p="quarantine">1 item</a> (${QFILE})`}</td></tr></table>
         <div class="nv-btns"><button data-a="inbox">Scan Frank's inbox</button><button data-a="pc">Scan My Computer</button><button data-a="lu">LiveUpdate</button></div><div class="nv-out"></div>`,
       scan: () => `<h3>Scan for Viruses</h3><p>Pick what to scan. Frank's last full scan was in 2019. He was "busy".</p>
         <div class="nv-btns nv-col"><button data-a="inbox">Scan Frank's inbox</button><button data-a="pc">Scan My Computer</button></div><div class="nv-out"></div>`,
-      reports: () => `<h3>Reports</h3><table class="nv-t"><tr><td>Viruses found (lifetime)</td><td>0</td></tr><tr><td>Macros blocked</td><td>1 (Drew's "MAKE_IT_WORK.xls")</td></tr><tr><td>Quarantine</td><td>empty (declined, see below)</td></tr><tr><td>Tracking cookies</td><td>212, all from a fan club</td></tr></table>`,
+      quarantine: () => restored()
+        ? `<h3>Quarantine</h3><p>Quarantine is empty.</p><div class="nv-res"><b>${QFILE}</b> was restored to <span class="nv-mono">My Documents\\Board Meeting Oct 20</span>.</div><div class="nv-btns" style="margin-top:8px"><button data-a="open">Open ${QFILE}</button></div><div class="nv-out"></div>`
+        : `<h3>Quarantine</h3><p>Norton isolated these files so they can't harm your computer.</p>
+        <table class="nv-t nv-q"><tr><th>File</th><th>Threat</th><th>Quarantined</th></tr>
+        <tr><td><b>${QFILE}</b><br><small>My Documents\\Board Meeting Oct 20</small></td><td>W97M.Macro.Generic<br><small>(heuristic: "contains a formula")</small></td><td>${QDATE}</td></tr></table>
+        <div class="nv-res">Note added by F. Warmington: <i>"IT'S A SPREADSHEET, NORTON. It has ONE formula. Give it back."</i></div>
+        <div class="nv-btns" style="margin-top:8px"><button data-a="restore">Restore</button><button data-a="qdel">Delete</button><button data-a="qsub">Submit to Symantec</button></div><div class="nv-out"></div>`,
+      reports: () => `<h3>Reports</h3><table class="nv-t"><tr><td>Viruses found (lifetime)</td><td>0</td></tr><tr><td>Macros blocked</td><td>1 (Drew's "MAKE_IT_WORK.xls")</td></tr><tr><td>Files quarantined</td><td>${restored() ? '1 (restored: a false positive)' : `1 (${QFILE}, see Quarantine)`}</td></tr><tr><td>E-mail quarantine</td><td>declined (see Scan Frank's inbox)</td></tr><tr><td>Tracking cookies</td><td>212, all from a fan club</td></tr></table>`,
     };
     const show = k => {
       el.querySelectorAll('.nv-nav').forEach(a => a.classList.toggle('on', a.dataset.p === k));
       main.innerHTML = P[k]();
       main.querySelectorAll('[data-a]').forEach(b => { b.onclick = () => act(b.dataset.a); });
+      main.querySelectorAll('.nv-go[data-p]').forEach(a => { a.onclick = () => show(a.dataset.p); });
+      el.querySelector('.nv-qn').textContent = restored() ? '' : ' (1)';
     };
     let scanning = null;
     const act = a => {
       const out = main.querySelector('.nv-out'); if (!out) return;
+      if (a === 'restore') { restore(); show('quarantine'); return; }
+      if (a === 'open') { FR.openFile('cbcalc'); return; }
+      if (a === 'qdel') { FR.dialog({ title: TITLE, icon: 'warn', message: `Delete <b>${QFILE}</b>?<br><br>Norton is unable to delete this file: it is marked <b>DO NOT DELETE — it's the containerboard calc. —F</b>` }); return; }
+      if (a === 'qsub') { FR.sound.play('ding'); out.innerHTML = '<div class="nv-res">Submitted to Symantec Security Response. Expected reply: 6–8 weeks. The Board meets Tuesday.</div>'; return; }
       if (a === 'lu') { FR.sound.play('ding'); out.innerHTML = '<div class="nv-res"><b>LiveUpdate</b>: Norton AntiVirus is up to date.<br>So is Frank\'s LinkedIn. It says "Director".</div>'; return; }
       if (scanning) return;
       const total = a === 'inbox' ? inbox() : 1212;
@@ -88,9 +121,10 @@
     };
     const w = FR.wm.open({ id: 'norton', title: TITLE, icon: 'nvshield', width: 540, height: 460, className: 'nv-win', content: el, onClose: () => { if (scanning) clearInterval(scanning); scanning = null; } });
     el.querySelectorAll('.nv-nav[data-p]').forEach(a => { a.onclick = () => { if (!scanning) show(a.dataset.p); }; });
-    show('status');
+    w.nvShow = k => { if (!scanning) show(k); };
+    show(page && P[page] ? page : 'status');
     return w;
   }
 
-  FR.norton = { pop, statusWin, state: st, FIRST, MIN, MAX, VARIANTS, PLAIN };
+  FR.norton = { pop, statusWin, restore, state: st, FIRST, MIN, MAX, VARIANTS, PLAIN };
 })();

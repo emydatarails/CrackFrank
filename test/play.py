@@ -73,6 +73,36 @@ def xl_type(pg, cell, text):
     pg.keyboard.type(text); pg.keyboard.press('Enter'); pg.wait_for_timeout(300)
 
 
+def paint_erase(pg):
+    """Paint is open on Frank's Kristians drawing: take the Eraser and rub the whole picture out, row by row"""
+    pg.locator('.pt-win .pt-tool[data-t=eraser]').click(); pg.wait_for_timeout(150)
+    bb = pg.locator('.pt-win .pt-cv').bounding_box()
+    for y in range(4, int(bb['height']), 26):
+        pg.mouse.move(bb['x'] + 2, bb['y'] + y); pg.mouse.down()
+        pg.mouse.move(bb['x'] + bb['width'] - 2, bb['y'] + y, steps=12); pg.mouse.up()
+    pg.wait_for_timeout(300)
+
+
+SOL = 'FR.apps.solitaire._test'
+
+
+def sol_lucky_win(pg):
+    """Solitaire › Game › Frank's Lucky Deal, then win it by mouse: right-click sends what it can home, two kings go
+    to empty columns and the queen of hearts onto the king of clubs"""
+    pg.locator('.so-win .fr-menubar .fr-mi', has_text='Game').click(); pg.wait_for_timeout(150)
+    pg.locator('.fr-menu-item', has_text="Frank's Lucky Deal").click(); pg.wait_for_timeout(900)
+
+    def drag(cid, pile):
+        r = pg.evaluate(f'{SOL}.rect({cid!r})'); t = pg.evaluate(f'{SOL}.pileRect("tab", {pile})')
+        pg.mouse.move(r['x'] + r['w'] / 2, r['y'] + r['h'] * 0.3); pg.mouse.down()
+        pg.mouse.move(t['x'] + t['w'] / 2, t['y'] + t['h'] * 0.3, steps=8); pg.mouse.up(); pg.wait_for_timeout(300)
+
+    def auto():
+        bx = pg.locator('.so-table').bounding_box(); pg.mouse.click(bx['x'] + bx['width'] / 2, bx['y'] + bx['height'] * 0.92, button='right'); pg.wait_for_timeout(1800)
+    auto(); drag('KC', 6); auto(); drag('QH', 6); drag('KH', 0); auto()
+    pg.wait_for_timeout(2500)
+
+
 def closeall(pg):
     for _ in range(20):
         ws = pg.locator('.fr-win:not(.fr-dialog):not(.fr-closing) .title-bar-controls button[aria-label=Close]')
@@ -93,7 +123,7 @@ def stop(pg, item, b):
 
 
 with sync_playwright() as p:
-    b = p.chromium.launch()
+    b = p.chromium.launch(**({'executable_path': os.environ['CHROMIUM']} if os.environ.get('CHROMIUM') else {}))
     ctx = b.new_context(viewport={'width': W, 'height': H})
     ctx.route(re.compile(r'https?://(www\.)?packacorp\.com/.*'), site)
     pg = ctx.new_page()
@@ -179,13 +209,19 @@ with sync_playwright() as p:
     note('loan text: ' + pg.evaluate("() => (FR.data.texts.loan||'').slice(0,60)"))
     pg.evaluate("() => { const w=[...FR.wm.wins.values()].find(w=>/Bank\\.zip/i.test(w.el.querySelector('.fr-title').textContent)); w && w.focus(); }")
     ex_dbl(pg, 'covenant'); shot(pg, 'covenant')
-    note('chip karen: ' + str(chip(pg, "Karen's email"))); pg.locator('.fr-win:not(.fr-inactive) .title-bar-controls button[aria-label=Close]').first.click(); pg.wait_for_timeout(300)
     pg.evaluate("() => FR.wm.wins.get('xl-covenant').focus()")
-    xl_type(pg, 'F23', '=F8/F20'); note('trap 1.30: dialogs %s solved %s H23 %s' % (dlg_msgs(pg), solved(pg), pg.evaluate("()=>0")))
+    xl_type(pg, 'F13', '0'); note('trap 1.30 (no capex off): dialogs %s solved %s' % (dlg_msgs(pg), solved(pg)))
     shot(pg, 'dscr_trap')
     for d in dlg_msgs(pg): dlg_btn(pg)
-    xl_type(pg, 'F13', '=F11-F12')
-    xl_type(pg, 'F23', '=(F8-F13)/F20'); pg.wait_for_timeout(900); shot(pg, 'dscr_ok')
+    # the cash-paid capex is under Frank's Kristians drawing: My Pictures › Paint › Eraser
+    note('chip pictures: ' + str(chip(pg, 'My Pictures')))
+    ex_dbl(pg, 'pt_k'); pg.wait_for_selector('.pt-win .pt-cv'); pg.wait_for_timeout(500)
+    paint_erase(pg); shot(pg, 'paint_secret')
+    note('paint secret revealed: %s' % pg.evaluate("() => !!FR.flags.get('paintSecret')"))
+    pg.evaluate("() => FR.wm.wins.get('paint').close()"); pg.wait_for_timeout(300)
+    if dlg_msgs(pg): dlg_btn(pg, 'No')
+    pg.evaluate("() => FR.wm.wins.get('xl-covenant').focus()")
+    xl_type(pg, 'F13', '110'); pg.wait_for_timeout(900); shot(pg, 'dscr_ok')
     note('solved ' + solved(pg) + ' dialogs ' + str(dlg_msgs(pg)))
     for d in dlg_msgs(pg): dlg_btn(pg)
     closeall(pg)
@@ -208,12 +244,13 @@ with sync_playwright() as p:
     pg.locator('.fr-win:not(.fr-inactive) .title-bar-controls button[aria-label=Close]').first.click(); pg.wait_for_timeout(300)
     ex_dbl(pg, 'cash13'); pg.wait_for_timeout(500)
     note('chip rachel: ' + str(chip(pg, "Rachel's email"))); pg.locator('.fr-win:not(.fr-inactive) .title-bar-controls button[aria-label=Close]').first.click(); pg.wait_for_timeout(300)
-    note('chip careers: ' + str(chip(pg, 'Careers page'))); pg.wait_for_timeout(1200); shot(pg, 'ie_careers')
-    note('careers every other friday: %s' % pg.frame_locator('.fr-win:not(.fr-inactive) iframe').locator('body').inner_text().count('every other Friday'))
-    pg.locator('.fr-win:not(.fr-inactive) .title-bar-controls button[aria-label=Close]').first.click(); pg.wait_for_timeout(300)
+    # the payroll run is Frank's Solitaire secret: win a game (his Lucky Deal) and Bob gives it away
+    note('chip solitaire: ' + str(chip(pg, 'Solitaire')))
+    sol_lucky_win(pg); shot(pg, 'solitaire_secret')
+    note('solitaire won: %s, Bob says: %s' % (pg.evaluate(f'{SOL}.state().won'), pg.text_content('.so-bob-sec') if pg.locator('.so-bob-sec').count() else 'NO BOB'))
+    pg.evaluate("() => FR.wm.wins.get('solitaire').close()"); pg.wait_for_timeout(300)
     pg.evaluate("() => FR.wm.wins.get('xl-cash13').focus()")
-    for col in 'BDFHJLN':
-        xl_type(pg, col + '14', '196')
+    xl_type(pg, 'B14', '196')
     shot(pg, 'cash_payroll')
     ends = pg.evaluate("""() => { const r=[...document.querySelectorAll('.fr-win:not(.fr-inactive) .xl-grid tr')].find(r=>/^\\s*\\d*\\s*Ending cash/.test(r.innerText)); return r ? r.innerText.replace(/\\s+/g,' ') : 'none'; }""")
     note('ending cash row: ' + ends)
@@ -230,16 +267,19 @@ with sync_playwright() as p:
     note('board mtg items: ' + str(pg.eval_on_selector_all('.fr-win:not(.fr-inactive) .ex-view [data-id]', 'e=>e.map(x=>x.dataset.id)')))
     ex_dbl(pg, 'bridge'); shot(pg, 'bridge')
     note('chip mill: ' + str(chip(pg, 'The mill letter'))); pg.locator('.fr-win:not(.fr-inactive) .title-bar-controls button[aria-label=Close]').first.click(); pg.wait_for_timeout(300)
-    note('chip products: ' + str(chip(pg, 'Products page'))); pg.wait_for_timeout(1200)
-    note('products 1,500 tons: %s' % pg.frame_locator('.fr-win:not(.fr-inactive) iframe').locator('body').inner_text().count('1,500 tons'))
-    pg.locator('.fr-win:not(.fr-inactive) .title-bar-controls button[aria-label=Close]').first.click(); pg.wait_for_timeout(300)
     drew = pg.evaluate("() => (FR.mail.messages().find(m=>m.subject==='BRIDGE')||{}).body || 'NO DREW BRIDGE MAIL'")
-    note('drew bridge quotes tons formula: %s' % ('x tons' in drew))
+    note('drew bridge points at the quarantine: %s' % ('Quarantine' in drew))
     pg.evaluate("() => FR.wm.wins.get('xl-bridge').focus()")
-    xl_type(pg, 'C9', '-50'); xl_type(pg, 'C11', '-50')
-    note('plug -50/-50: solved=%s dialogs=%s' % (solved(pg), dlg_msgs(pg)))
+    xl_type(pg, 'C9', '-50')
+    note('plug -50: solved=%s dialogs=%s' % (solved(pg), dlg_msgs(pg)))
     for d in dlg_msgs(pg): dlg_btn(pg)
-    xl_type(pg, 'C9', '=-40*1500/1000'); xl_type(pg, 'C11', '=C12-C6-C7-C8-C9-C10'); pg.wait_for_timeout(900); shot(pg, 'bridge_done')
+    # Frank's containerboard calc is in Norton's quarantine: the shield in the tray › Quarantine › Restore
+    note('chip norton: ' + str(chip(pg, 'Norton AntiVirus')))
+    pg.locator('.nv-win .nv-nav', has_text='Quarantine').click(); pg.wait_for_timeout(300); shot(pg, 'norton_quarantine')
+    pg.locator('.nv-win .nv-main button', has_text='Restore').click(); pg.wait_for_timeout(1500); shot(pg, 'cbcalc')
+    note('restored, opened: %s' % pg.evaluate("() => FR.wm.active && FR.wm.active.el.querySelector('.fr-title').textContent"))
+    pg.evaluate("() => FR.wm.wins.get('xl-bridge').focus()")
+    xl_type(pg, 'C9', '-60'); pg.wait_for_timeout(900); shot(pg, 'bridge_done')
     note('solved ' + solved(pg) + ' dialogs ' + str(dlg_msgs(pg)))
     for d in dlg_msgs(pg): dlg_btn(pg)
     closeall(pg)

@@ -189,11 +189,11 @@ Regards,${SIG.marcus}`,
 
 You asked for payroll numbers for your 13-week cash thingy, so here you go :)
 
-Each run is $196K all-in (wages + taxes + benefits) for the hourly crew. Plant and warehouse, both shifts. Salaried are monthly, you know this.
+Except you already HAVE the number, silly. I told you the per-run amount on Monday and you said you didn't need to write it down because it's "the same as my Solitaire high score". I don't know what that means. I don't want to know what that means.
 
-Next run is Friday Oct 23. That's week 1 of your 13 weeks.
+It's all-in (wages + taxes + benefits) for the hourly crew. Plant and warehouse, both shifts. Salaried are monthly, you know this.
 
-And we pay every other Friday, silly. It's even on our careers page ;) So Oct 23, then two weeks later, then two weeks after that... you know the drill.
+Next run is Friday Oct 23. That's week 1 of your 13 weeks. And we pay every other Friday ;) So Oct 23, then two weeks later, then two weeks after that... you know the drill.
 
 Let me know if you need anything else. Anything at all. I'm at my desk until 5. Or 6. I can stay. I always stay.
 
@@ -224,7 +224,9 @@ P.P.S. If you're at that Excel rodeo in Nevada, I will find you.`,
     attach: [{ name: 'DieCutter_Rebuild_Invoice_4471.pdf', size: '96 KB', file: 'inv_diecutter' }],
     body: `Frank,
 
-For your covenant math: the die-cutter rebuild on Line 2 is done and paid. $110K, paid in cash out of the operating account, not under the equipment loan. The other $300K of capex over the last twelve months (the corrugator glue station and the two electric forklifts) went on the equipment loan.
+For your covenant math: the die-cutter rebuild on Line 2 is done and paid in cash, out of the operating account, not under the equipment loan. The corrugator glue station and the two electric forklifts went on the equipment loan.
+
+You said you'd "write the cash number down somewhere safe". Please tell me it isn't another drawing.
 
 Invoice attached. Line 2 is running again and it's louder than before, which the guys say means it's working.
 
@@ -531,7 +533,8 @@ DREW${SIG.drew}
 P.S. FOUND THIS IN MY PHONE. FRANK'S ANSWER THE LAST TIME I ASKED WHY PAPER COSTS WENT UP. I DIDN'T READ IT THEN EITHER.
 
 > Frank wrote:
-> Drew, the mill letter is the $/ton increase. Containerboard cost = $/ton × tons we run a quarter (Products page).
+> Drew, the mill letter is the $/ton increase. Containerboard cost = $/ton × tons we run a quarter.
+> I did the math in containerboard_calc.xls. If it's gone, Norton ate it again: Norton > Quarantine > Restore.
 > Volume, price and labor are already in the bridge. Freight is the residual.
 > F`,
     }),

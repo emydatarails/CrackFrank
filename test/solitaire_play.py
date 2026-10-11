@@ -184,6 +184,22 @@ with sync_playwright() as p:
     ok('mouse pad' in t2, 'Help › Contents: "Frank was using it as a mouse pad."')
     ok('Datarails' not in t + t2 + gtext and 'FinanceOS' not in t + t2 + gtext, 'no Datarails inside Solitaire')
 
+    # ---- Frank's Lucky Deal (Game menu): aces to nines already home, the rest a short puzzle; rigged, so no points
+    menu(pg, 'Game', "Frank's Lucky Deal"); pg.wait_for_timeout(700); s = st(pg)
+    ok([len(f) for f in s['found']] == [9, 9, 9, 9] and [len(t) for t in s['tab']] == [2, 2, 2, 3, 3, 4, 0], "Game › Frank's Lucky Deal: A–9 home, 16 cards to go")
+    pg.mouse.click(*felt(pg, 0.5, 0.92), button='right'); pg.wait_for_timeout(1500)
+
+    def drag_to(cid, pile):
+        r = pg.evaluate(f'{T}.rect({cid!r})'); t = pg.evaluate(f'{T}.pileRect("tab", {pile})')
+        pg.mouse.move(r['x'] + r['w'] / 2, r['y'] + r['h'] * 0.3); pg.mouse.down()
+        pg.mouse.move(t['x'] + t['w'] / 2, t['y'] + t['h'] * 0.3, steps=8); pg.mouse.up(); pg.wait_for_timeout(300)
+    drag_to('KC', 6); pg.mouse.click(*felt(pg, 0.5, 0.92), button='right'); pg.wait_for_timeout(1800)
+    drag_to('QH', 6); drag_to('KH', 0); pg.mouse.click(*felt(pg, 0.5, 0.92), button='right'); pg.wait_for_timeout(3500)
+    ok(st(pg)['won'] and 'PAYROLL RUN = $196K' in (pg.text_content('.so-bob-sec') or ''), "Lucky Deal won: Bob gives away Frank's secret (PAYROLL RUN = $196K)")
+    ok(not pg.evaluate("() => !!(FR.state.bonus && FR.state.bonus.sol_win)") and 'no points' in pg.text_content('.so-bob-say'), '... but a rigged deal is worth no points')
+    pg.screenshot(path=f'{OUT}/solitaire_lucky.png')
+    pg.mouse.click(*felt(pg, 0.5, 0.6)); dialog_text(pg); close_dialog(pg, 'No'); pg.wait_for_timeout(300)
+
     # ---- a won game: the last four kings go up by right-click
     load(pg, {'found': [[r + s for r in ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q']] for s in 'SHDC'], 'tab': [['KS'], ['KH'], ['KD'], ['KC'], [], [], []]})
     pg.mouse.click(*felt(pg), button='right'); pg.wait_for_timeout(1400)

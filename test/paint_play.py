@@ -185,6 +185,25 @@ with sync_playwright() as p:
     ok(px(pg, 250, 90) == [255, 0, 0], 'undo after Delete')
     tool(pg, 'eraser'); drag(pg, [(20, 20), (100, 20)])
     ok(px(pg, 60, 20) == [255, 255, 255], 'eraser paints the background colour')
+    ok(pg.evaluate("() => [...document.querySelectorAll('.pt-opts .pt-sq')].length") == 4, 'four eraser sizes (bigger ones: 10, 20, 32, 48 px)')
+
+    # item 5: Frank wrote the cash capex in "permanent marker" under his Kristians drawing; the eraser can't rub it out
+    NAVY = "() => { const c = document.querySelector('.pt-cv'), d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i] === 0 && d[i + 1] === 0 && d[i + 2] === 128) n++; return n; }"
+    ok(pg.evaluate(NAVY) == 0, 'no marker colour on an ordinary picture after erasing')
+    pg.evaluate("() => FR.openFile('pt_k')"); pg.wait_for_timeout(300)
+    if pg.locator('.fr-dialog').count(): dlg_button(pg, 'No')
+    pg.wait_for_timeout(400)
+    ok(pg.evaluate(NAVY) == 0 and not pg.evaluate("() => FR.flags.get('paintSecret')"), "Frank's Kristians drawing: nothing written on it yet")
+    tool(pg, 'eraser')
+    for y in range(4, 360, 26): drag(pg, [(1, y), (240, y), (478, y)])
+    navy = pg.evaluate(NAVY)
+    ok(navy > 3000 and pg.evaluate("() => FR.flags.get('paintSecret')") is True, f'erasing it all leaves the marker writing (PAID IN CASH 110: {navy} px) and sets the flag')
+    ok('permanent marker' in pg.evaluate("() => FR.wm.wins.get('paint').el.querySelectorAll('.status-bar-field')[0].textContent"), 'the status bar says what turned up')
+    pg.screenshot(path=f'{OUT}/paint_secret.png')
+    menu(pg, 'File', 'New')
+    if pg.locator('.fr-dialog').count(): dlg_button(pg, 'No')
+    pg.wait_for_timeout(200)
+    tool(pg, 'pencil'); drag(pg, [(20, 20), (100, 20)]); swatch(pg, 16); tool(pg, 'rect'); drag(pg, [(150, 30), (250, 100)])
 
     # Image menu
     snap = pg.evaluate("() => { const c = document.querySelector('.pt-cv'); return Array.from(c.getContext('2d').getImageData(0, 0, c.width, c.height).data.filter((v, i) => i % 4 === 0)); }")

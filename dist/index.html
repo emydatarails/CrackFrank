@@ -1356,9 +1356,15 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
 .so-bob-say i { display: block; color: #d40000; font-style: normal; margin-top: 2px; animation: so-bob-blink 1s steps(1) 1.2s infinite; }
 @keyframes so-bob-say { from { opacity: 0; transform: translateX(-50%) scale(.4); } to { opacity: 1; transform: translateX(-50%) scale(1); } }
 @keyframes so-bob-blink { 50% { color: #c48a00; } }
+.so-bob-say i.so-bob-rig { color: #8a8a8a; animation: none; font-size: 11px; }
+/* Frank's secret (item 6): a yellow sticky stuck to the bottom of Bob's bubble */
+.so-bob-sec { display: block; margin: 6px -4px 0; padding: 4px 6px; background: #fff6a8; border: 2px dashed #18141c; color: #18141c; font-size: 12px;
+  animation: so-bob-sec .3s steps(3) 1.6s both; }
+@keyframes so-bob-sec { from { opacity: 0; transform: scale(.5); } to { opacity: 1; transform: none; } }
+.so-bob-sec u { font-size: 18px; text-decoration: none; color: #d40000; }
 .so-cf { position: absolute; top: -12px; width: 8px; height: 8px; box-shadow: 1px 1px 0 rgba(0,0,0,.25); animation: so-cf-fall var(--d) steps(14) var(--t) infinite; }
 @keyframes so-cf-fall { from { top: -12px; transform: rotate(0); } to { top: 104%; transform: rotate(270deg); } }
-@media (prefers-reduced-motion: reduce) { .so-bob-i { animation: none; transform: translateX(-50%); } .so-cf { display: none; } .so-bob-say, .so-bob-say i { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .so-bob-i { animation: none; transform: translateX(-50%); } .so-cf { display: none; } .so-bob-say, .so-bob-say i, .so-bob-sec { animation: none; } }
 
 /* FRANK'S COMPUTER — the extras: Blue Screen (.bs-), Norton AntiVirus 2003 (.nv-), Easter eggs (.eg-),
    bonus requests (.bn-). Phone rules: in src/mobile.css ("extras", at the end). */
@@ -1405,6 +1411,13 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
 .nv-bar i { display: block; height: 100%; width: 0; background: repeating-linear-gradient(90deg, #2fb34a 0 9px, #fff 9px 11px); transition: width .15s linear; }
 .nv-res { border: 1px solid #d8c26a; background: #fffbe8; padding: 8px 10px; line-height: 1.45; }
 .nv-mono { font-family: "Lucida Console", "Courier New", monospace; font-size: 10.5px; }
+.nv-q th { text-align: left; font-size: 11px; color: #555; border-bottom: 1px solid #ccc; padding: 3px 6px; }
+.nv-q td:first-child { color: #111; white-space: normal; }
+.nv-q small { color: #777; }
+.nv-go { color: #0645ad; text-decoration: underline; cursor: pointer; }
+/* the shield in the taskbar tray (opens Norton) */
+.fr-tray .nv-tray { width: 16px; height: 16px; cursor: pointer; display: inline-flex; }
+.fr-tray .nv-tray svg { width: 100%; height: 100%; display: block; }
 
 /* ---------- Easter eggs ---------- */
 .eg-toast { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 99990; pointer-events: none; display: flex; align-items: center; gap: 8px;
@@ -1606,7 +1619,7 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   #fr-root .fr-task { flex: 0 1 118px; min-width: 46px; height: 32px; font-size: 12px; padding: 0 7px; }
   #fr-root .fr-task .fr-ico { width: 18px !important; height: 18px !important; }
   .fr-tray { gap: 9px; padding: 0 8px 0 9px; font-size: 12px; }
-  .fr-tray .fr-ico, .fr-tray .fr-ktray { width: 20px; height: 20px; }
+  .fr-tray .fr-ico, .fr-tray .fr-ktray, .fr-tray .nv-tray { width: 20px; height: 20px; }
   .fr-tray .fr-pack { padding: 5px 7px; gap: 5px; }
   .fr-tray .fr-clock { margin-left: 0; }
   .fr-tray > .fr-ico { display: none; }   /* volume: phones have their own */
@@ -4732,7 +4745,7 @@ FR.version = {"version": "1.0.0", "build": "dev", "date": "", "full": "1.0.0 (de
     S.set('F10', 'Steve, Diane, Drew, Karen, Tom (Tom counted in Mgmt, not Sales!)', ST.note);
     S.set('A13', "Source: Rachel's HRIS export" + (cfg.prod === 78 ? ' (Aug — pre 2nd shift)' : ' (Oct)') + ". Excludes temps & the December peak crew.", ST.note);
     S.set('A14', 'Salaries sit in COGS (Production, Whse) and SG&A (everyone else) — memo only, not linked.', ST.note);
-    S.set('A15', "Avg loaded cost incl. employer taxes, benefits, overtime and bonus accrual. Rachel's $196K bi-weekly run is the ALL-IN payroll cash for the hourly plant & warehouse crew; salaried staff (sales, finance & admin, management) are paid monthly.", ST.note);
+    S.set('A15', "Avg loaded cost incl. employer taxes, benefits, overtime and bonus accrual. Rachel's bi-weekly run is the ALL-IN payroll cash for the hourly plant & warehouse crew; salaried staff (sales, finance & admin, management) are paid monthly.", ST.note);
     S.set('A17', 'Reconciliation to payroll', ST.sec);
     const run = cfg.prod === 78 ? 184 : 196;
     S.set('A18', 'Hourly payroll run, bi-weekly (all-in — plant & warehouse)', { ind: 1 }); S.set('B18', run, ST.inp); S.set('C18', '× 26 runs', ST.note); S.set('D18', '=B18*26', ST.calc);
@@ -4832,8 +4845,8 @@ FR.version = {"version": "1.0.0", "build": "dev", "date": "", "full": "1.0.0 (de
     S.set('A12', 'Less: financed under equipment loan', { ind: 1 }); S.set('F12', 300, ST.inp);
     S.cm('F12', FRANK, 'Equipment loan draw schedule says 300 was financed. The rest we paid out of pocket.');
     S.set('A13', 'Unfunded capital expenditures', { ind: 1, b: 1 }); S.set('F13', '?', M(ST.input, { al: 'r', b: 1, bt: 't' }));
-    S.set('H13', 'Karen — which one did we pay cash for??', ST.note);
-    S.cm('F13', FRANK, 'Only capex NOT financed by a loan. =F11-F12, if you believe Karen. See her email + loan agreement §6.1');
+    S.set('H13', "← the cash one. I wrote it in marker, then drew Kristians over it. (My Pictures. Sorry, K.)", ST.note);
+    S.cm('F13', FRANK, "Only capex NOT financed by a loan (§6.1). Karen never wrote it down, so I did: in permanent marker, on the page I then drew Kristians on (My Pictures › kristians_by_frank.bmp). Paint's eraser won't shift marker.");
     S.set('A15', '3. Debt service — per Section 6.1(b)', ST.sec);
     S.set('A16', 'Term Loan A — outstanding principal at the test date (9/30/2026)', { ind: 1 }); S.set('F16', 6000, ST.inp);
     S.set('H16', 'per Debt Schedule / loan agreement §2.1', ST.note);
@@ -4845,8 +4858,8 @@ FR.version = {"version": "1.0.0", "build": "dev", "date": "", "full": "1.0.0 (de
     S.set('A20', 'Total debt service', { b: 1 }); S.set('F20', '=F18+F19', ST.tot);
     S.set('A22', '4. Debt Service Coverage Ratio (Section 6.1)', ST.sec);
     S.set('A23', 'DSCR = (TTM EBITDA − Unfunded Capex) ÷ Total debt service', { ind: 1, b: 1 });
-    S.set('F23', "'=?", { b: 1, fc: RED, al: 'r', f: 'x2', bg: '#FFFFCC', bt: 't', bb: 't' });
-    S.cm('F23', FRANK, 'Read 6.1 in the loan agreement. Carefully. Last time I forgot the capex bit and the bank noticed.');
+    S.set('F23', '=IF(ISNUMBER(F13),(F8-F13)/F20,"?")', { b: 1, fc: RED, al: 'r', f: 'x2', bg: '#FFFFCC', bt: 't', bb: 't' });
+    S.cm('F23', FRANK, 'Does itself once F13 has the capex we paid in CASH. Last time I left the capex out and the bank noticed.');
     S.set('A24', 'Covenant minimum', { ind: 1 }); S.set('F24', 1.25, { fc: BLUE, f: 'x2' });
     S.set('H23', '=IF(ISNUMBER(F23),IF(F23>=F24-0.005,"COMPLIANT — "&ROUND(F23,2)&"x","BREACH — "&ROUND(F23,2)&"x"),"")', { b: 1 });
     S.cond('H23', v => typeof v === 'string' && v.startsWith('COMPLIANT'), { fc: '#006100', bg: '#C6EFCE' });
@@ -4922,9 +4935,10 @@ FR.version = {"version": "1.0.0", "build": "dev", "date": "", "full": "1.0.0 (de
     S.set('Q11', 'AR aging 10/15. Two big accounts churned in Aug.', ST.note);
     S.set('A13', 'Disbursements', ST.sec);
     S.set('A14', 'Hourly payroll (all-in), bi-weekly', { ind: 1, b: 1 });
-    W.forEach(c => S.set(c + '14', '', ST.input));
-    S.cm('A14', FRANK, 'PAYROLL — get from Rachel. Hourly crew only; salaried are on the line below.');
-    S.set('Q14', "Rachel has the per-run $. Don't assume weekly (did that once. never again). Next run Fri 10/23 = wk 1.", ST.note);
+    // one input (the run, in week 1); the other runs follow it every other Friday: weeks 1, 3, 5 … 13
+    W.forEach((c, i) => S.set(c + '14', i === 0 ? '' : i % 2 ? '' : '=IF(ISNUMBER($B$14),$B$14,"")', i === 0 ? ST.input : ST.calc));
+    S.cm('B14', FRANK, "ONE payroll run, $K, all-in (hourly crew; salaried are the line below). The other runs fill themselves in, every other Friday. The number: I hid it behind a Solitaire win. Win a game and Bob tells you. (Can't win? Game › Frank's Lucky Deal.)");
+    S.set('Q14', "← one run in B14. I hid the number behind a Solitaire WIN (Bob knows). Runs every other Fri from 10/23.", ST.note);
     const lines = [['Salaried payroll & benefits (monthly)', 'sal', 'Sales, F&A, management — ≈ 225/month, last business day (wk 11 = Thu 12/31, holiday)'], ['Past-due AP catch-up (mills on credit hold)', 'ap', 'Ozark Kraft credit hold since 9/8 — pay the old stuff or no board ships'], ['Containerboard & materials', 'mat', 'COD until the hold lifts (+$40/ton since Jul 1)'], ['Freight', 'freight'], ['Utilities & plant', 'util'], ['Rent & leases', 'rent', 'plant + warehouse, monthly'], ['Debt service', 'debt', 'TLA P+I monthly on the 20th (145.8 + interest ≈ 183) — Oct 23 / Nov 20 / Dec 18; Jan 20 is wk 14. Equipment loan auto-debits in Other.'], ['Insurance', 'ins', 'monthly premium'], ['Other', 'other', 'bank fees, equipment loan debit, misc']];
     lines.forEach(([l, k, n], j) => {
       const r = 15 + j; S.set('A' + r, l, { ind: 1 });
@@ -4956,7 +4970,7 @@ FR.version = {"version": "1.0.0", "build": "dev", "date": "", "full": "1.0.0 (de
     N.set('A1', 'DO NOT DELETE', M(ST.title, { fc: RED }));
     N.set('A2', 'Frank\'s notes. Drew: "do not delete" means do not delete. —FW', ST.note);
     ['Board version says 182 days. Real: 43. Funding gap by wk 13 = 2,164 + 250 minimum.',
-      'The 2,164 only happens if payroll is in. Put payroll in. (Rachel has the number.)',
+      'The 2,164 only happens if payroll is in. Put payroll in. (The number is my Solitaire secret. Win a game.)',
       'Past-due AP: Ozark Kraft put us on credit hold 9/8. Every old invoice gets paid before they ship board. That\'s the burn.',
       'Min liquidity (6.2) breaks BEFORE cash goes negative. Find the first red week — that\'s the one the bank cares about.',
       'Receipts are real (AR aging 10/15), not Drew\'s "big-box uplift".',
@@ -5294,7 +5308,8 @@ FR.version = {"version": "1.0.0", "build": "dev", "date": "", "full": "1.0.0 (de
     drv.forEach(([l, v], i) => {
       const r = 7 + i;
       S.set('A' + r, l, { ind: 1 });
-      if (v === '??') S.set('C' + r, '??', M(ST.input, { al: 'r', b: 1 }));
+      if (l === 'Freight') S.set('C' + r, '=IF(ISNUMBER(C9),C12-C6-C7-C8-C9-C10,"??")', M(ST.calc, { al: 'r', b: 1 }));
+      else if (v === '??') S.set('C' + r, '??', M(ST.input, { al: 'r', b: 1 }));
       else S.set('C' + r, v, ST.inp);
     });
     S.set('A12', 'Q3 2026 Actual EBITDA', { b: 1, bt: 't' }); S.set('C12', "='Q3 P&L'!D10", M(ST.link, { b: 1, bt: 't' }));
@@ -5302,8 +5317,8 @@ FR.version = {"version": "1.0.0", "build": "dev", "date": "", "full": "1.0.0 (de
     S.set('A15', 'Status', { i: 1 }); S.set('C15', '=IF(AND(ISNUMBER(C9),ISNUMBER(C11),ABS(C14)<0.5),"TIES","NO")', { b: 1, al: 'r' });
     S.cond('C15', v => v === 'TIES', { fc: '#006100', bg: '#C6EFCE' });
     S.cond('C15', v => v === 'NO', { fc: RED });
-    S.cm('C9', FRANK, 'Mill letter: +$40/ton. Tons per quarter — see our own website. Do NOT plug this one.');
-    S.cm('C11', FRANK, 'Freight is the residual. Calculate it, don\'t type it.');
+    S.cm('C9', FRANK, 'I worked this one out in containerboard_calc.xls. Then Norton ate it ("virus". It has ONE formula). Norton AntiVirus (shield in the tray) › Quarantine › Restore. Do NOT plug this one.');
+    S.cm('C11', FRANK, 'Freight is the residual: it fills itself in once containerboard is in.');
     S.set('A17', 'See Notes tab before touching anything.', ST.note);
     S.chart({ at: 'E5', dx: 4, dy: 0, w: 470, h: 290, render: bridgeChartSVG });
     const P = sheet('Q3 P&L', { nc: 10, nr: 30 });
@@ -5331,12 +5346,29 @@ FR.version = {"version": "1.0.0", "build": "dev", "date": "", "full": "1.0.0 (de
     N.w({ A: 30, B: 700 });
     N.h(1, 20);
     N.set('A1', 'Bridge notes', ST.title);
-    ['Mill raised prices July 1. Containerboard bar = $/ton increase × tons we run a quarter (Products page).',
-      'Freight is the residual. Calculate it, don\'t type it.', "DON'T plug the containerboard bar.",
+    ['Containerboard bar: my calc is containerboard_calc.xls. Norton quarantined it (AGAIN). Norton › Quarantine › Restore.',
+      'Freight is the residual. It calculates itself.', "DON'T plug the containerboard bar.",
       'Volume and price from Tom\'s sales cube (the Access database. Yes. Access.)', 'Labor −20 = overtime on the 2nd shift ramp.',
       'Chart updates itself when the ?? cells are filled. I am not redrawing it by hand again.'].forEach((t, i) => { N.set('A' + (3 + i), '•', { al: 'r' }); N.set('B' + (3 + i), t, i < 3 ? { b: i === 2 } : {}); });
     N.set('B11', '—F, 1:12 AM', ST.note);
     return new Book('Q3_EBITDA_Bridge.xls', [S.sh, P.sh, N.sh]);
+  }
+  // containerboard_calc.xls: Frank's one-formula workbook that Norton quarantined (src/apps/xp_norton.js restores it)
+  function cbCalcBook() {
+    const S = sheet('Containerboard', { nc: 6, nr: 24 });
+    S.w({ A: 330, B: 80, C: 330 });
+    S.h(1, 20);
+    S.set('A1', 'Containerboard — Q3 2026 bridge bar', ST.title);
+    S.set('A2', 'FW 10/06/2026 1:10 AM · for Q3_EBITDA_Bridge.xls', ST.sub);
+    S.set('A4', 'Ozark Kraft price increase from July 1 ($/ton)'); S.set('B4', 40, ST.inp); S.set('C4', 'the mill letter (Outlook)', ST.note);
+    S.set('A5', 'Containerboard we run a quarter (tons)'); S.set('B5', 1500, M(ST.inp, { f: 'n0' })); S.set('C5', 'our own website, Products page', ST.note);
+    S.set('A6', 'Extra cost in Q3 ($)'); S.set('B6', '=B4*B5', M(ST.calc, { f: 'n0' }));
+    S.set('A7', 'Extra cost in Q3 ($K)'); S.set('B7', '=B6/1000', ST.calc);
+    S.set('A9', 'Containerboard bar (unfavorable = negative)', { b: 1 }); S.set('B9', '=-B7', M(ST.grand, { bg: '#FFFFCC' }));
+    S.set('C9', '→ Q3_EBITDA_Bridge.xls, cell C9', { b: 1, fc: RED });
+    S.set('A11', 'Freight is the residual: the bridge works it out once this is in.', ST.note);
+    S.set('A12', 'Norton says this is a virus. It has ONE formula, Norton. —F', ST.note);
+    return new Book('containerboard_calc.xls', [S.sh]);
   }
   function bridgeChartSVG(book) {
     const si = book.idx('Bridge');
@@ -6772,7 +6804,8 @@ FR.version = {"version": "1.0.0", "build": "dev", "date": "", "full": "1.0.0 (de
     nudge: b => {
       const v = b.val('Q3 2026 Certificate', 'F23');
       if (near(v, 1.3, 0.006)) return FNOTE("\"Compliant\" at 1.30x? That's what I sent last time, and the bank sent it back. Section 6.1 takes <b>unfunded capex</b> (row 13) off EBITDA first.");
-      if (near(v, 1.1136, 0.006)) return FNOTE("Only capex we paid for in <b>cash</b> comes off. The glue station and the forklifts went on the equipment loan — Karen's email.");
+      if (near(v, 1.1136, 0.006)) return FNOTE("Only capex we paid for in <b>cash</b> comes off, not all 410. I wrote the cash number down — then drew Kristians over it. Paint. Eraser.");
+      if (near(v, 1.1636, 0.006)) return FNOTE("300 is the part the equipment loan paid for. F13 wants the part we paid in <b>cash</b>. It's under my Kristians drawing.");
       return null;
     } });
   const bridgeHooks = () => solveHook({
@@ -6782,7 +6815,7 @@ FR.version = {"version": "1.0.0", "build": "dev", "date": "", "full": "1.0.0 (de
       const cb = b.val('Bridge', 'C9');
       if (typeof cb === 'number' && near(Math.abs(cb), 60000, 1)) return FNOTE('Right idea — but the bridge is in <b>$ thousands</b>.');
       if (near(cb, 60, 0.5)) return FNOTE('A cost that went <b>up</b> hurts EBITDA. In this bridge unfavorable is negative: (60).');
-      if (b.val('Bridge', 'C15') === 'TIES' && !near(cb, -60, 0.5)) return FNOTE("It ties — but only because Freight is soaking up the difference. Never plug a bar you can calculate: work out <b>containerboard</b> first ($/ton from the mill letter × tons a quarter from our Products page).");
+      if (b.val('Bridge', 'C15') === 'TIES' && !near(cb, -60, 0.5)) return FNOTE("It ties — it always will, Freight soaks up whatever is left. Containerboard has to be right first: my calc is in <b>Norton's quarantine</b> (the shield in the tray).");
       return null;
     },
   });
@@ -6828,8 +6861,9 @@ FR.version = {"version": "1.0.0", "build": "dev", "date": "", "full": "1.0.0 (de
       case 'copybudget':
         FR.dialog({ icon: 'error', title: 'Microsoft Excel', width: 440, message: `'${esc(node.name)}' cannot be found. Check the spelling of the file name, and verify that the file location is correct.` });
         return;
-      case 'covenant': return openWorkbook(covenantBook(), Object.assign(o, { startCell: 'F23' }, covenantHooks()));
+      case 'covenant': return openWorkbook(covenantBook(), Object.assign(o, { startCell: 'F13' }, covenantHooks()));
       case 'cash13': return openWorkbook(cashBook(), Object.assign(o, { startCell: 'B14' }));
+      case 'cbcalc': return openWorkbook(cbCalcBook(), Object.assign(o, { startCell: 'B9' }));
       case 'bridge': return openWorkbook(bridgeBook(), Object.assign(o, bridgeHooks(), { startCell: 'C9' }));
       case 'esports': return openWorkbook(esportsBook(), o);
       case 'bud_v2':
@@ -7076,11 +7110,11 @@ Regards,${SIG.marcus}`,
 
 You asked for payroll numbers for your 13-week cash thingy, so here you go :)
 
-Each run is $196K all-in (wages + taxes + benefits) for the hourly crew. Plant and warehouse, both shifts. Salaried are monthly, you know this.
+Except you already HAVE the number, silly. I told you the per-run amount on Monday and you said you didn't need to write it down because it's "the same as my Solitaire high score". I don't know what that means. I don't want to know what that means.
 
-Next run is Friday Oct 23. That's week 1 of your 13 weeks.
+It's all-in (wages + taxes + benefits) for the hourly crew. Plant and warehouse, both shifts. Salaried are monthly, you know this.
 
-And we pay every other Friday, silly. It's even on our careers page ;) So Oct 23, then two weeks later, then two weeks after that... you know the drill.
+Next run is Friday Oct 23. That's week 1 of your 13 weeks. And we pay every other Friday ;) So Oct 23, then two weeks later, then two weeks after that... you know the drill.
 
 Let me know if you need anything else. Anything at all. I'm at my desk until 5. Or 6. I can stay. I always stay.
 
@@ -7111,7 +7145,9 @@ P.P.S. If you're at that Excel rodeo in Nevada, I will find you.`,
     attach: [{ name: 'DieCutter_Rebuild_Invoice_4471.pdf', size: '96 KB', file: 'inv_diecutter' }],
     body: `Frank,
 
-For your covenant math: the die-cutter rebuild on Line 2 is done and paid. $110K, paid in cash out of the operating account, not under the equipment loan. The other $300K of capex over the last twelve months (the corrugator glue station and the two electric forklifts) went on the equipment loan.
+For your covenant math: the die-cutter rebuild on Line 2 is done and paid in cash, out of the operating account, not under the equipment loan. The corrugator glue station and the two electric forklifts went on the equipment loan.
+
+You said you'd "write the cash number down somewhere safe". Please tell me it isn't another drawing.
 
 Invoice attached. Line 2 is running again and it's louder than before, which the guys say means it's working.
 
@@ -7418,7 +7454,8 @@ DREW${SIG.drew}
 P.S. FOUND THIS IN MY PHONE. FRANK'S ANSWER THE LAST TIME I ASKED WHY PAPER COSTS WENT UP. I DIDN'T READ IT THEN EITHER.
 
 > Frank wrote:
-> Drew, the mill letter is the $/ton increase. Containerboard cost = $/ton × tons we run a quarter (Products page).
+> Drew, the mill letter is the $/ton increase. Containerboard cost = $/ton × tons we run a quarter.
+> I did the math in containerboard_calc.xls. If it's gone, Norton ate it again: Norton > Quarantine > Restore.
 > Volume, price and labor are already in the bridge. Freight is the residual.
 > F`,
     }),
@@ -8673,6 +8710,20 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
     text('by Frank (member #0003)', 316, 300, 13, C.k, false);
     return img;
   }
+  /* What Frank wrote on the page in permanent marker BEFORE he drew Kristians over it: the capex that was paid in cash
+     (item 5, the DSCR). A mask the size of the picture; the eraser can't rub these pixels out, they turn to marker. */
+  const SECRET_INK = U('#000080');
+  let secretMask = null;
+  function kristiansSecret() {
+    if (secretMask) return secretMask;
+    const W = DEF_W, H = DEF_H, R = new Raster(new ImageData(W, H)), on = 1;
+    const put = (s, px, y) => { const f = { family: 'Arial', px, bold: true }; textInto(R, s, Math.round((W - measure(s, f)) / 2), y, f, on); };
+    put('PAID IN CASH ($K):', 20, 70);
+    put('110', 172, 96);
+    const m = new Uint8Array(W * H); let total = 0;
+    for (let i = 0; i < m.length; i++) if (R.px[i]) { m[i] = 1; total++; }
+    return (secretMask = { m, total, W, H });
+  }
 
   /* =====================================================================================
      saved pictures: FR.state.paint.files → nodes in My Pictures
@@ -8689,7 +8740,7 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
     return {
       id: 'pt_' + f.id, parent: 'pics', name: f.name, type: 'file', app: 'paint', icon: 'bmp', author: 'Frank Warmington',
       size: fileSize(f.name, f.w, f.h, saved ? f : null), modified: saved && f.savedAt ? fmtDate(f.savedAt) : K_DATE, paintId: f.id,
-      title: isK(f) ? 'KRISTIANS' : '', comments: isK(f) ? 'drew this after the Summit. took 2 hours. worth it.' : '',
+      title: isK(f) ? 'KRISTIANS' : '', comments: isK(f) ? 'drew this after the Summit, on the back of my capex scribble. took 2 hours. worth it.' : '',
       onDelete: saved ? () => { removeFile(f.id); } : undefined,
     };
   }
@@ -8721,7 +8772,8 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
   /* =====================================================================================
      session prefs (shared by every Paint window this session)
      ===================================================================================== */
-  const PREF = { fg: [0, 0, 0], bg: [255, 255, 255], pal: PAL0.slice(), tool: 'pencil', line: 1, brush: 'r4', eraser: 8, air: 1, mode: 0, mag: 4, opaque: true, textOpaque: false,
+  const ERASERS = [10, 20, 32, 48];   // (bigger than Windows' 4–10: rubbing out a whole drawing shouldn't take all night)
+  const PREF = { fg: [0, 0, 0], bg: [255, 255, 255], pal: PAL0.slice(), tool: 'pencil', line: 1, brush: 'r4', eraser: 32, air: 1, mode: 0, mag: 4, opaque: true, textOpaque: false,
     font: { family: 'Arial', size: 12, bold: false, italic: false, underline: false }, toolbox: true, colorbox: true, status: true, textbar: true, grid: false };
   let CLIP = null;     // Paint's own clipboard (ImageData)
   let S = null;        // the open Paint window
@@ -8853,7 +8905,7 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
   function blank(w, h, c = PREF.bg) { const img = new ImageData(w, h); new Uint32Array(img.data.buffer).fill(U(c)); return img; }
   function resetDoc(name, fileId) {
     dropSel(); S.txt && endText(false); S.poly = S.curve = null; S.act = null;
-    S.undo = []; S.redo = []; S.dirty = false; S.name = name; S.fileId = fileId; title();
+    S.undo = []; S.redo = []; S.dirty = false; S.name = name; S.fileId = fileId; S.seen = null; S.seenN = 0; S.told = false; title();
   }
   async function openNode(n) {
     // a built-in picture (a node with paintImage() → ImageData, e.g. from FR.fs.extra): opens like Frank's original
@@ -8949,7 +9001,7 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
       h = it('opaque', 1, PREF.opaque, `<svg viewBox="0 0 30 18"><rect x="3" y="2" width="12" height="12" fill="#ff0" stroke="#000"/><path d="M10 6h14v10H10z" fill="#08f" stroke="#000"/></svg>`)
         + it('opaque', 0, !PREF.opaque, `<svg viewBox="0 0 30 18"><rect x="3" y="2" width="12" height="12" fill="#ff0" stroke="#000"/><path d="M10 6h14v10H10z" fill="none" stroke="#000"/></svg>`);
     } else if (t === 'eraser') {
-      h = [4, 6, 8, 10].map(n => it('eraser', n, PREF.eraser === n, `<span class="pt-sq" style="width:${n}px;height:${n}px"></span>`)).join('');
+      h = ERASERS.map(n => it('eraser', n, PREF.eraser === n, `<span class="pt-sq" style="width:${Math.round(n / 2.4)}px;height:${Math.round(n / 2.4)}px"></span>`)).join('');
     } else if (t === 'mag') {
       h = (S.mob ? ['fit', 1, 2, 4, 6, 8] : [1, 2, 4, 6, 8]).map(n => it('mag', n, n === 'fit' ? S.zoom === baseZoom() && S.zoom < 1 : S.zoom === n, n === 'fit' ? 'Fit' : n + 'x')).join('');
     } else if (t === 'brush') {
@@ -9105,6 +9157,22 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
   function flush() { if (S.raf) return; S.raf = requestAnimationFrame(() => { if (!S) return; S.raf = 0; if (S.R) S.cx.putImageData(S.R.img, 0, 0); }); }
   function flushNow() { cancelAnimationFrame(S.raf); S.raf = 0; if (S.R) S.cx.putImageData(S.R.img, 0, 0); }
   function done() { flushNow(); S.R = null; S.base = null; markDirty(); }
+  // Frank's Kristians picture (the original, or a saved copy at its own size) has the marker writing under it
+  function secretHere() {
+    if (S.fileId !== 'k' || S.w !== DEF_W || S.h !== DEF_H) return null;
+    const sec = kristiansSecret();
+    if (!S.seen) { S.seen = new Uint8Array(sec.m.length); S.seenN = 0; }
+    return sec;
+  }
+  function secretFound() {
+    S.told = true;
+    setStatus(0, 'Something was written on the page before the drawing. In permanent marker.');
+    if (!FR.flags.get('paintSecret')) {
+      FR.flags.set('paintSecret', true);
+      FR.sound && FR.sound.play && FR.sound.play('unlock');
+    }
+    FR.bus.emit('paint-secret');
+  }
   const constrain = (a, p, kind) => {   // Shift: squares, circles, 45° lines
     if (!a.shift) return p;
     const dx = p.x - a.start.x, dy = p.y - a.start.y;
@@ -9138,14 +9206,19 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
     eraser: { free: true,
       down(p, a) { begin(a); T.eraser.move(p, a); },
       move(p, a) {
-        const n = PREF.eraser, o = Math.floor(n / 2), bg = U(PREF.bg), fg = U(PREF.fg), R = S.R;
+        const n = PREF.eraser, o = Math.floor(n / 2), bg = U(PREF.bg), fg = U(PREF.fg), R = S.R, sec = secretHere();
         R.walk(a.last.x, a.last.y, p.x, p.y, (x, y) => {
           for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
             const X = x - o + i, Y = y - o + j;
-            if (a.btn === 2) { if (R.get(X, Y) === fg) R.set(X, Y, bg); } else R.set(X, Y, bg);   // right button: Color Eraser
+            if (a.btn === 2 && R.get(X, Y) !== fg) continue;                   // right button: Color Eraser
+            if (sec && X >= 0 && Y >= 0 && X < sec.W && Y < sec.H && sec.m[Y * sec.W + X]) {   // Frank's marker doesn't rub out
+              R.set(X, Y, SECRET_INK);
+              if (!S.seen[Y * sec.W + X]) { S.seen[Y * sec.W + X] = 1; S.seenN++; }
+            } else R.set(X, Y, bg);
           }
         });
         flush();
+        if (sec && !S.told && S.seenN > sec.total * 0.45) secretFound();
       },
       up: done },
     air: { free: true,
@@ -10794,7 +10867,7 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
     bud_v4: { comments: 'FINAL means final. —F', keywords: 'final' },
     bud_v5ff: { comments: 'FINAL FINAL means I was wrong once. —F', keywords: 'final, final' },
     bud_v5ut: { comments: 'USE THIS ONE. Diane knows why. —F', keywords: 'final, use this', title: 'FY27 Budget' },
-    cash13: { comments: 'The real one. Rachel\'s number goes in the payroll row. Do the math. —F', title: '13-week cash (REAL)' },
+    cash13: { comments: 'The real one. One payroll run goes in B14 (win Solitaire for the number). —F', title: '13-week cash (REAL)' },
     boarding: { comments: 'deleted this. obviously nobody will look in the Recycle Bin.', title: 'boarding pass' },
     esports: { comments: 'Speedrun practice. 30:42 on the case. Kristians does it in 19.', keywords: 'speedrun, vegas' },
     todo: { comments: 'personal. NOT work. —F' },
@@ -11268,7 +11341,7 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
       <text x="48" y="622" font-size="16" font-family="'Segoe Script','Comic Sans MS',cursive" fill="#2a3a6a">R. Tellinghast</text>
       <text x="48" y="638" font-size="11">Ruth Tellinghast, Director of Sales</text><text x="48" y="652" font-size="11">Ozark Kraft Mills</text>
       <g transform="rotate(-8 470 600)"><rect x="392" y="574" width="156" height="52" rx="4" fill="none" stroke="#1d3a9a" stroke-width="2" opacity=".75"/><text x="470" y="596" font-size="10" text-anchor="middle" fill="#1d3a9a" opacity=".75" font-family="Arial,Helvetica,sans-serif" font-weight="bold">RECEIVED — PACKA FP&amp;A</text><text x="470" y="614" font-size="10" text-anchor="middle" fill="#1d3a9a" opacity=".75" font-family="Arial,Helvetica,sans-serif">JUN 15 2026 · FW</text></g>
-      <text x="48" y="700" font-size="10.5" font-family="'Segoe Script','Comic Sans MS',cursive" fill="#1d3a9a">+$40/ton × the tons we run a quarter (Products page) = the containerboard bar. Freight is the residual. —F</text>
+      <text x="48" y="700" font-size="10.5" font-family="'Segoe Script','Comic Sans MS',cursive" fill="#1d3a9a">+$40/ton × the tons we run a quarter: done in containerboard_calc.xls. (If Norton ate it again: Quarantine.) —F</text>
       <text x="564" y="770" font-size="8" fill="#888" text-anchor="end" font-family="Arial,Helvetica,sans-serif">Page 1 of 1</text></svg>`;
   }
   const PDFS = { inv_diecutter: pdfInvoice };
@@ -12015,11 +12088,12 @@ GET SHEET DONE.
   T.cashnote = `If you found this you know how to show hidden files. Congrats.
 Drew doesn't. That's the point.
 
-Cash forecast: payroll row is blank because Rachel's number changes every
-time I ask. Latest from Rachel: $196K per run, all-in.
+Cash forecast: payroll is blank because I am NOT typing the number where
+Drew can see it. I hid it where Drew will never look: behind a Solitaire
+WIN. Win a game and Bob tells you. (I rigged one: Game > Frank's Lucky Deal.)
 
-Payroll = every run, not every week. We pay on the schedule on our careers
-page. First run of the forecast is Fri Oct 23.
+One run goes in B14. The rest fill in every other Friday. First run of the
+forecast is Fri Oct 23.
 
 Do the math before you believe the Board deck.
 
@@ -12531,24 +12605,27 @@ Website:      still says 'Director'. Steve. Don't ask.
     busy = true;
     // the first win of the game is worth points (src/score_rules.js EXTRAS), and Bob the panda comes out to celebrate
     // every time (pure fun after the first)
-    const R = FR.scoreRules, first = !!(R && R.EXTRAS && !(FR.state.bonus && FR.state.bonus.sol_win));
+    // (Frank's Lucky Deal is rigged, so it shows Bob and Frank's secret but isn't worth the points)
+    const R = FR.scoreRules, first = !G.lucky && !!(R && R.EXTRAS && !(FR.state.bonus && FR.state.bonus.sol_win));
     if (first) {
       if (!FR.state.bonus || typeof FR.state.bonus !== 'object') FR.state.bonus = {};
       FR.state.bonus.sol_win = { solvedAt: Date.now(), pts: R.EXTRAS.sol_win };
       FR.save(); FR.bus.emit('score'); if (FR.checklistRender) FR.checklistRender();
     }
+    if (!FR.flags.get('solSecret')) FR.flags.set('solSecret', true);
     setTimeout(() => { cascade(); bobParty(first); }, 380);
   }
 
-  /* ---------- the win: Bob the panda (Datarails' mascot, 8-bit: src/bob.js) dances on the table ---------- */
+  /* ---------- the win: Bob the panda (Datarails' mascot, 8-bit: src/bob.js) dances on the table ----------
+     and gives away Frank's secret: the hourly payroll run he "hid" behind a Solitaire win (item 6, the cash forecast) */
   let bobEl = null;
   function bobParty(first) {
     if (!table || !FR.data.images || !FR.data.images.bob) return;
     if (bobEl) bobEl.remove();
     const COL = ['#f4c430', '#1d6f42', '#e8834a', '#2f44c9', '#ffffff', '#d40000'];
     let cf = ''; for (let i = 0; i < 28; i++) cf += `<span class="so-cf" style="left:${(i * 37) % 100}%;background:${COL[i % COL.length]};--t:${((i * 0.29) % 2.4).toFixed(2)}s;--d:${(1.8 + (i % 5) * 0.35).toFixed(2)}s"></span>`;
-    const pts = first && FR.scoreRules ? `<i>+${FR.scoreRules.EXTRAS.sol_win} points</i>` : '';
-    bobEl = $(`<div class="so-bob" aria-hidden="true">${cf}<div class="so-bob-say"><b>SAME SHEET,<br>DIFFERENT DAY!</b>${pts}</div><img class="so-bob-i" src="${FR.data.images.bob}" alt=""></div>`);
+    const pts = first && FR.scoreRules ? `<i>+${FR.scoreRules.EXTRAS.sol_win} points</i>` : G && G.lucky ? '<i class="so-bob-rig">(rigged deal: no points)</i>' : '';
+    bobEl = $(`<div class="so-bob" aria-hidden="true">${cf}<div class="so-bob-say"><b>SAME SHEET,<br>DIFFERENT DAY!</b>${pts}<span class="so-bob-sec">FRANK'S SECRET:<br>PAYROLL RUN = <u>$196K</u></span></div><img class="so-bob-i" src="${FR.data.images.bob}" alt=""></div>`);
     table.appendChild(bobEl);
   }
 
@@ -12797,6 +12874,25 @@ Website:      still says 'Director'. Steve. Don't ask.
     win.el.dataset.seed = G.seed;
     if (FR.bus) FR.bus.emit('sol-deal', G.seed);
   }
+  // a position from a spec: piles as card ids, a leading "#" = face down, every card exactly once
+  function loadSpec(spec) {
+    clearFx(); clearSel(); busy = false;
+    const c = t => { const o = cards[t.replace('#', '')].c; o.up = t[0] !== '#'; return o; };
+    G.stock = (spec.stock || []).map(t => { const o = c(t); o.up = false; return o; }); G.waste = (spec.waste || []).map(c); G.found = [0, 1, 2, 3].map(i => ((spec.found || [])[i] || []).map(c)); G.tab = [0, 1, 2, 3, 4, 5, 6].map(i => ((spec.tab || [])[i] || []).map(c));
+    const n = G.stock.length + G.waste.length + G.found.flat().length + G.tab.flat().length; if (n !== 52) throw new Error('load: ' + n + ' cards');
+    G.fan = Math.min(G.waste.length, opts.draw); G.undo = []; G.won = false; G.started = true; G.passes = 1; G.lucky = false;
+    layout(false); status();
+  }
+  /* Frank's Lucky Deal (Game menu): the game Frank "practised" so he'd always get to see Bob. Aces to nines are home
+     already; the tens to kings need a little shuffling through the empty columns (about twenty moves). Rigged, so no points. */
+  const upTo9 = s => ['A', 2, 3, 4, 5, 6, 7, 8, 9].map(r => r + s);
+  const LUCKY = { found: [upTo9('S'), upTo9('H'), upTo9('D'), upTo9('C')],
+    tab: [['JS', '10D'], ['10S', 'QD'], ['JD', 'KC'], ['10H', 'JC', 'QS'], ['10C', 'KH', 'QH'], ['JH', 'QC', 'KS', 'KD'], []] };
+  function luckyDeal() {
+    if (!table) return;
+    deal(); loadSpec(LUCKY); G.lucky = true;
+    if (win) win.setStatus(0, "Frank's Lucky Deal. Rigged. Don't tell Drew.");
+  }
   function ensureCards() {
     const compact = geo ? geo.compact : false;
     for (let s = 0; s < 4; s++) for (let r = 1; r <= 13; r++) {
@@ -12873,7 +12969,7 @@ Website:      still says 'Director'. Steve. Don't ask.
     cards = {}; lastCompact = null;
     const menu = [
       { label: 'Game', items: () => [
-        { label: 'Deal', key: 'F2', action: () => deal() }, { sep: true },
+        { label: 'Deal', key: 'F2', action: () => deal() }, { label: "Frank's Lucky Deal", action: luckyDeal }, { sep: true },
         { label: 'Undo', key: 'Ctrl+Z', disabled: !G || !G.undo.length || G.won, action: undo },
         { label: 'Deck...', action: deckDialog }, { label: 'Options...', action: optionsDialog }, { sep: true },
         { label: 'Exit', action: () => win.close() },
@@ -12927,14 +13023,7 @@ Website:      still says 'Director'. Steve. Don't ask.
       state: () => G && { seed: G.seed, solvable: G.solvable, score: G.score, time: G.time, passes: G.passes, won: G.won, undo: G.undo.length, busy, sel: sel && sel.list.map(c => c.id),
         stock: G.stock.map(c => c.id), waste: G.waste.map(c => c.id), found: G.found.map(f => f.map(c => c.id)), tab: G.tab.map(t => t.map(c => c.id + (c.up ? '+' : '-'))) },
       // piles as ids; a leading "#" = face down. Every card must appear once.
-      load(spec) {
-        clearFx(); clearSel(); busy = false;
-        const c = t => { const o = cards[t.replace('#', '')].c; o.up = t[0] !== '#'; return o; };
-        G.stock = (spec.stock || []).map(t => { const o = c(t); o.up = false; return o; }); G.waste = (spec.waste || []).map(c); G.found = [0, 1, 2, 3].map(i => ((spec.found || [])[i] || []).map(c)); G.tab = [0, 1, 2, 3, 4, 5, 6].map(i => ((spec.tab || [])[i] || []).map(c));
-        const n = G.stock.length + G.waste.length + G.found.flat().length + G.tab.flat().length; if (n !== 52) throw new Error('load: ' + n + ' cards');
-        G.fan = Math.min(G.waste.length, opts.draw); G.undo = []; G.won = false; G.started = true; G.passes = 1;
-        layout(false); status();
-      },
+      load: loadSpec, lucky: luckyDeal, LUCKY,
       rect: id => { const b = cards[id].el.getBoundingClientRect(); return { x: b.left, y: b.top, w: b.width, h: b.height }; },
       pileRect: (t, i) => { const r = pileRect({ t, i }), b = table.getBoundingClientRect(); return { x: b.left + r.x, y: b.top + r.y, w: r.w, h: r.h }; },
       geo: () => geo, fx: () => !!fx, endCascade,
@@ -13729,7 +13818,9 @@ I'm taking Thursday off.
    box, the Blue Screen, the screensaver, the ending, a menu, or while the player is typing (it waits its turn). Now and
    then it says something else. It is an ordinary tray balloon (FR.balloon), so on a phone it follows the toast rules
    (a strip above the taskbar that never vanishes under a finger). Clicking it opens a small Norton-style status window.
-   A nostalgic parody: a generic yellow shield, no real logo. Schedule in FR.state.flags.norton = { next, n }.  Prefix: .nv- */
+   A nostalgic parody: a generic yellow shield, no real logo. Schedule in FR.state.flags.norton = { next, n }.  Prefix: .nv-
+   Item 7 (the EBITDA bridge): Norton quarantined Frank's containerboard_calc.xls as a "macro virus". Its Quarantine page
+   restores it (FR.flags.nortonRestored) into Board Meeting Oct 20; a shield in the tray opens Norton at any time. */
 (() => {
   const $ = FR.$, esc = FR.esc;
   const FIRST = 3 * 60000, MIN = 8 * 60000, MAX = 15 * 60000;
@@ -13767,12 +13858,29 @@ I'm taking Thursday off.
     s.next = ms + MIN + Math.floor(Math.random() * (MAX - MIN)); FR.save();
   });
 
+  /* ---------- the quarantined file (item 7) ---------- */
+  const QFILE = 'containerboard_calc.xls', QDATE = '10/06/2026 1:14 AM';
+  const restored = () => !!FR.flags.get('nortonRestored');
+  if (FR.fs && FR.fs.extra) FR.fs.extra.push(() => restored() ? [{ id: 'cbcalc', parent: 'board', name: QFILE, type: 'file', app: 'excel', icon: 'xls', size: '14 KB', modified: QDATE, author: 'Frank Warmington' }] : []);
+  function restore() {
+    if (!restored()) { FR.flags.set('nortonRestored', true); FR.bus.emit('fs-change'); FR.sound.play('unlock'); }
+    setTimeout(() => FR.openFile('cbcalc'), 350);
+  }
+  // the shield in the tray: Norton is always one click away (it used to be only the popups)
+  FR.bus.on('desktop', el => {
+    const tray = el && el.querySelector('.fr-tray'), k = tray && tray.querySelector('.fr-ktray');
+    if (!tray || tray.querySelector('.nv-tray')) return;
+    const t = $(`<span class="nv-tray" role="button" title="Norton AntiVirus" aria-label="Norton AntiVirus">${SHIELD}</span>`);
+    t.onclick = () => statusWin();
+    tray.insertBefore(t, k || tray.firstChild.nextSibling);
+  });
+
   /* ---------- the status window ---------- */
-  function statusWin() {
-    if (FR.wm.wins.has('norton')) { const w = FR.wm.wins.get('norton'); w.restore(); w.focus(); return w; }
+  function statusWin(page) {
+    if (FR.wm.wins.has('norton')) { const w = FR.wm.wins.get('norton'); w.restore(); w.focus(); if (page && w.nvShow) w.nvShow(page); return w; }
     const el = $(`<div class="nv">
       <div class="nv-side"><div class="nv-brand"><span class="nv-ico32">${SHIELD}</span><b>Norton <br>AntiVirus</b><small>2003 &middot; Professional</small></div>
-        <a class="nv-nav on" data-p="status">Status</a><a class="nv-nav" data-p="scan">Scan for Viruses</a><a class="nv-nav" data-p="reports">Reports</a><a class="nv-nav nv-dis">Options</a></div>
+        <a class="nv-nav on" data-p="status">Status</a><a class="nv-nav" data-p="scan">Scan for Viruses</a><a class="nv-nav" data-p="quarantine">Quarantine<span class="nv-qn"></span></a><a class="nv-nav" data-p="reports">Reports</a><a class="nv-nav nv-dis">Options</a></div>
       <div class="nv-main"></div></div>`);
     const main = el.querySelector('.nv-main');
     const inbox = () => (FR.mail && FR.mail.messages ? FR.mail.messages().length : 31);
@@ -13780,20 +13888,34 @@ I'm taking Thursday off.
       status: () => `<div class="nv-ok"><span class="nv-ico32">${SHIELD}</span><div><b>System Status: OK</b><span>Security features are enabled and up to date.</span></div></div>
         <table class="nv-t"><tr><td>Auto-Protect</td><td class="nv-on">On</td></tr><tr><td>E-mail Scanning</td><td class="nv-on">On</td></tr><tr><td>Script Blocking</td><td class="nv-on">On</td></tr>
         <tr><td>Full System Scan</td><td>Not since 2019</td></tr><tr><td>Virus Definitions</td><td>10/16/2026 (up to date)</td></tr>
-        <tr><td>Subscription</td><td class="nv-warn">Expires in 3 days (it has said that since 2004)</td></tr><tr><td>Automatic LiveUpdate</td><td class="nv-on">On</td></tr></table>
+        <tr><td>Subscription</td><td class="nv-warn">Expires in 3 days (it has said that since 2004)</td></tr><tr><td>Automatic LiveUpdate</td><td class="nv-on">On</td></tr>
+        <tr><td>Quarantine</td><td${restored() ? '>Empty' : ` class="nv-warn"><a class="nv-go" data-p="quarantine">1 item</a> (${QFILE})`}</td></tr></table>
         <div class="nv-btns"><button data-a="inbox">Scan Frank's inbox</button><button data-a="pc">Scan My Computer</button><button data-a="lu">LiveUpdate</button></div><div class="nv-out"></div>`,
       scan: () => `<h3>Scan for Viruses</h3><p>Pick what to scan. Frank's last full scan was in 2019. He was "busy".</p>
         <div class="nv-btns nv-col"><button data-a="inbox">Scan Frank's inbox</button><button data-a="pc">Scan My Computer</button></div><div class="nv-out"></div>`,
-      reports: () => `<h3>Reports</h3><table class="nv-t"><tr><td>Viruses found (lifetime)</td><td>0</td></tr><tr><td>Macros blocked</td><td>1 (Drew's "MAKE_IT_WORK.xls")</td></tr><tr><td>Quarantine</td><td>empty (declined, see below)</td></tr><tr><td>Tracking cookies</td><td>212, all from a fan club</td></tr></table>`,
+      quarantine: () => restored()
+        ? `<h3>Quarantine</h3><p>Quarantine is empty.</p><div class="nv-res"><b>${QFILE}</b> was restored to <span class="nv-mono">My Documents\\Board Meeting Oct 20</span>.</div><div class="nv-btns" style="margin-top:8px"><button data-a="open">Open ${QFILE}</button></div><div class="nv-out"></div>`
+        : `<h3>Quarantine</h3><p>Norton isolated these files so they can't harm your computer.</p>
+        <table class="nv-t nv-q"><tr><th>File</th><th>Threat</th><th>Quarantined</th></tr>
+        <tr><td><b>${QFILE}</b><br><small>My Documents\\Board Meeting Oct 20</small></td><td>W97M.Macro.Generic<br><small>(heuristic: "contains a formula")</small></td><td>${QDATE}</td></tr></table>
+        <div class="nv-res">Note added by F. Warmington: <i>"IT'S A SPREADSHEET, NORTON. It has ONE formula. Give it back."</i></div>
+        <div class="nv-btns" style="margin-top:8px"><button data-a="restore">Restore</button><button data-a="qdel">Delete</button><button data-a="qsub">Submit to Symantec</button></div><div class="nv-out"></div>`,
+      reports: () => `<h3>Reports</h3><table class="nv-t"><tr><td>Viruses found (lifetime)</td><td>0</td></tr><tr><td>Macros blocked</td><td>1 (Drew's "MAKE_IT_WORK.xls")</td></tr><tr><td>Files quarantined</td><td>${restored() ? '1 (restored: a false positive)' : `1 (${QFILE}, see Quarantine)`}</td></tr><tr><td>E-mail quarantine</td><td>declined (see Scan Frank's inbox)</td></tr><tr><td>Tracking cookies</td><td>212, all from a fan club</td></tr></table>`,
     };
     const show = k => {
       el.querySelectorAll('.nv-nav').forEach(a => a.classList.toggle('on', a.dataset.p === k));
       main.innerHTML = P[k]();
       main.querySelectorAll('[data-a]').forEach(b => { b.onclick = () => act(b.dataset.a); });
+      main.querySelectorAll('.nv-go[data-p]').forEach(a => { a.onclick = () => show(a.dataset.p); });
+      el.querySelector('.nv-qn').textContent = restored() ? '' : ' (1)';
     };
     let scanning = null;
     const act = a => {
       const out = main.querySelector('.nv-out'); if (!out) return;
+      if (a === 'restore') { restore(); show('quarantine'); return; }
+      if (a === 'open') { FR.openFile('cbcalc'); return; }
+      if (a === 'qdel') { FR.dialog({ title: TITLE, icon: 'warn', message: `Delete <b>${QFILE}</b>?<br><br>Norton is unable to delete this file: it is marked <b>DO NOT DELETE — it's the containerboard calc. —F</b>` }); return; }
+      if (a === 'qsub') { FR.sound.play('ding'); out.innerHTML = '<div class="nv-res">Submitted to Symantec Security Response. Expected reply: 6–8 weeks. The Board meets Tuesday.</div>'; return; }
       if (a === 'lu') { FR.sound.play('ding'); out.innerHTML = '<div class="nv-res"><b>LiveUpdate</b>: Norton AntiVirus is up to date.<br>So is Frank\'s LinkedIn. It says "Director".</div>'; return; }
       if (scanning) return;
       const total = a === 'inbox' ? inbox() : 1212;
@@ -13814,11 +13936,12 @@ I'm taking Thursday off.
     };
     const w = FR.wm.open({ id: 'norton', title: TITLE, icon: 'nvshield', width: 540, height: 460, className: 'nv-win', content: el, onClose: () => { if (scanning) clearInterval(scanning); scanning = null; } });
     el.querySelectorAll('.nv-nav[data-p]').forEach(a => { a.onclick = () => { if (!scanning) show(a.dataset.p); }; });
-    show('status');
+    w.nvShow = k => { if (!scanning) show(k); };
+    show(page && P[page] ? page : 'status');
     return w;
   }
 
-  FR.norton = { pop, statusWin, state: st, FIRST, MIN, MAX, VARIANTS, PLAIN };
+  FR.norton = { pop, statusWin, restore, state: st, FIRST, MIN, MAX, VARIANTS, PLAIN };
 })();
 
 ;
@@ -14001,15 +14124,16 @@ I'm taking Thursday off.
     { id: 'ebitda', level: 1, t: 'Repair FY27 EBITDA in the Board copy', d: 'Frank broke the EBITDA row at 3 AM (#REF!). Fix row 12 in Excel — FY and all four quarters (E12:H12) — or type the FY number here.', input: 'FY27 EBITDA ($K)', ph: 'e.g. 1,234', num: true,
       where: [W.file('bud_board', 'Budget_FY27_BOARD.xls')],
       hints: ["It's not one cell. The FY column and all four quarters say #REF!. Excel only ticks it when the whole row adds up. (Or type the FY number here.)", 'Gross profit minus SG&A, Rent & leases and Other opex. In C12 type =C7-C9-C10-C11, then the same in E12:H12.', '40,000 − 31,200 − 4,850 − 420 − 400 = 3,130.'] },
-    { id: 'dscr', level: 2, t: 'Prove the bank covenant (DSCR)', d: 'The bank wants the Q3 covenant certificate. Fill in the DSCR in Excel (it ticks itself) or type it here.', input: 'DSCR (x)', ph: 'e.g. 1.40', num: true,
-      where: [W.folder('bank', 'My Documents › Bank'), W.mail("Karen's email", 'm_karen_capex'), W.file('passwords', 'passwords.txt (desktop)')],
-      hints: ["Bank.zip needs a password. Open Budget_FY27_BOARD.xls: the yellow note Frank left next to the EBITDA row tells you which cell holds it (passwords.txt on the desktop says the same).", "Section 6.1: capex that wasn't financed by a loan comes off EBITDA first. Karen's email says what was paid in cash.", '(2,860 − 110) ÷ (450 + 1,750) = 1.25x. Just.'] },
-    { id: 'cash', level: 3, t: 'Find the first week cash drops below $250K', d: "Frank kept a REAL cash forecast the Board never saw. Find it, add payroll, and pick the first week cash falls below $250K.", pick: 'weeks',
-      where: [W.folder('boardroot', 'My Documents › BOARD'), W.mail("Rachel's email", 'm_rachel_payroll'), W.site('careers.html', 'Careers page')],
-      hints: ["The REAL VERSION folder is hidden. In any folder window: Tools › Folder Options › View › Show hidden files and folders.", "The payroll row is empty. Rachel has the amount per run; the Careers page says how often Packa pays.", '$196K every other Friday from Oct 23 → weeks 1, 3, 5… Week 5 ends at $110K.'] },
-    { id: 'bridge', level: 3, t: 'Close the Q3 EBITDA bridge', d: 'Two bars are missing. Fill both in Excel until the check says TIES — or type the Freight bar here.', input: 'Freight ($K)', ph: 'e.g. -25', num: true,
-      where: [W.folder('board', 'Board Meeting Oct 20'), W.mail('The mill letter', 'm_ozark'), W.site('products.html', FR.mobile ? 'Products page (first paragraph)' : 'Products page')],   // (F12: a long page on a phone)
-      hints: ["Open Q3_EBITDA_Bridge.xls. Frank's rule: never plug a bar you can calculate. Work out containerboard first.", "The mill letter gives $ per ton. How many tons Packa runs a quarter is on the Products page.", '$40 × 1,500 tons = $60K more cost, so −60. Then −160 − (−120 + 80 − 20 − 60) = −40.'] },
+    { id: 'dscr', level: 2, t: 'Prove the bank covenant (DSCR)', d: "The bank wants the Q3 covenant certificate. One number is missing: the capex Packa paid in cash. Frank wrote it down, then drew over it. Put it in the certificate (the DSCR works itself out and ticks) or type the DSCR here.", input: 'DSCR (x)', ph: 'e.g. 1.40', num: true,
+      where: [W.folder('bank', 'My Documents › Bank'), W.file('passwords', 'passwords.txt (desktop)'), W.folder('pics', 'My Pictures')],
+      hints: ["Bank.zip needs a password. Open Budget_FY27_BOARD.xls: the yellow note Frank left next to the EBITDA row tells you which cell holds it (passwords.txt on the desktop says the same).", "F13 in the certificate wants the capex paid in cash. Frank wrote it in permanent marker, then drew Kristians over it: open kristians_by_frank.bmp (My Pictures) and rub him out with Paint's Eraser.", "Under the drawing: PAID IN CASH 110. Type 110 in F13: (2,860 − 110) ÷ 2,200 = 1.25x. Just."] },
+    { id: 'cash', level: 3, t: 'Find the first week cash drops below $250K', d: "Frank kept a REAL cash forecast the Board never saw. Find it, put in one payroll run (Frank hid the number behind a Solitaire win), and pick the first week cash falls below $250K.", pick: 'weeks',
+      where: [W.folder('boardroot', 'My Documents › BOARD'), ['Solitaire', () => FR.apps.solitaire()], W.mail("Rachel's email", 'm_rachel_payroll')],
+      hints: ["The REAL VERSION folder is hidden. In any folder window: Tools › Folder Options › View › Show hidden files and folders.", "B14 in the REAL forecast wants one payroll run. Frank hid the number behind a Solitaire win: win a game and Bob the panda gives it away. (No time? Solitaire › Game › Frank's Lucky Deal.)", "Bob's number: $196K. Type 196 in B14; the runs fall every other Friday, and week 5 is the first red week ($110K)."] },
+    { id: 'bridge', level: 3, t: 'Close the Q3 EBITDA bridge', d: "Two bars are missing. Frank worked out the containerboard bar, then Norton quarantined his file as a \"virus\". Rescue it and put the bar in: Freight works itself out and the check says TIES. Or type the Freight bar here.", input: 'Freight ($K)', ph: 'e.g. -25', num: true,
+      where: [W.folder('board', 'Board Meeting Oct 20'), ['Norton AntiVirus', () => FR.norton && FR.norton.statusWin()], W.mail('The mill letter', 'm_ozark')],
+      hints: ["Open Q3_EBITDA_Bridge.xls and hover over the containerboard cell (C9): Frank's note says where his calc went. Never plug a bar you can calculate.", "Norton AntiVirus (the yellow shield in the taskbar tray) › Quarantine › Restore. containerboard_calc.xls opens on its own.", "Frank's calc: $40/ton × 1,500 tons = $60K more cost, so −60 in C9. Freight fills itself in: −160 − (−120 + 80 − 20 − 60) = −40."],
+      mhints: ["Open Q3_EBITDA_Bridge.xls and tap the containerboard cell (C9): Frank's note says where his calc went. Never plug a bar you can calculate."] },
     { id: 'forboard', level: 4, t: 'Open FOR THE BOARD', d: "The locked file on Frank's desktop is his emergency plan. The survival package depends on it.", auto: true,
       where: [W.folder('forboard_dir', 'FOR THE BOARD folder'), W.file('realnotes', 'NOTES_to_whoever_finds_this.txt'), W.file('changelog', 'CHANGE_LOG_do_not_share.xls')],
       hints: ["Frank left a note for whoever finds the REAL VERSION folder. The password is written as an Excel formula.", "CONCAT joins numbers as text: what they told the Board, then what's true (Frank's real runway), both in days. The Board number is on the Cash Runway tab (B30) of the Q4 Board Pack in BOARD › BOARD VERSION, and in the change log.", '=CONCAT(182, 43) → 18243 (as of 10/16).'] },
@@ -14689,9 +14813,9 @@ I'm taking Thursday off.
   const WRONG = {
     version: v => { const t = FR.puzzle.norm(v); if (t.includes('finalfinal')) return 'Diane would bounce this one. Check the rent line.'; if (t.includes('v4')) return 'Check the gross margin on that one.'; if (t.includes('v3')) return 'Count the heads.'; if (t.includes('v6')) return "Diane's comments aren't the same as Diane's approval. Check the margin."; if (t.includes('board')) return "That's the locked copy. Which version did Diane approve?"; return "That file isn't the one Diane approved."; },
     ebitda: v => { const n = FR.puzzle.num(v); if (Math.abs(n - 2230) < 1) return "That's EBIT. EBITDA comes before D&A."; if (Math.abs(n - 3530) < 1) return 'Close. You left out Other opex (row 11). Other opex sits above EBITDA too.'; return 'Not quite. Which lines sit above EBITDA?'; },
-    dscr: v => { const x = FR.puzzle.num(v); if (Math.abs(x - 1.3) < 0.011) return 'The bank reads Section 6.1 more carefully than that. What about capex?'; if (Math.abs(x - 1.1) < 0.02) return "Only unfunded capex comes off. Some of it went on the equipment loan."; if (Math.abs(x - 1.1636) < 0.01) return 'Backwards: the 300 went on the equipment loan. Take off only what was paid in cash.'; if (Math.abs(x - 1.278) < 0.01) return "Use the certificate's cash interest (450), not the Board copy's budget interest."; if (Math.abs(x - 1.24) < 0.004) return '1.24x is a breach. The bank rounds nothing in your favor.'; return 'Not quite. Read Section 6.1 again.'; },
-    cash: v => { const t = FR.puzzle.norm(v).replace(/^(week|wk|w)/, ''); if (t === '7') return "Without payroll the numbers look better than they are. Rachel's number is missing."; if (t === '4') return 'Payroll runs every other Friday, not every week.'; if (t === '6') return 'Week 6 is where cash goes negative. The $250K test breaks earlier. Payroll starts Fri Oct 23, in week 1.'; return 'Not that week. Did you add payroll on the right Fridays?'; },
-    bridge: v => { const n = FR.puzzle.num(v), x = Math.abs(n); if (Math.abs(n - 40) < 0.6) return 'Right size, wrong sign: unfavorable variances are negative here.'; if (Math.abs(x - 160) < 1) return "That's the whole budget-to-actual gap. Freight is only part of it."; if (Math.abs(x - 40000) < 1) return 'Right idea, but the bridge is in $ thousands.'; if (Math.abs(x - 50) < 1) return "Splitting the gap evenly is a plug. Calculate the containerboard bar."; if (Math.abs(x - 60) < 1) return "That's the containerboard bar. Now what's left for freight?"; if (Math.abs(x - 100) < 1) return "That's both missing bars together."; return "The bridge still doesn't close with that."; },
+    dscr: v => { const x = FR.puzzle.num(v); if (Math.abs(x - 1.3) < 0.011) return 'The bank reads Section 6.1 more carefully than that. What about capex?'; if (Math.abs(x - 1.1) < 0.02) return "Only unfunded capex comes off. Some of it went on the equipment loan. Frank wrote the cash part under his Kristians drawing."; if (Math.abs(x - 1.1636) < 0.01) return 'Backwards: the 300 went on the equipment loan. Take off only what was paid in cash.'; if (Math.abs(x - 1.278) < 0.01) return "Use the certificate's cash interest (450), not the Board copy's budget interest."; if (Math.abs(x - 1.24) < 0.004) return '1.24x is a breach. The bank rounds nothing in your favor.'; return 'Not quite. Read Section 6.1 again.'; },
+    cash: v => { const t = FR.puzzle.norm(v).replace(/^(week|wk|w)/, ''); if (t === '7') return "Without payroll the numbers look better than they are. Frank's Solitaire secret is missing."; if (t === '4') return 'Payroll runs every other Friday, not every week.'; if (t === '6') return 'Week 6 is where cash goes negative. The $250K test breaks earlier. Payroll starts Fri Oct 23, in week 1.'; return 'Not that week. Is the payroll run in B14 of the REAL forecast?'; },
+    bridge: v => { const n = FR.puzzle.num(v), x = Math.abs(n); if (Math.abs(n - 40) < 0.6) return 'Right size, wrong sign: unfavorable variances are negative here.'; if (Math.abs(x - 160) < 1) return "That's the whole budget-to-actual gap. Freight is only part of it."; if (Math.abs(x - 40000) < 1) return 'Right idea, but the bridge is in $ thousands.'; if (Math.abs(x - 50) < 1) return "Splitting the gap evenly is a plug. Frank calculated the containerboard bar (Norton has his file)."; if (Math.abs(x - 60) < 1) return "That's the containerboard bar. Now what's left for freight?"; if (Math.abs(x - 100) < 1) return "That's both missing bars together."; return "The bridge still doesn't close with that."; },
     frank: v => /vegas|lasvegas|lv/.test(FR.puzzle.norm(v)) ? "That's where he is. The question is who he's with." : 'Rachel would disagree. Look again at who Frank admires.',
   };
 

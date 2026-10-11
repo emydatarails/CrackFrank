@@ -355,6 +355,20 @@
     text('by Frank (member #0003)', 316, 300, 13, C.k, false);
     return img;
   }
+  /* What Frank wrote on the page in permanent marker BEFORE he drew Kristians over it: the capex that was paid in cash
+     (item 5, the DSCR). A mask the size of the picture; the eraser can't rub these pixels out, they turn to marker. */
+  const SECRET_INK = U('#000080');
+  let secretMask = null;
+  function kristiansSecret() {
+    if (secretMask) return secretMask;
+    const W = DEF_W, H = DEF_H, R = new Raster(new ImageData(W, H)), on = 1;
+    const put = (s, px, y) => { const f = { family: 'Arial', px, bold: true }; textInto(R, s, Math.round((W - measure(s, f)) / 2), y, f, on); };
+    put('PAID IN CASH ($K):', 20, 70);
+    put('110', 172, 96);
+    const m = new Uint8Array(W * H); let total = 0;
+    for (let i = 0; i < m.length; i++) if (R.px[i]) { m[i] = 1; total++; }
+    return (secretMask = { m, total, W, H });
+  }
 
   /* =====================================================================================
      saved pictures: FR.state.paint.files → nodes in My Pictures
@@ -371,7 +385,7 @@
     return {
       id: 'pt_' + f.id, parent: 'pics', name: f.name, type: 'file', app: 'paint', icon: 'bmp', author: 'Frank Warmington',
       size: fileSize(f.name, f.w, f.h, saved ? f : null), modified: saved && f.savedAt ? fmtDate(f.savedAt) : K_DATE, paintId: f.id,
-      title: isK(f) ? 'KRISTIANS' : '', comments: isK(f) ? 'drew this after the Summit. took 2 hours. worth it.' : '',
+      title: isK(f) ? 'KRISTIANS' : '', comments: isK(f) ? 'drew this after the Summit, on the back of my capex scribble. took 2 hours. worth it.' : '',
       onDelete: saved ? () => { removeFile(f.id); } : undefined,
     };
   }
@@ -403,7 +417,8 @@
   /* =====================================================================================
      session prefs (shared by every Paint window this session)
      ===================================================================================== */
-  const PREF = { fg: [0, 0, 0], bg: [255, 255, 255], pal: PAL0.slice(), tool: 'pencil', line: 1, brush: 'r4', eraser: 8, air: 1, mode: 0, mag: 4, opaque: true, textOpaque: false,
+  const ERASERS = [10, 20, 32, 48];   // (bigger than Windows' 4–10: rubbing out a whole drawing shouldn't take all night)
+  const PREF = { fg: [0, 0, 0], bg: [255, 255, 255], pal: PAL0.slice(), tool: 'pencil', line: 1, brush: 'r4', eraser: 32, air: 1, mode: 0, mag: 4, opaque: true, textOpaque: false,
     font: { family: 'Arial', size: 12, bold: false, italic: false, underline: false }, toolbox: true, colorbox: true, status: true, textbar: true, grid: false };
   let CLIP = null;     // Paint's own clipboard (ImageData)
   let S = null;        // the open Paint window
@@ -535,7 +550,7 @@
   function blank(w, h, c = PREF.bg) { const img = new ImageData(w, h); new Uint32Array(img.data.buffer).fill(U(c)); return img; }
   function resetDoc(name, fileId) {
     dropSel(); S.txt && endText(false); S.poly = S.curve = null; S.act = null;
-    S.undo = []; S.redo = []; S.dirty = false; S.name = name; S.fileId = fileId; title();
+    S.undo = []; S.redo = []; S.dirty = false; S.name = name; S.fileId = fileId; S.seen = null; S.seenN = 0; S.told = false; title();
   }
   async function openNode(n) {
     // a built-in picture (a node with paintImage() → ImageData, e.g. from FR.fs.extra): opens like Frank's original
@@ -631,7 +646,7 @@
       h = it('opaque', 1, PREF.opaque, `<svg viewBox="0 0 30 18"><rect x="3" y="2" width="12" height="12" fill="#ff0" stroke="#000"/><path d="M10 6h14v10H10z" fill="#08f" stroke="#000"/></svg>`)
         + it('opaque', 0, !PREF.opaque, `<svg viewBox="0 0 30 18"><rect x="3" y="2" width="12" height="12" fill="#ff0" stroke="#000"/><path d="M10 6h14v10H10z" fill="none" stroke="#000"/></svg>`);
     } else if (t === 'eraser') {
-      h = [4, 6, 8, 10].map(n => it('eraser', n, PREF.eraser === n, `<span class="pt-sq" style="width:${n}px;height:${n}px"></span>`)).join('');
+      h = ERASERS.map(n => it('eraser', n, PREF.eraser === n, `<span class="pt-sq" style="width:${Math.round(n / 2.4)}px;height:${Math.round(n / 2.4)}px"></span>`)).join('');
     } else if (t === 'mag') {
       h = (S.mob ? ['fit', 1, 2, 4, 6, 8] : [1, 2, 4, 6, 8]).map(n => it('mag', n, n === 'fit' ? S.zoom === baseZoom() && S.zoom < 1 : S.zoom === n, n === 'fit' ? 'Fit' : n + 'x')).join('');
     } else if (t === 'brush') {
@@ -787,6 +802,22 @@
   function flush() { if (S.raf) return; S.raf = requestAnimationFrame(() => { if (!S) return; S.raf = 0; if (S.R) S.cx.putImageData(S.R.img, 0, 0); }); }
   function flushNow() { cancelAnimationFrame(S.raf); S.raf = 0; if (S.R) S.cx.putImageData(S.R.img, 0, 0); }
   function done() { flushNow(); S.R = null; S.base = null; markDirty(); }
+  // Frank's Kristians picture (the original, or a saved copy at its own size) has the marker writing under it
+  function secretHere() {
+    if (S.fileId !== 'k' || S.w !== DEF_W || S.h !== DEF_H) return null;
+    const sec = kristiansSecret();
+    if (!S.seen) { S.seen = new Uint8Array(sec.m.length); S.seenN = 0; }
+    return sec;
+  }
+  function secretFound() {
+    S.told = true;
+    setStatus(0, 'Something was written on the page before the drawing. In permanent marker.');
+    if (!FR.flags.get('paintSecret')) {
+      FR.flags.set('paintSecret', true);
+      FR.sound && FR.sound.play && FR.sound.play('unlock');
+    }
+    FR.bus.emit('paint-secret');
+  }
   const constrain = (a, p, kind) => {   // Shift: squares, circles, 45° lines
     if (!a.shift) return p;
     const dx = p.x - a.start.x, dy = p.y - a.start.y;
@@ -820,14 +851,19 @@
     eraser: { free: true,
       down(p, a) { begin(a); T.eraser.move(p, a); },
       move(p, a) {
-        const n = PREF.eraser, o = Math.floor(n / 2), bg = U(PREF.bg), fg = U(PREF.fg), R = S.R;
+        const n = PREF.eraser, o = Math.floor(n / 2), bg = U(PREF.bg), fg = U(PREF.fg), R = S.R, sec = secretHere();
         R.walk(a.last.x, a.last.y, p.x, p.y, (x, y) => {
           for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
             const X = x - o + i, Y = y - o + j;
-            if (a.btn === 2) { if (R.get(X, Y) === fg) R.set(X, Y, bg); } else R.set(X, Y, bg);   // right button: Color Eraser
+            if (a.btn === 2 && R.get(X, Y) !== fg) continue;                   // right button: Color Eraser
+            if (sec && X >= 0 && Y >= 0 && X < sec.W && Y < sec.H && sec.m[Y * sec.W + X]) {   // Frank's marker doesn't rub out
+              R.set(X, Y, SECRET_INK);
+              if (!S.seen[Y * sec.W + X]) { S.seen[Y * sec.W + X] = 1; S.seenN++; }
+            } else R.set(X, Y, bg);
           }
         });
         flush();
+        if (sec && !S.told && S.seenN > sec.total * 0.45) secretFound();
       },
       up: done },
     air: { free: true,

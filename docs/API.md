@@ -51,7 +51,7 @@ Test page: `dist/index.html?dev=1` skips intro/login (logged in, all items unloc
   except `{ login: true }` (the Windows log-on screen) also adds to `FR.state.missStreak` and emits 'miss' (streak); 4 in a
   row = the Blue Screen (`FR.bsod`, src/apps/xp_bsod.js). `FR.puzzle.hit()` ends the streak (solving an item does too).
 - Extras (src/apps/xp_*.js): `FR.xp` { LOCAL, noPopups (`?nopopups=1`, LOCAL only), quiet(), ff(ms) (LOCAL only: moves the
-  play clock) }; `FR.bsod` { show, hide, active }; `FR.norton` { pop(text?), statusWin() }; `FR.eggs` { list, find(id),
+  play clock) }; `FR.bsod` { show, hide, active }; `FR.norton` { pop(text?), statusWin(page?), restore() (item 7: brings back containerboard_calc.xls, flag `nortonRestored`) }; `FR.eggs` { list, find(id),
   count(), total, has(id) } with `FR.state.eggs = { id: foundAtMs }`; `FR.bonus` { TASKS, deliver(id, quiet?), award(id),
   grade(id, text), judge(id, text) → { ok, msg } (pure: the one grader for the answer box and replies, test/bonus_grade_test.js),
   numbers(text), taskOf(msg) (the request a message belongs to: `msg.bonus`, the sender's answers `msg.bonusRe`, or sender +
@@ -62,7 +62,7 @@ Test page: `dist/index.html?dev=1` skips intro/login (logged in, all items unloc
 - `FR.balloon(title, html, onClick?, { act, silent, icon, cls })` — `icon` replaces the title icon (HTML), `cls` adds a class.
 - Events added: 'miss' (streak), 'bsod' (true/false), 'egg' ({id, n, total}), 'bonus' (id), 'bonus-mail' (id), 'desktop'
   (the desktop element, after each log-on), 'screensaver', 'calc-display' (value), 'xl-select' ({book, sheet, r, c}),
-  'xl-kristians', 'sol-deal' (seed), 'paint-open' (name).
+  'xl-kristians', 'sol-deal' (seed), 'paint-open' (name), 'paint-secret' (item 5: the marker number under Frank's drawing is uncovered).
 - Events also: 'dialog-closed' (the window that got focus back after a core dialog finished — refocus your grid), 'play-tick' (playMs, every active second).
 - `FR.wm.topDialog()`, `FR.wm.closeMenus()`. Esc (core) closes only the Start menu, context/menubar menus, or the top dialog; never app windows; ignored while typing.
 - `FR.clock.now()` = GAME_START + active play time (`FR.state.playMs`, counted only while the tab is visible, the desktop is up and no screensaver). `FR.clock.playMs()`, `FR.clock.dur(ms)`.

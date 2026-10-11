@@ -86,7 +86,7 @@
   #fr-root .fr-task { flex: 0 1 118px; min-width: 46px; height: 32px; font-size: 12px; padding: 0 7px; }
   #fr-root .fr-task .fr-ico { width: 18px !important; height: 18px !important; }
   .fr-tray { gap: 9px; padding: 0 8px 0 9px; font-size: 12px; }
-  .fr-tray .fr-ico, .fr-tray .fr-ktray { width: 20px; height: 20px; }
+  .fr-tray .fr-ico, .fr-tray .fr-ktray, .fr-tray .nv-tray { width: 20px; height: 20px; }
   .fr-tray .fr-pack { padding: 5px 7px; gap: 5px; }
   .fr-tray .fr-clock { margin-left: 0; }
   .fr-tray > .fr-ico { display: none; }   /* volume: phones have their own */

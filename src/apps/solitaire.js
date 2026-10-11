@@ -380,7 +380,30 @@
     if (standard() && opts.timed && G.time >= 30) { bonus = Math.floor(700000 / G.time); G.score += bonus; }
     G.bonus = bonus; status();
     busy = true;
-    setTimeout(() => cascade(), 380);
+    // the first win of the game is worth points (src/score_rules.js EXTRAS), and Bob the panda comes out to celebrate
+    // every time (pure fun after the first)
+    // (Frank's Lucky Deal is rigged, so it shows Bob and Frank's secret but isn't worth the points)
+    const R = FR.scoreRules, first = !G.lucky && !!(R && R.EXTRAS && !(FR.state.bonus && FR.state.bonus.sol_win));
+    if (first) {
+      if (!FR.state.bonus || typeof FR.state.bonus !== 'object') FR.state.bonus = {};
+      FR.state.bonus.sol_win = { solvedAt: Date.now(), pts: R.EXTRAS.sol_win };
+      FR.save(); FR.bus.emit('score'); if (FR.checklistRender) FR.checklistRender();
+    }
+    if (!FR.flags.get('solSecret')) FR.flags.set('solSecret', true);
+    setTimeout(() => { cascade(); bobParty(first); }, 380);
+  }
+
+  /* ---------- the win: Bob the panda (Datarails' mascot, 8-bit: src/bob.js) dances on the table ----------
+     and gives away Frank's secret: the hourly payroll run he "hid" behind a Solitaire win (item 6, the cash forecast) */
+  let bobEl = null;
+  function bobParty(first) {
+    if (!table || !FR.data.images || !FR.data.images.bob) return;
+    if (bobEl) bobEl.remove();
+    const COL = ['#f4c430', '#1d6f42', '#e8834a', '#2f44c9', '#ffffff', '#d40000'];
+    let cf = ''; for (let i = 0; i < 28; i++) cf += `<span class="so-cf" style="left:${(i * 37) % 100}%;background:${COL[i % COL.length]};--t:${((i * 0.29) % 2.4).toFixed(2)}s;--d:${(1.8 + (i % 5) * 0.35).toFixed(2)}s"></span>`;
+    const pts = first && FR.scoreRules ? `<i>+${FR.scoreRules.EXTRAS.sol_win} points</i>` : G && G.lucky ? '<i class="so-bob-rig">(rigged deal: no points)</i>' : '';
+    bobEl = $(`<div class="so-bob" aria-hidden="true">${cf}<div class="so-bob-say"><b>SAME SHEET,<br>DIFFERENT DAY!</b>${pts}<span class="so-bob-sec">FRANK'S SECRET:<br>PAYROLL RUN = <u>$196K</u></span></div><img class="so-bob-i" src="${FR.data.images.bob}" alt=""></div>`);
+    table.appendChild(bobEl);
   }
 
   /* ---------- geometry & drawing ---------- */
@@ -607,7 +630,7 @@
       });
     }, 60);
   }
-  function clearFx() { if (fx) { cancelAnimationFrame(fx.raf); fx.cv.remove(); fx = null; } }
+  function clearFx() { if (fx) { cancelAnimationFrame(fx.raf); fx.cv.remove(); fx = null; } if (bobEl) { bobEl.remove(); bobEl = null; } }
 
   /* ---------- dealing ---------- */
   function deal(seed) {
@@ -627,6 +650,25 @@
     setTimeout(() => { Object.values(cards).forEach(({ el }) => { el.style.transitionDelay = ''; }); busy = false; }, 28 * 18 + 260);
     win.el.dataset.seed = G.seed;
     if (FR.bus) FR.bus.emit('sol-deal', G.seed);
+  }
+  // a position from a spec: piles as card ids, a leading "#" = face down, every card exactly once
+  function loadSpec(spec) {
+    clearFx(); clearSel(); busy = false;
+    const c = t => { const o = cards[t.replace('#', '')].c; o.up = t[0] !== '#'; return o; };
+    G.stock = (spec.stock || []).map(t => { const o = c(t); o.up = false; return o; }); G.waste = (spec.waste || []).map(c); G.found = [0, 1, 2, 3].map(i => ((spec.found || [])[i] || []).map(c)); G.tab = [0, 1, 2, 3, 4, 5, 6].map(i => ((spec.tab || [])[i] || []).map(c));
+    const n = G.stock.length + G.waste.length + G.found.flat().length + G.tab.flat().length; if (n !== 52) throw new Error('load: ' + n + ' cards');
+    G.fan = Math.min(G.waste.length, opts.draw); G.undo = []; G.won = false; G.started = true; G.passes = 1; G.lucky = false;
+    layout(false); status();
+  }
+  /* Frank's Lucky Deal (Game menu): the game Frank "practised" so he'd always get to see Bob. Aces to nines are home
+     already; the tens to kings need a little shuffling through the empty columns (about twenty moves). Rigged, so no points. */
+  const upTo9 = s => ['A', 2, 3, 4, 5, 6, 7, 8, 9].map(r => r + s);
+  const LUCKY = { found: [upTo9('S'), upTo9('H'), upTo9('D'), upTo9('C')],
+    tab: [['JS', '10D'], ['10S', 'QD'], ['JD', 'KC'], ['10H', 'JC', 'QS'], ['10C', 'KH', 'QH'], ['JH', 'QC', 'KS', 'KD'], []] };
+  function luckyDeal() {
+    if (!table) return;
+    deal(); loadSpec(LUCKY); G.lucky = true;
+    if (win) win.setStatus(0, "Frank's Lucky Deal. Rigged. Don't tell Drew.");
   }
   function ensureCards() {
     const compact = geo ? geo.compact : false;
@@ -704,7 +746,7 @@
     cards = {}; lastCompact = null;
     const menu = [
       { label: 'Game', items: () => [
-        { label: 'Deal', key: 'F2', action: () => deal() }, { sep: true },
+        { label: 'Deal', key: 'F2', action: () => deal() }, { label: "Frank's Lucky Deal", action: luckyDeal }, { sep: true },
         { label: 'Undo', key: 'Ctrl+Z', disabled: !G || !G.undo.length || G.won, action: undo },
         { label: 'Deck...', action: deckDialog }, { label: 'Options...', action: optionsDialog }, { sep: true },
         { label: 'Exit', action: () => win.close() },
@@ -758,14 +800,7 @@
       state: () => G && { seed: G.seed, solvable: G.solvable, score: G.score, time: G.time, passes: G.passes, won: G.won, undo: G.undo.length, busy, sel: sel && sel.list.map(c => c.id),
         stock: G.stock.map(c => c.id), waste: G.waste.map(c => c.id), found: G.found.map(f => f.map(c => c.id)), tab: G.tab.map(t => t.map(c => c.id + (c.up ? '+' : '-'))) },
       // piles as ids; a leading "#" = face down. Every card must appear once.
-      load(spec) {
-        clearFx(); clearSel(); busy = false;
-        const c = t => { const o = cards[t.replace('#', '')].c; o.up = t[0] !== '#'; return o; };
-        G.stock = (spec.stock || []).map(t => { const o = c(t); o.up = false; return o; }); G.waste = (spec.waste || []).map(c); G.found = [0, 1, 2, 3].map(i => ((spec.found || [])[i] || []).map(c)); G.tab = [0, 1, 2, 3, 4, 5, 6].map(i => ((spec.tab || [])[i] || []).map(c));
-        const n = G.stock.length + G.waste.length + G.found.flat().length + G.tab.flat().length; if (n !== 52) throw new Error('load: ' + n + ' cards');
-        G.fan = Math.min(G.waste.length, opts.draw); G.undo = []; G.won = false; G.started = true; G.passes = 1;
-        layout(false); status();
-      },
+      load: loadSpec, lucky: luckyDeal, LUCKY,
       rect: id => { const b = cards[id].el.getBoundingClientRect(); return { x: b.left, y: b.top, w: b.width, h: b.height }; },
       pileRect: (t, i) => { const r = pileRect({ t, i }), b = table.getBoundingClientRect(); return { x: b.left + r.x, y: b.top + r.y, w: r.w, h: r.h }; },
       geo: () => geo, fx: () => !!fx, endCascade,

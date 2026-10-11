@@ -28,6 +28,9 @@
     PER_EGG: 10,
     EGGS: ['karaoke', 'diary', 'resign', 'portrait', 'run_frank', 'run_vegas', 'run_xlookup', 'xl_kristians', 'xl_hidden',
       'tray_k5', 'saver', 'sol212', 'calc0003', 'ie_karaoke', 'clock'],
+    // one-off extras, kept in FR.state.bonus like the requests ({ id: { solvedAt } }) but not counted as requests:
+    // winning a game of Solitaire, celebrated by Bob the panda (src/apps/solitaire.js). Once per game, on top.
+    EXTRAS: { sol_win: 200 },
   };
 
   // state = FR.state (or a saved copy of it). Never trusts the shape: anything odd counts as zero.
@@ -52,17 +55,23 @@
     const eggs = R.EGGS.filter(id => Object.prototype.hasOwnProperty.call(eggMap, id) && +eggMap[id] > 0).length;
     const eggPts = eggs * R.PER_EGG;
     const requestPts = bonusIds.reduce((n, id) => n + R.BONUS[id], 0);
-    const bonus = requestPts + eggPts;
+    const extraIds = Object.keys(R.EXTRAS).filter(id => {
+      const b = Object.prototype.hasOwnProperty.call(bonusMap, id) ? bonusMap[id] : null;
+      return !!b && typeof b === 'object' && +b.solvedAt > 0;
+    });
+    const extraPts = extraIds.reduce((n, id) => n + R.EXTRAS[id], 0);
+    const bonus = requestPts + eggPts + extraPts;
     const score = main + bonus;
     const finished = solved === R.ITEMS.length;
     const t = +(finished && st.finishPlayMs != null ? st.finishPlayMs : st.playMs);
     const timeMs = t > 0 && isFinite(t) ? Math.floor(t) : 0;
-    return { score, main, bonus, bonusDone: bonusIds.length, bonusTotal: Object.keys(R.BONUS).length, requestPts, eggs, eggsTotal: R.EGGS.length, eggPts, solved, total: R.ITEMS.length, hints, paidHints, freeLeft: Math.max(0, R.FREE_HINTS - hints), wrong, finished, timeMs };
+    return { score, main, bonus, bonusDone: bonusIds.length, bonusTotal: Object.keys(R.BONUS).length, requestPts, eggs, eggsTotal: R.EGGS.length, eggPts, extraPts, solWin: extraIds.includes('sol_win'), solved, total: R.ITEMS.length, hints, paidHints, freeLeft: Math.max(0, R.FREE_HINTS - hints), wrong, finished, timeMs };
   };
-  // the most bonus a game can collect: every bonus request, and every egg
+  // the most bonus a game can collect: every bonus request, every egg and the extras
   R.REQUESTS_MAX = Object.keys(R.BONUS).reduce((n, id) => n + R.BONUS[id], 0);
   R.EGGS_MAX = R.EGGS.length * R.PER_EGG;
-  R.BONUS_MAX = R.REQUESTS_MAX + R.EGGS_MAX;
+  R.EXTRAS_MAX = Object.keys(R.EXTRAS).reduce((n, id) => n + R.EXTRAS[id], 0);
+  R.BONUS_MAX = R.REQUESTS_MAX + R.EGGS_MAX + R.EXTRAS_MAX;
 
   // sort key for the board: higher score first, then less time at the desk
   R.rankValue = c => c.score * 1e7 + (1e7 - 1 - Math.min(Math.floor(c.timeMs / 1000), 1e7 - 1));

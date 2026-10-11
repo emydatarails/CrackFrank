@@ -126,10 +126,11 @@ The local server serves `dist/` fresh on every request and reloads `api/*.js` an
 | Hints | first 10 free, then −100 each (a hint asks before it costs; on a phone every hint asks first) |
 | Each bonus request answered (9, optional, see "Extras") | +100 to +250, on top |
 | Each Easter egg found (15 hidden, see "Easter eggs") | +10, on top (+150 for all 15) |
+| Winning a game of Solitaire (Bob the panda dances on the table) | +200, once, on top |
 
 Score = max(0, riddles − wrong guesses − paid hints) + bonus: the main score never goes below 0, and penalties never
-eat into bonus points. A perfect game is 10,000, or 11,450 with every bonus request and every egg. Wrong bonus answers cost nothing. Change
-the numbers in `src/score_rules.js` only (`BONUS` is the bonus table): the game and the server both load that file.
+eat into bonus points. A perfect game is 10,000, or 11,650 with every bonus request, every egg and a Solitaire win. Wrong bonus answers cost nothing. Change
+the numbers in `src/score_rules.js` only (`BONUS` is the bonus table, `EXTRAS` the Solitaire win): the game and the server both load that file.
 
 - The score shows in the checklist footer (with the free hints left and, once there is any, "(+N bonus & eggs)") and on the
   ending screen (with a separate "+N Bonus & eggs" box), with the player's rank. The leaderboard has a "Bonus & eggs" column.
@@ -245,8 +246,10 @@ python3 test/features_play.py            # Blue Screen, Norton, bonus requests, 
 - **Norton AntiVirus 2003** (`src/apps/xp_norton.js`): a nostalgic tray popup, "Virus definitions are up to date.",
   about 3 minutes into play, then every 8–15 minutes of active play; every other time it says something else ("LiveUpdate
   found 0 viruses and 47 versions of the same model."). It waits while a message box, the Blue Screen, the screensaver,
-  the ending, a menu or typing is going on. It is an ordinary tray balloon, so phones get the usual toast. Clicking it opens
-  a small status window ("System Status: OK", "Scan Frank's inbox"…). A generic yellow shield, no real logo.
+  the ending, a menu or typing is going on. It is an ordinary tray balloon, so phones get the usual toast. Clicking it (or
+  the yellow shield in the tray) opens a small status window ("System Status: OK", "Scan Frank's inbox"…). Its Quarantine
+  page holds Frank's `containerboard_calc.xls` (item 7: Restore puts it back in Board Meeting Oct 20 and opens it). A
+  generic yellow shield, no real logo.
 - **Bonus requests** (`src/apps/xp_bonus.js`): e-mails from people who don't know Frank is missing, each with a small
   finance question and an answer box inside the message (or reply, also to the sender's answer). One grader for both
   (`judge()`, tests in `test/bonus_grade_test.js`): the right number anywhere in the text counts, the question's own numbers
@@ -302,5 +305,15 @@ which sample plays for which event, edit `MAP` in `tools/make_sounds.py`, then r
 ## Answers (spoilers, for the team)
 
 sedalia1958 → v5_FINAL_USE_THIS → Board copy password 4406 → EBITDA row 12 = 3,130 → Bank.zip 3130, DSCR 1.25x →
-hidden REAL VERSION, first week below $250K = week 5 → bridge freight −60, other −40 → FOR_THE_BOARD 18243 →
+hidden REAL VERSION, first week below $250K = week 5 → bridge containerboard −60, freight −40 → FOR_THE_BOARD 18243 →
 reply to Diane and send → Kristians Bušārs is on Frank's team.
+
+Items 5–7 are escape-room toys (the numbers are the same, they're just found by playing):
+- **5 DSCR**: erase Frank's `kristians_by_frank.bmp` in Paint (the Eraser is bigger now: 10/20/32/48 px). Everything rubs
+  out except what he wrote first in "permanent marker": PAID IN CASH ($K): **110**. Type 110 in F13 of the certificate and
+  the DSCR (2,860 − 110) ÷ 2,200 = 1.25x works itself out and ticks.
+- **6 cash**: win a game of Solitaire and Bob the panda's bubble gives away Frank's secret: PAYROLL RUN = **$196K**. Game ›
+  Frank's Lucky Deal is a rigged near-win (about twenty moves; it shows Bob but isn't worth the +200). 196 goes in B14 of
+  the REAL forecast; the other runs follow every other Friday and week 5 turns red ($110K).
+- **7 bridge**: Norton quarantined Frank's `containerboard_calc.xls`. The yellow shield in the tray › Quarantine › Restore
+  opens it: $40/ton × 1,500 tons = **−60**. Type −60 in C9 and Freight works itself out (−40); the check says TIES.

@@ -32,7 +32,7 @@
       `Each checklist item done: +${fmt(R.PER_SOLVED)}`,
       `Each wrong answer or wrong password: −${R.PER_WRONG} (an answer that isn't a number where a number is asked doesn't count)`,
       `${R.FREE_HINTS} free hints, then −${R.PER_HINT} per hint`,
-      `Bonus requests (up to +${fmt(R.REQUESTS_MAX)}) and Easter eggs (+${R.PER_EGG} for each one you find, ${R.EGGS.length} hidden): up to +${fmt(R.BONUS_MAX)} on top, and they count on the leaderboard`,
+      `Bonus requests (up to +${fmt(R.REQUESTS_MAX)}), Easter eggs (+${R.PER_EGG} for each one you find, ${R.EGGS.length} hidden) and winning a game of Solitaire (+${fmt(R.EXTRAS.sol_win)}, once): up to +${fmt(R.BONUS_MAX)} on top, and they count on the leaderboard`,
     ],
     rulesLine: () => FR.score.rulesList().join(' · '),
     // (R5 P3) "4 of 15 Easter eggs · 9 of 9 bonus requests": what this game has found so far
@@ -49,7 +49,7 @@
       if (c.paidHints) parts.push(`− ${c.paidHints} paid hint${c.paidHints === 1 ? '' : 's'} × ${R.PER_HINT}`);
       const floored = c.main === 0 && c.solved * R.PER_SOLVED > 0;
       const eggs = c.eggs ? ` + ${c.eggs} egg${c.eggs === 1 ? '' : 's'} × ${R.PER_EGG}` : '';
-      return `${parts.join(' ')}${floored ? ' (never below 0)' : ''}${c.requestPts ? ` + ${fmt(c.requestPts)} bonus requests` : ''}${eggs} = ${fmt(c.score)}`;
+      return `${parts.join(' ')}${floored ? ' (never below 0)' : ''}${c.requestPts ? ` + ${fmt(c.requestPts)} bonus requests` : ''}${eggs}${c.solWin ? ` + ${fmt(R.EXTRAS.sol_win)} Solitaire win` : ''} = ${fmt(c.score)}`;
     },
   };
 

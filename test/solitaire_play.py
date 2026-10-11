@@ -184,6 +184,22 @@ with sync_playwright() as p:
     ok('mouse pad' in t2, 'Help › Contents: "Frank was using it as a mouse pad."')
     ok('Datarails' not in t + t2 + gtext and 'FinanceOS' not in t + t2 + gtext, 'no Datarails inside Solitaire')
 
+    # ---- Frank's Lucky Deal (Game menu): aces to nines already home, the rest a short puzzle; rigged, so no points
+    menu(pg, 'Game', "Frank's Lucky Deal"); pg.wait_for_timeout(700); s = st(pg)
+    ok([len(f) for f in s['found']] == [9, 9, 9, 9] and [len(t) for t in s['tab']] == [2, 2, 2, 3, 3, 4, 0], "Game › Frank's Lucky Deal: A–9 home, 16 cards to go")
+    pg.mouse.click(*felt(pg, 0.5, 0.92), button='right'); pg.wait_for_timeout(1500)
+
+    def drag_to(cid, pile):
+        r = pg.evaluate(f'{T}.rect({cid!r})'); t = pg.evaluate(f'{T}.pileRect("tab", {pile})')
+        pg.mouse.move(r['x'] + r['w'] / 2, r['y'] + r['h'] * 0.3); pg.mouse.down()
+        pg.mouse.move(t['x'] + t['w'] / 2, t['y'] + t['h'] * 0.3, steps=8); pg.mouse.up(); pg.wait_for_timeout(300)
+    drag_to('KC', 6); pg.mouse.click(*felt(pg, 0.5, 0.92), button='right'); pg.wait_for_timeout(1800)
+    drag_to('QH', 6); drag_to('KH', 0); pg.mouse.click(*felt(pg, 0.5, 0.92), button='right'); pg.wait_for_timeout(3500)
+    ok(st(pg)['won'] and 'PAYROLL RUN = $196K' in (pg.text_content('.so-bob-sec') or ''), "Lucky Deal won: Bob gives away Frank's secret (PAYROLL RUN = $196K)")
+    ok(not pg.evaluate("() => !!(FR.state.bonus && FR.state.bonus.sol_win)") and 'no points' in pg.text_content('.so-bob-say'), '... but a rigged deal is worth no points')
+    pg.screenshot(path=f'{OUT}/solitaire_lucky.png')
+    pg.mouse.click(*felt(pg, 0.5, 0.6)); dialog_text(pg); close_dialog(pg, 'No'); pg.wait_for_timeout(300)
+
     # ---- a won game: the last four kings go up by right-click
     load(pg, {'found': [[r + s for r in ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q']] for s in 'SHDC'], 'tab': [['KS'], ['KH'], ['KD'], ['KC'], [], [], []]})
     pg.mouse.click(*felt(pg), button='right'); pg.wait_for_timeout(1400)
@@ -191,6 +207,9 @@ with sync_playwright() as p:
     ok(s['won'] and all(len(f) == 13 for f in s['found']), 'all 52 cards on the foundations: won')
     ok(pg.locator('.so-table canvas.so-fx').count() == 1 and pg.evaluate(f'{T}.fx()'), 'the bouncing-cards cascade starts')
     pg.wait_for_timeout(1500)
+    # Bob the panda (8-bit) dances on the table; the first win is +200, once
+    ok(pg.locator('.so-table .so-bob img.so-bob-i').count() == 1 and 'DIFFERENT DAY' in pg.inner_text('.so-bob-say'), 'Bob the panda comes out to celebrate ("SAME SHEET, DIFFERENT DAY!")')
+    ok(pg.evaluate("() => !!(FR.state.bonus && FR.state.bonus.sol_win) && FR.score.now().solWin && FR.score.now().extraPts === 200") and '+200 points' in pg.text_content('.so-bob-say'), 'the first win is +200 points on top (the "+200 points" line blinks)')
     painted = pg.evaluate("""() => { const c = document.querySelector('.so-fx'); const x = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 3; i < x.length; i += 4 * 97) if (x[i]) n++; return n; }""")
     ok(painted > 50, f'... and paints bouncing cards on the felt ({painted} samples)')
     pg.screenshot(path=f'{OUT}/solitaire_win.png')
@@ -198,6 +217,7 @@ with sync_playwright() as p:
     t = dialog_text(pg)
     ok(t.startswith('Game over. Deal again?'), 'a click ends it: "Game over. Deal again?"')
     close_dialog(pg, 'Yes'); pg.wait_for_timeout(1000); s = st(pg)
+    ok(pg.locator('.so-bob').count() == 0, 'a new deal sends Bob home')
     ok(not s['won'] and len(s['stock']) == 24 and pg.locator('.so-fx').count() == 0, 'Yes deals a new game')
     seed = s['seed']; pg.keyboard.press('F2'); pg.wait_for_timeout(1000)
     ok(st(pg)['seed'] != seed, 'F2 deals again (new seed)')

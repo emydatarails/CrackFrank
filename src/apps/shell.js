@@ -1057,7 +1057,7 @@
     bud_v4: { comments: 'FINAL means final. —F', keywords: 'final' },
     bud_v5ff: { comments: 'FINAL FINAL means I was wrong once. —F', keywords: 'final, final' },
     bud_v5ut: { comments: 'USE THIS ONE. Diane knows why. —F', keywords: 'final, use this', title: 'FY27 Budget' },
-    cash13: { comments: 'The real one. Rachel\'s number goes in the payroll row. Do the math. —F', title: '13-week cash (REAL)' },
+    cash13: { comments: 'The real one. One payroll run goes in B14 (win Solitaire for the number). —F', title: '13-week cash (REAL)' },
     boarding: { comments: 'deleted this. obviously nobody will look in the Recycle Bin.', title: 'boarding pass' },
     esports: { comments: 'Speedrun practice. 30:42 on the case. Kristians does it in 19.', keywords: 'speedrun, vegas' },
     todo: { comments: 'personal. NOT work. —F' },
@@ -1531,7 +1531,7 @@
       <text x="48" y="622" font-size="16" font-family="'Segoe Script','Comic Sans MS',cursive" fill="#2a3a6a">R. Tellinghast</text>
       <text x="48" y="638" font-size="11">Ruth Tellinghast, Director of Sales</text><text x="48" y="652" font-size="11">Ozark Kraft Mills</text>
       <g transform="rotate(-8 470 600)"><rect x="392" y="574" width="156" height="52" rx="4" fill="none" stroke="#1d3a9a" stroke-width="2" opacity=".75"/><text x="470" y="596" font-size="10" text-anchor="middle" fill="#1d3a9a" opacity=".75" font-family="Arial,Helvetica,sans-serif" font-weight="bold">RECEIVED — PACKA FP&amp;A</text><text x="470" y="614" font-size="10" text-anchor="middle" fill="#1d3a9a" opacity=".75" font-family="Arial,Helvetica,sans-serif">JUN 15 2026 · FW</text></g>
-      <text x="48" y="700" font-size="10.5" font-family="'Segoe Script','Comic Sans MS',cursive" fill="#1d3a9a">+$40/ton × the tons we run a quarter (Products page) = the containerboard bar. Freight is the residual. —F</text>
+      <text x="48" y="700" font-size="10.5" font-family="'Segoe Script','Comic Sans MS',cursive" fill="#1d3a9a">+$40/ton × the tons we run a quarter: done in containerboard_calc.xls. (If Norton ate it again: Quarantine.) —F</text>
       <text x="564" y="770" font-size="8" fill="#888" text-anchor="end" font-family="Arial,Helvetica,sans-serif">Page 1 of 1</text></svg>`;
   }
   const PDFS = { inv_diecutter: pdfInvoice };
@@ -2278,11 +2278,12 @@ GET SHEET DONE.
   T.cashnote = `If you found this you know how to show hidden files. Congrats.
 Drew doesn't. That's the point.
 
-Cash forecast: payroll row is blank because Rachel's number changes every
-time I ask. Latest from Rachel: $196K per run, all-in.
+Cash forecast: payroll is blank because I am NOT typing the number where
+Drew can see it. I hid it where Drew will never look: behind a Solitaire
+WIN. Win a game and Bob tells you. (I rigged one: Game > Frank's Lucky Deal.)
 
-Payroll = every run, not every week. We pay on the schedule on our careers
-page. First run of the forecast is Fri Oct 23.
+One run goes in B14. The rest fill in every other Friday. First run of the
+forecast is Fri Oct 23.
 
 Do the math before you believe the Board deck.
 

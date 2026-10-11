@@ -1,6 +1,7 @@
 /* Solitaire (src/apps/solitaire.js): XP green felt, SVG cards, the bouncing-cards win */
 .so-win > .window-body.fr-body { margin: 0; }
 .so { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+.so-win .fr-menubar { z-index: 3000; }   /* the menu drop-down over the cards (they go up to z 2001) */
 .so-table { position: relative; flex: 1 1 auto; min-height: 0; overflow: hidden; background: #008000; outline: none;
   touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 .so-card, .so-slot, .so-tgt { position: absolute; left: 0; top: 0; width: var(--w, 71px); height: var(--h, 96px); box-sizing: border-box; }
@@ -57,3 +58,34 @@
 .so-gc figcaption i { display: block; font-size: 11px; color: #fff6c2; margin-top: 1px; }
 
 /* phones / small tablets (a button row for the common moves, a denser gallery): in src/mobile.css ("Solitaire", at the end) */
+/* the win: Bob the panda (src/bob.js, 8-bit) hops in and dances, with pixel confetti. steps() keeps it chunky. */
+.so-bob { position: absolute; inset: 0; z-index: 2001; pointer-events: none; overflow: hidden; }
+.so-bob-i { position: absolute; left: 50%; bottom: 3%; height: min(42%, 280px); transform-origin: 50% 100%; image-rendering: pixelated;
+  animation: so-bob-in .7s steps(7) both, so-bob-dance 1.6s steps(1) .7s infinite; }
+@keyframes so-bob-in { from { transform: translate(-50%, 130%); } to { transform: translate(-50%, 0); } }
+@keyframes so-bob-dance {
+  0% { transform: translate(-50%, 0); }
+  12.5% { transform: translate(-50%, -12%) rotate(-6deg); }
+  25% { transform: translate(-50%, 0) scaleX(-1); }
+  37.5% { transform: translate(-50%, -16%) scaleX(-1) rotate(-6deg); }
+  50% { transform: translate(-50%, 0); }
+  62.5% { transform: translate(-50%, -6%) scale(1.06, .94); }
+  75% { transform: translate(-50%, -20%) scale(.96, 1.06); }
+  87.5% { transform: translate(-50%, 0) scaleX(-1); }
+}
+.so-bob-say { position: absolute; z-index: 1; left: 50%; top: 7%; transform: translateX(-50%); background: #fff;
+  border: 3px solid #18141c; box-shadow: 4px 4px 0 #18141c; padding: 6px 10px; font: bold 13px/1.25 "Courier New", Courier, monospace;
+  color: #1d6f42; text-align: center; white-space: nowrap; animation: so-bob-say .3s steps(3) .9s both; }
+.so-bob-say::after { content: ''; position: absolute; left: calc(50% - 6px); bottom: -12px; border: 6px solid transparent; border-top: 9px solid #18141c; }
+.so-bob-say i { display: block; color: #d40000; font-style: normal; margin-top: 2px; animation: so-bob-blink 1s steps(1) 1.2s infinite; }
+@keyframes so-bob-say { from { opacity: 0; transform: translateX(-50%) scale(.4); } to { opacity: 1; transform: translateX(-50%) scale(1); } }
+@keyframes so-bob-blink { 50% { color: #c48a00; } }
+.so-bob-say i.so-bob-rig { color: #8a8a8a; animation: none; font-size: 11px; }
+/* Frank's secret (item 6): a yellow sticky stuck to the bottom of Bob's bubble */
+.so-bob-sec { display: block; margin: 6px -4px 0; padding: 4px 6px; background: #fff6a8; border: 2px dashed #18141c; color: #18141c; font-size: 12px;
+  animation: so-bob-sec .3s steps(3) 1.6s both; }
+@keyframes so-bob-sec { from { opacity: 0; transform: scale(.5); } to { opacity: 1; transform: none; } }
+.so-bob-sec u { font-size: 18px; text-decoration: none; color: #d40000; }
+.so-cf { position: absolute; top: -12px; width: 8px; height: 8px; box-shadow: 1px 1px 0 rgba(0,0,0,.25); animation: so-cf-fall var(--d) steps(14) var(--t) infinite; }
+@keyframes so-cf-fall { from { top: -12px; transform: rotate(0); } to { top: 104%; transform: rotate(270deg); } }
+@media (prefers-reduced-motion: reduce) { .so-bob-i { animation: none; transform: translateX(-50%); } .so-cf { display: none; } .so-bob-say, .so-bob-say i, .so-bob-sec { animation: none; } }

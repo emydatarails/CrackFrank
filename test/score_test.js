@@ -28,13 +28,17 @@ ok(R.calc(st(3, {}, 0, { bonus: { hack: { solvedAt: 1, pts: 5000 }, __proto__x: 
 ok(R.calc(st(3, {}, 0, { bonus: { tom_comm: true, mum_fx: { solvedAt: 0 }, dale_var: { solvedAt: 'x' }, steve_margin: null } })).bonus === 0, 'malformed bonus entries count as zero');
 ok(R.calc(st(3, {}, 0, { bonus: [1, 2] })).bonus === 0 && R.calc(st(3, {}, 0, { bonus: 'x' })).bonus === 0, 'a bonus that is not an object counts as zero');
 ok(R.calc(st(1, {}, 1000, { bonus: B('vending_ci') })).score === R.BONUS.vending_ci, 'penalties floor the main score at 0; bonus is added after the floor');
-const allB = Object.fromEntries(Object.keys(R.BONUS).map(id => [id, { solvedAt: 5 }]));
+const allB = Object.fromEntries(Object.keys(R.BONUS).concat(Object.keys(R.EXTRAS)).map(id => [id, { solvedAt: 5 }]));
 const allEggs = Object.fromEntries(R.EGGS.map((id, i) => [id, 100 + i]));
 const perfect = R.calc(st(10, {}, 0, { bonus: allB, eggs: allEggs }));
 ok(perfect.score === 10000 + R.BONUS_MAX && perfect.score > 10000 && perfect.bonusDone === perfect.bonusTotal, `a perfect game with every bonus = 10,000 + ${R.BONUS_MAX} = ${perfect.score}`);
 ok(Object.values(R.BONUS).every(v => v >= 100 && v <= 300), 'every bonus is worth +100 to +300');
 // (round 5, P3) Easter eggs: +PER_EGG each as it's found (was 150 for all 15 or nothing); the max is unchanged
-ok(R.PER_EGG === 10 && R.EGGS.length === 15 && R.EGGS_MAX === 150 && R.REQUESTS_MAX === 1300 && R.BONUS_MAX === 1450, `eggs: +${R.PER_EGG} each × ${R.EGGS.length} = ${R.EGGS_MAX}; requests ${R.REQUESTS_MAX}; bonus max ${R.BONUS_MAX}`);
+ok(R.PER_EGG === 10 && R.EGGS.length === 15 && R.EGGS_MAX === 150 && R.REQUESTS_MAX === 1300 && R.EXTRAS_MAX === 200 && R.BONUS_MAX === 1650, `eggs: +${R.PER_EGG} each × ${R.EGGS.length} = ${R.EGGS_MAX}; requests ${R.REQUESTS_MAX}; Solitaire win ${R.EXTRAS_MAX}; bonus max ${R.BONUS_MAX}`);
+// the Solitaire win (Bob the panda): +200 once, on top; not a bonus request
+const sw = R.calc(st(3, {}, 0, { bonus: { sol_win: { solvedAt: 9, pts: 99999 } } }));
+ok(sw.score === 3200 && sw.extraPts === 200 && sw.solWin && sw.bonusDone === 0 && sw.bonus === 200, `winning Solitaire = +200 on top, not counted as a request (${sw.score})`);
+ok(R.calc(st(3, {}, 0, { bonus: { sol_win: { solvedAt: 0 } } })).extraPts === 0, 'a Solitaire win without a time counts as zero');
 const e4 = R.calc(st(10, {}, 4, { eggs: { resign: 1, diary: 2, xl_hidden: 3, calc0003: 4 } }));
 ok(e4.eggs === 4 && e4.eggPts === 40 && e4.bonus === 40 && e4.score === 9840, `4 eggs found = +40 (${e4.score})`);
 ok(R.calc(st(1, {}, 0, { eggs: { bogus: 5, __proto__x: 5, diary: 0, resign: 'x', clock: -3 } })).eggs === 0, 'unknown egg ids, and eggs without a time, count as zero');
@@ -120,7 +124,7 @@ ok(R.rankValue({ score: 5000, timeMs: 9e12 }) > R.rankValue({ score: 4950, timeM
   const withEgg = { ...b8, tom_comm: { solvedAt: 9 } };
   await d('save', 'PUT', { state: fin({ bonus: withEgg, eggs: { diary: 11, resign: 12, calc0003: 13 } }), rev: 1 });
   r = await d('scores'); ok(r.data.me.score === R.calc(fin({ bonus: withEgg, eggs: { diary: 11, resign: 12, calc0003: 13 } })).score && r.data.me.score === 10950 + R.BONUS.tom_comm + 3 * R.PER_EGG, `a bonus request and 3 Easter eggs after the ending still count: ${r.data.me.score}`);
-  ok(r.data.rules.perEgg === R.PER_EGG && r.data.rules.eggs === 15 && r.data.rules.bonusMax === 1450, '/api/scores sends the egg rule');
+  ok(r.data.rules.perEgg === R.PER_EGG && r.data.rules.eggs === 15 && r.data.rules.bonusMax === 1650, '/api/scores sends the egg rule');
   await d('save', 'PUT', { state: fin({ bonus: withEgg, eggs: allEggs }), rev: 2 });
   r = await d('scores'); ok(r.data.me.score === 10950 + R.BONUS.tom_comm + 150, `all 15 eggs: +150 on the board (${r.data.me.score})`);
   await d('save', 'PUT', { state: fin({ bonus: withEgg, eggs: allEggs, wrong: 5 }), rev: 3 });

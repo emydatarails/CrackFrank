@@ -1366,7 +1366,6 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
   /* ================= auto replies ================= */
   const reSub = s => 'Re: ' + stripRe(s);
   const OOO = {
-    [P.drew.email]: s => ({ from: P.drew, subject: 'AUTO-REPLY: ' + s, body: `AUTO-REPLY. I AM IN LAS VEGAS ON COMPANY BUSINESS. THE BUSINESS IS FRANK.\n\nFor budget questions, contact Frank Warmington.\nFor questions about Frank, also contact Frank Warmington.\nFor questions about my Porsche, do not touch my Porsche.\n\nMAKE IT WORK.\n\nDREW HOLLIS\nVP FINANCE` }),
     [P.karen.email]: s => ({ from: P.karen, subject: 'Out of Office: ' + s, body: `I'm on the plant floor through third shift and I don't read e-mail on the plant floor, because forklifts.\n\nIf something is on fire, call ext. 214. If something is merely late, it can wait until morning.\n\nKaren Wills\nVP Operations` }),
     [P.tom.email]: s => ({ from: P.tom, subject: 'Out of Office: ' + s, body: `I'm visiting customers in Joplin and Springfield through Friday with limited access to e-mail.\n\nThe FY27 sales plan is $40.0M and it is locked. If you are writing to unlock it: no.\n\nTom Bracken\nSales Manager` }),
     [P.steve.email]: s => ({ from: P.steve, subject: 'Re: ' + stripRe(s), body: `Hi, this is Barb at the front desk. Steve doesn't read e-mail after 6 PM. He also doesn't read e-mail before 6 PM. I print them for him in the morning.\n\nIf it's urgent, please call the front office after 7:30 AM.\n\nBarb, on behalf of Steve Packa` }),
@@ -1383,6 +1382,19 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
     [P.marcus.email]: s => ({ from: P.marcus, subject: reSub(s), body: `Received with thanks. Diane has already sent the full pack.\n\nRegards,${SIG.marcus}` }),
     [P.emily.email]: s => ({ from: P.emily, subject: reSub(s), body: `We're at the team qualifier. I started to explain to Drew what I would do differently with the cash file and he took my phone.\n\nDiane says the pack ties. All of it. From the same numbers. I have a slide about this.\n\nEmily${SIG.emily}` }),
   };
+  /* Item 8 (FOR THE BOARD): the password is =CONCAT(what they told the Board, what's true). "What they told the Board"
+     is Drew's number, and the way to get it is to ask him: write to Drew (a new message or a reply) and he answers from
+     Vegas, in capitals, proudly. A message that doesn't ask about the Board / runway gets a nudge instead. */
+  const DREW_ASK = /runway|\bdays?\b|board|told|deck|months?|182|cash|how long|number|password/i;
+  function drewReply(m) {
+    const s = stripRe(m.subject || ''), asked = DREW_ASK.test(s + '\n' + (m.body || '').split('----- Original Message -----')[0]);
+    if (asked) FR.flags.set('drewAsked', true);
+    // Drew is in Vegas LOOKING for Frank: a message from Frank's own account is the last thing he expects
+    const subject = 'FRANK??? RE: ' + s.toUpperCase();
+    return asked
+      ? { from: P.drew, subject, body: `FRANK??? FRANK!!! IS THAT YOU??? WE HAVE BEEN LOOKING FOR YOU ALL OVER THIS CASINO. I CHECKED THE BUFFET. TWICE.\n\nWHERE ARE YOU. ARE YOU AT YOUR DESK?? YOU'RE SUPPOSED TO BE IN VEGAS. I'M IN VEGAS. FOR YOU.\n\nAND WHY ARE YOU ASKING ME THIS. YOU KNOW THE NUMBER. 182 DAYS. SIX MONTHS. I TYPED IT INTO THE BOARD FILE MYSELF ON SEPT 28 AND THE BOARD LOVED IT. YOUR FORMULA SAID SOMETHING DEPRESSING. FORMULAS DON'T KNOW ABOUT THE BIG-BOX DEAL.\n\n...WAIT. FRANK NEVER ASKS ME ANYTHING. WHO IS THIS??\n\nCALL ME. NO. DON'T CALL ME. THE TEAM QUALIFIER STARTS IN AN HOUR AND I AM NOT DOING THE PIVOT TABLE ROUND.\n\nMAKE IT WORK.\n\nDREW${SIG.drew}` }
+      : { from: P.drew, subject, body: `FRANK??? IS THAT YOU??? WHERE ARE YOU. WE'VE BEEN LOOKING FOR YOU ALL NIGHT. I CHECKED THE BUFFET. TWICE.\n\nIF THIS ISN'T FRANK: WHO IS THIS, AND WHY ARE YOU ON HIS COMPUTER.\n\nIF YOU WANT SOMETHING, ASK FOR IT. IN WORDS. IF IT'S ABOUT THE BOARD DECK, ASK ME ABOUT THE BOARD DECK. I KNOW EVERY NUMBER IN IT. I PUT SOME OF THEM THERE.\n\nDREW${SIG.drew}` };
+  }
   function ndr(addr, reason, code) {
     return `Your message did not reach some or all of the intended recipients.\n\n      Sent: ${fmtLong(FR.clock.now().getTime())}\n\nThe following recipient(s) could not be reached:\n\n      ${addr}\n            ${reason}\n            <PACKA-EXCH01.packacorp.local ${code}>`;
   }
@@ -1407,6 +1419,7 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
         return setTimeout(() => incoming({ from: POSTMASTER, subject: 'Undeliverable: ' + s, body: ndr(ME.email, "The recipient's mailbox is full and can't accept messages now. Mailbox full.", '#5.2.2') }), 2500);
       }
       if (FR.puzzle.isSolved('send') && WON[e]) return setTimeout(() => incoming(WON[e](s)), 3000 + Math.random() * 1500);
+      if (e === P.drew.email) return setTimeout(() => incoming(drewReply(m)), 3500 + Math.random() * 1500);
       if (OOO[e]) {
         if (e === FRANK_OFFGRID.email && !FR.puzzle.isSolved('frank')) return setTimeout(() => incoming({ from: POSTMASTER, subject: 'Undeliverable: ' + s, body: ndr(e, 'The recipient\'s mailbox is out of range. (Hint: so is the recipient.)', '#5.4.0') }), 2500);
         return setTimeout(() => incoming(OOO[e](s)), 3000 + Math.random() * 1500);

@@ -224,6 +224,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
 .ck-foot { flex: none; padding: 6px 10px; border-top: 1px solid #d6d2c2; display: flex; justify-content: space-between; align-items: center; background: #ece9d8; gap: 8px; }
 .ck-foot .ck-meta { color: #555; }
 .ck-auto { font-size: 10.5px; color: #6c6c6c; font-style: italic; margin-top: 4px; }
+.ck-kept { margin-top: 5px; padding: 4px 7px; background: #fff6a8; border: 1px dashed #8a7a00; font: bold 11px/1.35 "Courier New", Courier, monospace; color: #3d3500; }
 
 /* help window */
 .fr-help { padding: 12px 16px; overflow: auto; line-height: 1.5; font-size: 11.5px; background: #fff; flex: 1; }
@@ -1363,6 +1364,9 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   animation: so-bob-sec .3s steps(3) 1.6s both; }
 @keyframes so-bob-sec { from { opacity: 0; transform: scale(.5); } to { opacity: 1; transform: none; } }
 .so-bob-sec u { font-size: 18px; text-decoration: none; color: #d40000; }
+.so-bob-sec small { display: block; font-size: 10px; color: #5a5000; }
+.so-secret-dlg { display: inline-block; margin-bottom: 8px; padding: 6px 10px; background: #fff6a8; border: 2px dashed #18141c; font: bold 13px/1.4 "Courier New", Courier, monospace; color: #18141c; }
+.so-secret-dlg u { text-decoration: none; color: #d40000; font-size: 17px; }
 .so-cf { position: absolute; top: -12px; width: 8px; height: 8px; box-shadow: 1px 1px 0 rgba(0,0,0,.25); animation: so-cf-fall var(--d) steps(14) var(--t) infinite; }
 @keyframes so-cf-fall { from { top: -12px; transform: rotate(0); } to { top: 104%; transform: rotate(270deg); } }
 @media (prefers-reduced-motion: reduce) { .so-bob-i { animation: none; transform: translateX(-50%); } .so-cf { display: none; } .so-bob-say, .so-bob-say i, .so-bob-sec { animation: none; } }
@@ -1723,7 +1727,7 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   #fr-root .ck-hbtn { min-height: 36px; padding: 4px 12px; font-size: 12.5px; }
   .ck-hint, .ck-fos-t { font-size: 12.5px; }
   .ck-fos-p { font-size: 11.5px; }
-  .ck-fb, .ck-auto { font-size: 12px; }
+  .ck-fb, .ck-auto, .ck-kept { font-size: 12px; }
   .ck-solved-val { font-size: 12px; }
   /* (R3b S6/S16) one compact row: the score line wraps beside the button (not under it), so the list gets the height
      and nothing ("Time: 29 min") is cut */
@@ -2813,7 +2817,8 @@ FR.apps = FR.apps || {};
         w.el.style.height = 'auto'; w.el.style.zIndex = w.dz; shade.style.zIndex = w.dz - 1;
         if (FR.mobile) FR.wm.fitDialog(w, true);
         let done = false;
-        const inp = content.querySelector('input');
+        // (the dialog's own text box only: a message can hold inputs of its own, e.g. Outlook's Select Recipients checkboxes)
+        const inp = o.input ? content.querySelector('.fr-dlg-input input') : null;
         // o.enterKey: Enter presses the default button wherever the focus is (even after a tap on the message text)
         const enterK = e => { if (e.key === 'Enter' && !done && FR.wm.topDialog() === w && !(e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName))) { e.preventDefault(); e.stopPropagation(); finish(btns[o.def || 0]); } };
         if (o.enterKey) document.addEventListener('keydown', enterK, true);
@@ -4970,7 +4975,7 @@ FR.version = {"version": "1.0.0", "build": "dev", "date": "", "full": "1.0.0 (de
     N.h(1, 20);
     N.set('A1', 'DO NOT DELETE', M(ST.title, { fc: RED }));
     N.set('A2', 'Frank\'s notes. Drew: "do not delete" means do not delete. —FW', ST.note);
-    ['Board version says 182 days. Real: 43. Funding gap by wk 13 = 2,164 + 250 minimum.',
+    ['Board version says whatever Drew told them (ask him, he loves saying it). Real: 43. Funding gap by wk 13 = 2,164 + 250 minimum.',
       'The 2,164 only happens if payroll is in. Put payroll in. (The number is my Solitaire secret. Win a game.)',
       'Past-due AP: Ozark Kraft put us on credit hold 9/8. Every old invoice gets paid before they ship board. That\'s the burn.',
       'Min liquidity (6.2) breaks BEFORE cash goes negative. Find the first red week — that\'s the one the bank cares about.',
@@ -6853,7 +6858,7 @@ FR.version = {"version": "1.0.0", "build": "dev", "date": "", "full": "1.0.0 (de
         decoys: { '2109': 'That hint was in v4. Not the one, Joshua. —F', '1991118': 'That hint was in v4 — and SUM means add. Not the one, Joshua. —F', '1993': 'That hint was in v5 FINAL FINAL. Not the one, Joshua. —F', 'packa1958': 'That hint was in v6, Diane\'s review copy. Not the one, Joshua. —F', '1958': 'That is the Windows password. Different lock. —F', '24002006': 'Right numbers. SUM them, don\'t glue them. —F', '4423': 'ISO recertified 2023, first certified 2006. FIRST. —F', '2400': 'Half of it. —F', '2006': 'The other half. —F' } });
       case 'forboardx': return openProtected(node, o, { pw: '18243', flag: 'xlForBoardPw', puzzle: 'forboard', build: forBoardBook, failHint: '"=CONCAT(what they told the Board, what is true). left a note in REAL VERSION."',
         early: "Password accepted.<br><br>Excel: this file is linked to files you haven't rebuilt yet. Finish Frank's checklist up to the bridge, then open it.",
-        decoys: { '43182': 'Right numbers. Wrong order. What they told the Board comes first. —F', '18251': 'The formula said 51. Nobody believed the formula either. What is true today (10/16) is in the change log. —F', '182': 'That is what they told the Board. And then what is true. —F', '43': 'That is what is true. What they told the Board comes first. —F', '225': 'Not a sum. =CONCAT. —F' } });
+        decoys: { '43182': 'Right numbers. Wrong order. What they told the Board comes first. —F', '18251': 'The formula said 51. Nobody believed the formula either. What is true today (10/16) is in the change log. —F', '182': 'That is what they told the Board. And then what is true. —F', '43': 'That is what is true. What they told the Board comes first (ask Drew). —F', '225': 'Not a sum. =CONCAT. —F' } });
       case 'bp_q1': case 'bp_q2': case 'bp_q3': case 'bp_q4': return openWorkbook(packBook(node.id), Object.assign(o, node.id === 'bp_q4' ? { startSheet: 'Cash Runway', startCell: 'B30' } : {}));
       // (F18, round 4) phones: row 17 from its first column (the date, who, which file), not scrolled over to H's note
       case 'changelog': return openWorkbook(changelogBook(), Object.assign(o, { startCell: FR.mobile ? 'A17' : 'H17' }));
@@ -8288,7 +8293,6 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
   /* ================= auto replies ================= */
   const reSub = s => 'Re: ' + stripRe(s);
   const OOO = {
-    [P.drew.email]: s => ({ from: P.drew, subject: 'AUTO-REPLY: ' + s, body: `AUTO-REPLY. I AM IN LAS VEGAS ON COMPANY BUSINESS. THE BUSINESS IS FRANK.\n\nFor budget questions, contact Frank Warmington.\nFor questions about Frank, also contact Frank Warmington.\nFor questions about my Porsche, do not touch my Porsche.\n\nMAKE IT WORK.\n\nDREW HOLLIS\nVP FINANCE` }),
     [P.karen.email]: s => ({ from: P.karen, subject: 'Out of Office: ' + s, body: `I'm on the plant floor through third shift and I don't read e-mail on the plant floor, because forklifts.\n\nIf something is on fire, call ext. 214. If something is merely late, it can wait until morning.\n\nKaren Wills\nVP Operations` }),
     [P.tom.email]: s => ({ from: P.tom, subject: 'Out of Office: ' + s, body: `I'm visiting customers in Joplin and Springfield through Friday with limited access to e-mail.\n\nThe FY27 sales plan is $40.0M and it is locked. If you are writing to unlock it: no.\n\nTom Bracken\nSales Manager` }),
     [P.steve.email]: s => ({ from: P.steve, subject: 'Re: ' + stripRe(s), body: `Hi, this is Barb at the front desk. Steve doesn't read e-mail after 6 PM. He also doesn't read e-mail before 6 PM. I print them for him in the morning.\n\nIf it's urgent, please call the front office after 7:30 AM.\n\nBarb, on behalf of Steve Packa` }),
@@ -8305,6 +8309,19 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
     [P.marcus.email]: s => ({ from: P.marcus, subject: reSub(s), body: `Received with thanks. Diane has already sent the full pack.\n\nRegards,${SIG.marcus}` }),
     [P.emily.email]: s => ({ from: P.emily, subject: reSub(s), body: `We're at the team qualifier. I started to explain to Drew what I would do differently with the cash file and he took my phone.\n\nDiane says the pack ties. All of it. From the same numbers. I have a slide about this.\n\nEmily${SIG.emily}` }),
   };
+  /* Item 8 (FOR THE BOARD): the password is =CONCAT(what they told the Board, what's true). "What they told the Board"
+     is Drew's number, and the way to get it is to ask him: write to Drew (a new message or a reply) and he answers from
+     Vegas, in capitals, proudly. A message that doesn't ask about the Board / runway gets a nudge instead. */
+  const DREW_ASK = /runway|\bdays?\b|board|told|deck|months?|182|cash|how long|number|password/i;
+  function drewReply(m) {
+    const s = stripRe(m.subject || ''), asked = DREW_ASK.test(s + '\n' + (m.body || '').split('----- Original Message -----')[0]);
+    if (asked) FR.flags.set('drewAsked', true);
+    // Drew is in Vegas LOOKING for Frank: a message from Frank's own account is the last thing he expects
+    const subject = 'FRANK??? RE: ' + s.toUpperCase();
+    return asked
+      ? { from: P.drew, subject, body: `FRANK??? FRANK!!! IS THAT YOU??? WE HAVE BEEN LOOKING FOR YOU ALL OVER THIS CASINO. I CHECKED THE BUFFET. TWICE.\n\nWHERE ARE YOU. ARE YOU AT YOUR DESK?? YOU'RE SUPPOSED TO BE IN VEGAS. I'M IN VEGAS. FOR YOU.\n\nAND WHY ARE YOU ASKING ME THIS. YOU KNOW THE NUMBER. 182 DAYS. SIX MONTHS. I TYPED IT INTO THE BOARD FILE MYSELF ON SEPT 28 AND THE BOARD LOVED IT. YOUR FORMULA SAID SOMETHING DEPRESSING. FORMULAS DON'T KNOW ABOUT THE BIG-BOX DEAL.\n\n...WAIT. FRANK NEVER ASKS ME ANYTHING. WHO IS THIS??\n\nCALL ME. NO. DON'T CALL ME. THE TEAM QUALIFIER STARTS IN AN HOUR AND I AM NOT DOING THE PIVOT TABLE ROUND.\n\nMAKE IT WORK.\n\nDREW${SIG.drew}` }
+      : { from: P.drew, subject, body: `FRANK??? IS THAT YOU??? WHERE ARE YOU. WE'VE BEEN LOOKING FOR YOU ALL NIGHT. I CHECKED THE BUFFET. TWICE.\n\nIF THIS ISN'T FRANK: WHO IS THIS, AND WHY ARE YOU ON HIS COMPUTER.\n\nIF YOU WANT SOMETHING, ASK FOR IT. IN WORDS. IF IT'S ABOUT THE BOARD DECK, ASK ME ABOUT THE BOARD DECK. I KNOW EVERY NUMBER IN IT. I PUT SOME OF THEM THERE.\n\nDREW${SIG.drew}` };
+  }
   function ndr(addr, reason, code) {
     return `Your message did not reach some or all of the intended recipients.\n\n      Sent: ${fmtLong(FR.clock.now().getTime())}\n\nThe following recipient(s) could not be reached:\n\n      ${addr}\n            ${reason}\n            <PACKA-EXCH01.packacorp.local ${code}>`;
   }
@@ -8329,6 +8346,7 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
         return setTimeout(() => incoming({ from: POSTMASTER, subject: 'Undeliverable: ' + s, body: ndr(ME.email, "The recipient's mailbox is full and can't accept messages now. Mailbox full.", '#5.2.2') }), 2500);
       }
       if (FR.puzzle.isSolved('send') && WON[e]) return setTimeout(() => incoming(WON[e](s)), 3000 + Math.random() * 1500);
+      if (e === P.drew.email) return setTimeout(() => incoming(drewReply(m)), 3500 + Math.random() * 1500);
       if (OOO[e]) {
         if (e === FRANK_OFFGRID.email && !FR.puzzle.isSolved('frank')) return setTimeout(() => incoming({ from: POSTMASTER, subject: 'Undeliverable: ' + s, body: ndr(e, 'The recipient\'s mailbox is out of range. (Hint: so is the recipient.)', '#5.4.0') }), 2500);
         return setTimeout(() => incoming(OOO[e](s)), 3000 + Math.random() * 1500);
@@ -12070,7 +12088,7 @@ Frank, FP&A Manager (the website says Director. Steve's idea.)
 Jul 14  Runway 108 days. Told Drew. "Make it work."
 Aug 11  84 days. Two accounts gone. "Temporary variance."
 Sep 08  68 days. Revolver maxed. "New scenario."
-Sep 28  51 days. Drew typed 182 into the Board file himself.
+Sep 28  51 days. Drew typed his own number into the Board file himself.
 Oct 06  47 days. Payroll risk. No reply.
 Oct 16  43 days. Board is Tuesday.
 
@@ -12081,6 +12099,9 @@ The Board versions are next door.
 FOR THE BOARD (desktop) password:
 =CONCAT(what they told the Board, what's true)
 Both in days. CONCAT, not SUM. I'm not an animal.
+What they told the Board: ask Drew. He's proud of it. He answers
+e-mail from Vegas (drew.hollis@packacorp.com). In capitals.
+What's true: the last line up there.
 
 Do not touch the "DO NOT DELETE" tab.
 GET SHEET DONE.
@@ -12617,6 +12638,12 @@ Website:      still says 'Director'. Steve. Don't ask.
     setTimeout(() => { cascade(); bobParty(first); }, 380);
   }
 
+  // Frank's secret is kept once won: the checklist (item 6) and Game › Frank's Secret… show it again, no second win needed
+  const secretWon = () => !!(FR.flags.get('solSecret') || (FR.state.bonus && FR.state.bonus.sol_win));
+  FR.solSecretWon = secretWon;
+  const secretNote = () => FR.dialog({ title: "Frank's Secret", icon: 'solitaire', width: 360,
+    message: `<div class="so-secret-dlg"><b>FRANK'S SECRET:</b><br>PAYROLL RUN = <u>$196K</u></div>Bob gave it away when you won. It's kept for you here and on Frank's checklist.` });
+
   /* ---------- the win: Bob the panda (Datarails' mascot, 8-bit: src/bob.js) dances on the table ----------
      and gives away Frank's secret: the hourly payroll run he "hid" behind a Solitaire win (item 6, the cash forecast) */
   let bobEl = null;
@@ -12626,7 +12653,7 @@ Website:      still says 'Director'. Steve. Don't ask.
     const COL = ['#f4c430', '#1d6f42', '#e8834a', '#2f44c9', '#ffffff', '#d40000'];
     let cf = ''; for (let i = 0; i < 28; i++) cf += `<span class="so-cf" style="left:${(i * 37) % 100}%;background:${COL[i % COL.length]};--t:${((i * 0.29) % 2.4).toFixed(2)}s;--d:${(1.8 + (i % 5) * 0.35).toFixed(2)}s"></span>`;
     const pts = first && FR.scoreRules ? `<i>+${FR.scoreRules.EXTRAS.sol_win} points</i>` : G && G.lucky ? '<i class="so-bob-rig">(rigged deal: no points)</i>' : '';
-    bobEl = $(`<div class="so-bob" aria-hidden="true">${cf}<div class="so-bob-say"><b>SAME SHEET,<br>DIFFERENT DAY!</b>${pts}<span class="so-bob-sec">FRANK'S SECRET:<br>PAYROLL RUN = <u>$196K</u></span></div><img class="so-bob-i" src="${FR.data.images.bob}" alt=""></div>`);
+    bobEl = $(`<div class="so-bob" aria-hidden="true">${cf}<div class="so-bob-say"><b>SAME SHEET,<br>DIFFERENT DAY!</b>${pts}<span class="so-bob-sec">FRANK'S SECRET:<br>PAYROLL RUN = <u>$196K</u>${FR.puzzle && FR.puzzle.isSolved('cash') ? '' : '<small>(kept for you on the checklist)</small>'}</span></div><img class="so-bob-i" src="${FR.data.images.bob}" alt=""></div>`);
     table.appendChild(bobEl);
   }
 
@@ -12970,7 +12997,7 @@ Website:      still says 'Director'. Steve. Don't ask.
     cards = {}; lastCompact = null;
     const menu = [
       { label: 'Game', items: () => [
-        { label: 'Deal', key: 'F2', action: () => deal() }, { label: "Frank's Lucky Deal", action: luckyDeal }, { sep: true },
+        { label: 'Deal', key: 'F2', action: () => deal() }, { label: "Frank's Lucky Deal", action: luckyDeal }, { label: "Frank's Secret...", disabled: !secretWon(), action: secretNote }, { sep: true },
         { label: 'Undo', key: 'Ctrl+Z', disabled: !G || !G.undo.length || G.won, action: undo },
         { label: 'Deck...', action: deckDialog }, { label: 'Options...', action: optionsDialog }, { sep: true },
         { label: 'Exit', action: () => win.close() },
@@ -14130,14 +14157,16 @@ I'm taking Thursday off.
       hints: ["Bank.zip needs a password. Open Budget_FY27_BOARD.xls: the yellow note Frank left next to the EBITDA row tells you which cell holds it (passwords.txt on the desktop says the same).", "F13 in the certificate wants the capex paid in cash. Frank wrote it in permanent marker, then drew Kristians over it: open kristians_by_frank.bmp (My Pictures) and rub him out with Paint's Eraser.", "Under the drawing: PAID IN CASH 110. Type 110 in F13: (2,860 − 110) ÷ 2,200 = 1.25x. Just."] },
     { id: 'cash', level: 3, t: 'Find the first week cash drops below $250K', d: "Frank kept a REAL cash forecast the Board never saw. Find it, put in one payroll run (Frank hid the number behind a Solitaire win), and pick the first week cash falls below $250K.", pick: 'weeks',
       where: [W.folder('boardroot', 'My Documents › BOARD'), ['Solitaire', () => FR.apps.solitaire()], W.mail("Rachel's email", 'm_rachel_payroll')],
+      // won Solitaire already (even long before this item)? the number stays on the card: no need to win again
+      kept: () => FR.solSecretWon && FR.solSecretWon() ? "Kept from your Solitaire win: Bob said FRANK'S SECRET: PAYROLL RUN = $196K" : '',
       hints: ["The REAL VERSION folder is hidden. In any folder window: Tools › Folder Options › View › Show hidden files and folders.", "B14 in the REAL forecast wants one payroll run. Frank hid the number behind a Solitaire win: win a game and Bob the panda gives it away. (No time? Solitaire › Game › Frank's Lucky Deal.)", "Bob's number: $196K. Type 196 in B14; the runs fall every other Friday, and week 5 is the first red week ($110K)."] },
     { id: 'bridge', level: 3, t: 'Close the Q3 EBITDA bridge', d: "Two bars are missing. Frank worked out the containerboard bar, then Norton quarantined his file as a \"virus\". Rescue it and put the bar in: Freight works itself out and the check says TIES. Or type the Freight bar here.", input: 'Freight ($K)', ph: 'e.g. -25', num: true,
       where: [W.folder('board', 'Board Meeting Oct 20'), ['Norton AntiVirus', () => FR.norton && FR.norton.statusWin()], W.mail('The mill letter', 'm_ozark')],
       hints: ["Open Q3_EBITDA_Bridge.xls and hover over the containerboard cell (C9): Frank's note says where his calc went. Never plug a bar you can calculate.", "Norton AntiVirus (the yellow shield in the taskbar tray) › Quarantine › Restore. containerboard_calc.xls opens on its own.", "Frank's calc: $40/ton × 1,500 tons = $60K more cost, so −60 in C9. Freight fills itself in: −160 − (−120 + 80 − 20 − 60) = −40."],
       mhints: ["Open Q3_EBITDA_Bridge.xls and tap the containerboard cell (C9): Frank's note says where his calc went. Never plug a bar you can calculate."] },
-    { id: 'forboard', level: 4, t: 'Open FOR THE BOARD', d: "The locked file on Frank's desktop is his emergency plan. The survival package depends on it.", auto: true,
-      where: [W.folder('forboard_dir', 'FOR THE BOARD folder'), W.file('realnotes', 'NOTES_to_whoever_finds_this.txt'), W.file('changelog', 'CHANGE_LOG_do_not_share.xls')],
-      hints: ["Frank left a note for whoever finds the REAL VERSION folder. The password is written as an Excel formula.", "CONCAT joins numbers as text: what they told the Board, then what's true (Frank's real runway), both in days. The Board number is on the Cash Runway tab (B30) of the Q4 Board Pack in BOARD › BOARD VERSION, and in the change log.", '=CONCAT(182, 43) → 18243 (as of 10/16).'] },
+    { id: 'forboard', level: 4, t: 'Open FOR THE BOARD', d: "The locked file on Frank's desktop is his emergency plan. Its password is two numbers: what they told the Board, and what's true. One of them you'll have to ask for, by e-mail, from the man who told the Board.", auto: true,
+      where: [W.folder('forboard_dir', 'FOR THE BOARD folder'), W.file('realnotes', 'NOTES_to_whoever_finds_this.txt'), W.mail('Outlook Express')],
+      hints: ["Frank left a note for whoever finds the REAL VERSION folder: the password is =CONCAT(what they told the Board, what's true), both in days of runway.", "What they told the Board: write to Drew (drew.hollis@packacorp.com) and ask how many days of runway he told the Board. What's true is Frank's last line in the same note (10/16).", 'Drew says 182, Frank says 43: =CONCAT(182, 43) → 18243.'] },
     { id: 'send', level: 1, t: 'Send the Board Pack to Diane', d: 'Everything the Board and the bank need, in one email, before 9:00 AM.', auto: true,
       where: [W.mail()],
       hints: ["Reply to Diane's email \"Send me the pack. Now.\" in Outlook Express.", 'Or a new message to diane.kessler@packacorp.com.', 'Reply, then Send. The files attach themselves.'] },
@@ -14665,6 +14694,7 @@ I'm taking Thursday off.
       const row = $(`<div class="ck-item ${solved ? 'done' : active ? 'open' : 'locked'} ${justSolved === it.id ? 'ck-just' : ''}"><div class="ck-box">${!solved && !unlocked ? FR.icon('lock', 12) : ''}</div><div class="ck-main">
         <div class="ck-t"><span class="ck-n">${idx + 1}.</span> ${solved ? `<s>${esc(it.t)}</s>` : unlocked ? esc(it.t) : 'Locked — finish the item above first'} ${active && it.id !== 'login' ? pips : ''}</div>
         ${active ? `<div class="ck-d">${esc(it.d)}</div>` : ''}
+        ${active && it.kept && it.kept() ? `<div class="ck-kept">${esc(it.kept())}</div>` : ''}
         ${active && it.where ? `<div class="ck-where"><span>Look in:</span></div>` : ''}
         ${active && it.input ? `<div class="ck-ans"><input type="text" placeholder="${esc(it.ph || '')}" aria-label="${esc(it.input)}" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off"><button>Submit</button></div>` : ''}
         ${active && it.pick ? `<div class="ck-pick ck-pick-${it.pick}"></div>` : ''}

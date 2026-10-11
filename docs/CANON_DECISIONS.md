@@ -29,13 +29,18 @@
     original or a saved copy) in Paint leaves "PAID IN CASH ($K): 110" (flag `paintSecret`). Karen's email no longer
     says $110K ("Please tell me it isn't another drawing."); the Capex log and the invoice still show it (the expert's way).
   - 6 cash: the REAL forecast has one payroll input, B14 (week 1); D14, F14 … N14 follow it (`=IF(ISNUMBER($B$14),$B$14,"")`),
-    even weeks blank. The number is Frank's Solitaire secret, shown on every win (flag `solSecret`). "Frank's Lucky Deal"
+    even weeks blank. The number is Frank's Solitaire secret, shown on every win (flag `solSecret`, saved). Once won it is kept: item 6's card shows "Kept from your Solitaire win: … $196K" and Solitaire › Game › Frank's Secret… shows it again, so a win before item 6 never has to be repeated. "Frank's Lucky Deal"
     (Solitaire › Game): A–9 home, tableau [JS,10D] [10S,QD] [JD,KC] [10H,JC,QS] [10C,KH,QH] [JH,QC,KS,KD] [] — rigged, so
     no +200. Rachel: "it's the same as my Solitaire high score". The Budget file's Headcount reconciliation keeps 196.
   - 7 bridge: Norton quarantined `containerboard_calc.xls` (W97M.Macro.Generic, 10/06/2026 1:14 AM; Frank: "IT'S A
     SPREADSHEET, NORTON. It has ONE formula."). Restore (flag `nortonRestored`) puts it in Board Meeting Oct 20 and opens
     it: $40/ton (mill letter) × 1,500 tons (Products page) = $60,000 → (60). Bridge C11 (Freight) is now
     `=IF(ISNUMBER(C9),C12-C6-C7-C8-C9-C10,"??")`. A yellow Norton shield sits in the taskbar tray.
+- **Item 8 asks Drew by e-mail**: Frank's NOTES (REAL VERSION) say "What they told the Board: ask Drew. He's proud of it."
+  Any message to drew.hollis@packacorp.com (new or reply) that mentions the runway / Board / deck / days / cash / number /
+  password gets his ALL-CAPS reply from Vegas, shocked first (he is there looking for Frank): "FRANK??? FRANK!!! IS THAT YOU??? … I CHECKED THE BUFFET. TWICE." then "YOU KNOW THE NUMBER. 182 DAYS. SIX MONTHS. I TYPED IT INTO THE BOARD FILE MYSELF ON SEPT 28" and "…WAIT. FRANK NEVER ASKS ME ANYTHING. WHO IS THIS??"
+  (flag `drewAsked`); anything else gets "ASK ME ABOUT THE BOARD DECK". Drew's old auto-reply is gone. Frank's notes and the
+  DO NOT DELETE tab no longer state 182; the Q4 Board Pack (B30) and the change log still do (the evidence).
 - **Score (one number everywhere)**: the rules and every point value live only in `src/score_rules.js` (+1,000 per item, −50 per wrong answer or password, 10 free hints then −100, bonus on top: 9 bonus requests worth +1,300 in all, +10 for each of the 15 Easter eggs as it's found (+150 for all), and +200 once for winning a game of Solitaire, celebrated by **Bob the panda** (Datarails' mascot, 8-bit, src/bob.js; "SAME SHEET, DIFFERENT DAY!"), so bonus up to +1,650; see README). The checklist footer, the ending ("10 × 1,000 − 4 wrong × 50 + 1,300 bonus requests + 4 eggs × 10 = 11,140"; the total of the two is called "bonus & eggs" wherever it stands on its own: footer, the ending's tile, the leaderboard) and the leaderboard ("How points work") show the same number, and all rule text is generated from that file. The board keeps the player's **first finished game**; bonus requests and Easter eggs finished later in that same game still count; a replay after Start over doesn't change it. An answer that isn't a number where a number is asked (items 4, 5, 7) is not a wrong guess ("That's not a number…").
 - **AL PACKA** (src/apps/xp_salon.js): "Missouri's greatest alpaca hair salon" (the footnote admits it is Missouri's only
   one), 214 South Ohio Avenue, Sedalia; est. 1998; closed Mondays. Founded by **Alfonso "Al" Packa**, Gerald Packa's son and

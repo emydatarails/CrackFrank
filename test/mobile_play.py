@@ -531,6 +531,14 @@ def playthrough(p, b, devname):
 
     # ---- 8 forboard
     pg.wait_for_timeout(3000)
+    # ask Drew by e-mail (what he told the Board), by touch
+    chip(pg, 'Outlook Express', 900)
+    tap(pg, pg.locator(TOP + ' .oe-tb-create').first, 700)
+    pg.locator(TOP + ' .oe-to').fill('drew.hollis@packacorp.com'); pg.locator(TOP + ' .oe-subj').fill('runway')
+    pg.locator(TOP + ' .oe-body').fill('How many days did you tell the Board?')
+    tap(pg, pg.locator(TOP + ' .oe-tbb-send'), 6500)
+    ok(pg.evaluate("() => FR.mail.messages().some(m => m.from && m.from.email === 'drew.hollis@packacorp.com' && m.folder === 'inbox' && /^FRANK\\?\\?\\?/.test(m.body) && m.body.includes('182 DAYS'))"), '8: Drew answers the e-mail (stunned it comes from Frank) with what he told the Board')
+    closeall(pg)
     chip(pg, 'FOR THE BOARD folder'); ex_tap(pg, 'forboardx', 600); dlg_type(pg, '18243'); pg.wait_for_timeout(900)
     ok('forboard' in solved(pg), '8 forboard by touch')
     c_on = "() => /FOR_THE_BOARD/.test(FR.wm.active.el.querySelector('.fr-title').textContent) && document.querySelector('.fr-win:not(.fr-inactive) .xl-ch[data-c=\"2\"]').getBoundingClientRect().right <= innerWidth + 1"

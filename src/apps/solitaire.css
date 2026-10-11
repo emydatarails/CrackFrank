@@ -1,6 +1,7 @@
 /* Solitaire (src/apps/solitaire.js): XP green felt, SVG cards, the bouncing-cards win */
 .so-win > .window-body.fr-body { margin: 0; }
 .so { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+.so-table { isolation: isolate; /* cards (z up to 2001) stay under the menu drop-down */
 .so-table { position: relative; flex: 1 1 auto; min-height: 0; overflow: hidden; background: #008000; outline: none;
   touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 .so-card, .so-slot, .so-tgt { position: absolute; left: 0; top: 0; width: var(--w, 71px); height: var(--h, 96px); box-sizing: border-box; }

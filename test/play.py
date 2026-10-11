@@ -287,6 +287,15 @@ with sync_playwright() as p:
 
     # ---- 8 forboard
     pg.wait_for_timeout(3500)
+    # "what they told the Board" is Drew's number: ask him by e-mail (Outlook › Create Mail), he answers from Vegas
+    note('chip outlook: ' + str(chip(pg, 'Outlook Express')))
+    pg.locator('.fr-win:not(.fr-inactive) .oe-tb-create').first.click(); pg.wait_for_timeout(600)
+    pg.locator('.fr-win:not(.fr-inactive) .oe-to').fill('Drew Hollis'); pg.locator('.fr-win:not(.fr-inactive) .oe-subj').fill('Board deck')
+    pg.locator('.fr-win:not(.fr-inactive) .oe-body').fill('How many days of runway did you tell the Board?')
+    pg.locator('.fr-win:not(.fr-inactive) .oe-tbb-send').click(); pg.wait_for_timeout(6500)
+    drew = pg.evaluate("() => (FR.mail.messages().filter(m => m.from && m.from.email === 'drew.hollis@packacorp.com' && m.folder === 'inbox').sort((a, b) => b.t - a.t)[0] || {}).body || 'NO REPLY'")
+    note('drew answers: ' + drew[:60].replace('\n', ' '))
+    closeall(pg)
     note('chip forboard: ' + str(chip(pg, 'FOR THE BOARD folder')))
     ex_dbl(pg, 'forboardx'); dlg_input(pg, '43182'); note('wrong: ' + str(dlg_msgs(pg))); dlg_btn(pg)
     ex_dbl(pg, 'forboardx'); dlg_input(pg, '18243'); pg.wait_for_timeout(900); shot(pg, 'forboard_open')

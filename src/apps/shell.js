@@ -2259,7 +2259,7 @@ Frank, FP&A Manager (the website says Director. Steve's idea.)
 Jul 14  Runway 108 days. Told Drew. "Make it work."
 Aug 11  84 days. Two accounts gone. "Temporary variance."
 Sep 08  68 days. Revolver maxed. "New scenario."
-Sep 28  51 days. Drew typed 182 into the Board file himself.
+Sep 28  51 days. Drew typed his own number into the Board file himself.
 Oct 06  47 days. Payroll risk. No reply.
 Oct 16  43 days. Board is Tuesday.
 
@@ -2270,6 +2270,9 @@ The Board versions are next door.
 FOR THE BOARD (desktop) password:
 =CONCAT(what they told the Board, what's true)
 Both in days. CONCAT, not SUM. I'm not an animal.
+What they told the Board: ask Drew. He's proud of it. He answers
+e-mail from Vegas (drew.hollis@packacorp.com). In capitals.
+What's true: the last line up there.
 
 Do not touch the "DO NOT DELETE" tab.
 GET SHEET DONE.

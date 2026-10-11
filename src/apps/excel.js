@@ -876,7 +876,7 @@
     N.h(1, 20);
     N.set('A1', 'DO NOT DELETE', M(ST.title, { fc: RED }));
     N.set('A2', 'Frank\'s notes. Drew: "do not delete" means do not delete. —FW', ST.note);
-    ['Board version says 182 days. Real: 43. Funding gap by wk 13 = 2,164 + 250 minimum.',
+    ['Board version says whatever Drew told them (ask him, he loves saying it). Real: 43. Funding gap by wk 13 = 2,164 + 250 minimum.',
       'The 2,164 only happens if payroll is in. Put payroll in. (The number is my Solitaire secret. Win a game.)',
       'Past-due AP: Ozark Kraft put us on credit hold 9/8. Every old invoice gets paid before they ship board. That\'s the burn.',
       'Min liquidity (6.2) breaks BEFORE cash goes negative. Find the first red week — that\'s the one the bank cares about.',
@@ -2759,7 +2759,7 @@
         decoys: { '2109': 'That hint was in v4. Not the one, Joshua. —F', '1991118': 'That hint was in v4 — and SUM means add. Not the one, Joshua. —F', '1993': 'That hint was in v5 FINAL FINAL. Not the one, Joshua. —F', 'packa1958': 'That hint was in v6, Diane\'s review copy. Not the one, Joshua. —F', '1958': 'That is the Windows password. Different lock. —F', '24002006': 'Right numbers. SUM them, don\'t glue them. —F', '4423': 'ISO recertified 2023, first certified 2006. FIRST. —F', '2400': 'Half of it. —F', '2006': 'The other half. —F' } });
       case 'forboardx': return openProtected(node, o, { pw: '18243', flag: 'xlForBoardPw', puzzle: 'forboard', build: forBoardBook, failHint: '"=CONCAT(what they told the Board, what is true). left a note in REAL VERSION."',
         early: "Password accepted.<br><br>Excel: this file is linked to files you haven't rebuilt yet. Finish Frank's checklist up to the bridge, then open it.",
-        decoys: { '43182': 'Right numbers. Wrong order. What they told the Board comes first. —F', '18251': 'The formula said 51. Nobody believed the formula either. What is true today (10/16) is in the change log. —F', '182': 'That is what they told the Board. And then what is true. —F', '43': 'That is what is true. What they told the Board comes first. —F', '225': 'Not a sum. =CONCAT. —F' } });
+        decoys: { '43182': 'Right numbers. Wrong order. What they told the Board comes first. —F', '18251': 'The formula said 51. Nobody believed the formula either. What is true today (10/16) is in the change log. —F', '182': 'That is what they told the Board. And then what is true. —F', '43': 'That is what is true. What they told the Board comes first (ask Drew). —F', '225': 'Not a sum. =CONCAT. —F' } });
       case 'bp_q1': case 'bp_q2': case 'bp_q3': case 'bp_q4': return openWorkbook(packBook(node.id), Object.assign(o, node.id === 'bp_q4' ? { startSheet: 'Cash Runway', startCell: 'B30' } : {}));
       // (F18, round 4) phones: row 17 from its first column (the date, who, which file), not scrolled over to H's note
       case 'changelog': return openWorkbook(changelogBook(), Object.assign(o, { startCell: FR.mobile ? 'A17' : 'H17' }));

@@ -36,6 +36,11 @@
     SPREADSHEET, NORTON. It has ONE formula."). Restore (flag `nortonRestored`) puts it in Board Meeting Oct 20 and opens
     it: $40/ton (mill letter) × 1,500 tons (Products page) = $60,000 → (60). Bridge C11 (Freight) is now
     `=IF(ISNUMBER(C9),C12-C6-C7-C8-C9-C10,"??")`. A yellow Norton shield sits in the taskbar tray.
+- **Item 8 asks Drew by e-mail**: Frank's NOTES (REAL VERSION) say "What they told the Board: ask Drew. He's proud of it."
+  Any message to drew.hollis@packacorp.com (new or reply) that mentions the runway / Board / deck / days / cash / number /
+  password gets his ALL-CAPS reply from Vegas: "182 DAYS. SIX MONTHS. … I TYPED IT INTO THE BOARD FILE MYSELF ON SEPT 28."
+  (flag `drewAsked`); anything else gets "ASK ME ABOUT THE BOARD DECK". Drew's old auto-reply is gone. Frank's notes and the
+  DO NOT DELETE tab no longer state 182; the Q4 Board Pack (B30) and the change log still do (the evidence).
 - **Score (one number everywhere)**: the rules and every point value live only in `src/score_rules.js` (+1,000 per item, −50 per wrong answer or password, 10 free hints then −100, bonus on top: 9 bonus requests worth +1,300 in all, +10 for each of the 15 Easter eggs as it's found (+150 for all), and +200 once for winning a game of Solitaire, celebrated by **Bob the panda** (Datarails' mascot, 8-bit, src/bob.js; "SAME SHEET, DIFFERENT DAY!"), so bonus up to +1,650; see README). The checklist footer, the ending ("10 × 1,000 − 4 wrong × 50 + 1,300 bonus requests + 4 eggs × 10 = 11,140"; the total of the two is called "bonus & eggs" wherever it stands on its own: footer, the ending's tile, the leaderboard) and the leaderboard ("How points work") show the same number, and all rule text is generated from that file. The board keeps the player's **first finished game**; bonus requests and Easter eggs finished later in that same game still count; a replay after Start over doesn't change it. An answer that isn't a number where a number is asked (items 4, 5, 7) is not a wrong guess ("That's not a number…").
 - **AL PACKA** (src/apps/xp_salon.js): "Missouri's greatest alpaca hair salon" (the footnote admits it is Missouri's only
   one), 214 South Ohio Avenue, Sedalia; est. 1998; closed Mondays. Founded by **Alfonso "Al" Packa**, Gerald Packa's son and

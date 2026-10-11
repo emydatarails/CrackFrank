@@ -473,7 +473,8 @@ FR.apps = FR.apps || {};
         w.el.style.height = 'auto'; w.el.style.zIndex = w.dz; shade.style.zIndex = w.dz - 1;
         if (FR.mobile) FR.wm.fitDialog(w, true);
         let done = false;
-        const inp = content.querySelector('input');
+        // (the dialog's own text box only: a message can hold inputs of its own, e.g. Outlook's Select Recipients checkboxes)
+        const inp = o.input ? content.querySelector('.fr-dlg-input input') : null;
         // o.enterKey: Enter presses the default button wherever the focus is (even after a tap on the message text)
         const enterK = e => { if (e.key === 'Enter' && !done && FR.wm.topDialog() === w && !(e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName))) { e.preventDefault(); e.stopPropagation(); finish(btns[o.def || 0]); } };
         if (o.enterKey) document.addEventListener('keydown', enterK, true);

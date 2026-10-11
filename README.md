@@ -317,7 +317,8 @@ Items 5–7 are escape-room toys (the numbers are the same, they're just found b
   the REAL forecast; the other runs follow every other Friday and week 5 turns red ($110K).
   A win is kept (even one long before item 6): the item's card shows the number, and so does Solitaire › Game › Frank's Secret….
 - **8 FOR THE BOARD**: the password is `=CONCAT(what they told the Board, what's true)`. Frank's notes say to ask Drew:
-  e-mail drew.hollis@packacorp.com about the runway / Board deck and he replies from Vegas, in capitals: **182 DAYS**. What's
+  e-mail drew.hollis@packacorp.com about the runway / Board deck and he replies from Vegas, in capitals, stunned that
+  "Frank" is writing (he's there looking for him), then: **182 DAYS**. What's
   true is Frank's last line (43). A message that asks nothing gets "ASK ME ABOUT THE BOARD DECK".
 - **7 bridge**: Norton quarantined Frank's `containerboard_calc.xls`. The yellow shield in the tray › Quarantine › Restore
   opens it: $40/ton × 1,500 tons = **−60**. Type −60 in C9 and Freight works itself out (−40); the check says TIES.

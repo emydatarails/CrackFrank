@@ -8315,9 +8315,11 @@ P.S. Drew is here. He's in the hotel pool. In the hat. Kristians says "jah, this
   function drewReply(m) {
     const s = stripRe(m.subject || ''), asked = DREW_ASK.test(s + '\n' + (m.body || '').split('----- Original Message -----')[0]);
     if (asked) FR.flags.set('drewAsked', true);
+    // Drew is in Vegas LOOKING for Frank: a message from Frank's own account is the last thing he expects
+    const subject = 'FRANK??? RE: ' + s.toUpperCase();
     return asked
-      ? { from: P.drew, subject: 'RE: ' + s.toUpperCase(), body: `182 DAYS. SIX MONTHS. THAT'S WHAT THE BOARD GOT AND THE BOARD LOVED IT.\n\nI TYPED IT INTO THE BOARD FILE MYSELF ON SEPT 28. FRANK'S FORMULA SAID SOMETHING DEPRESSING. FORMULAS DON'T KNOW ABOUT THE BIG-BOX DEAL.\n\nWHY ARE YOU ASKING. WHO IS THIS. IS THIS FRANK? FRANK, WHERE ARE YOU. THE TEAM QUALIFIER STARTS IN AN HOUR AND I AM NOT DOING THE PIVOT TABLE ROUND.\n\nMAKE IT WORK.\n\nDREW${SIG.drew}` }
-      : { from: P.drew, subject: 'RE: ' + s.toUpperCase(), body: `WHO IS THIS. I'M IN VEGAS ON COMPANY BUSINESS.\n\nIF YOU WANT SOMETHING, ASK FOR IT. IN WORDS. IF IT'S ABOUT THE BOARD DECK, ASK ME ABOUT THE BOARD DECK. I KNOW EVERY NUMBER IN IT. I PUT SOME OF THEM THERE.\n\nDREW${SIG.drew}` };
+      ? { from: P.drew, subject, body: `FRANK??? FRANK!!! IS THAT YOU??? WE HAVE BEEN LOOKING FOR YOU ALL OVER THIS CASINO. I CHECKED THE BUFFET. TWICE.\n\nWHERE ARE YOU. ARE YOU AT YOUR DESK?? YOU'RE SUPPOSED TO BE IN VEGAS. I'M IN VEGAS. FOR YOU.\n\nAND WHY ARE YOU ASKING ME THIS. YOU KNOW THE NUMBER. 182 DAYS. SIX MONTHS. I TYPED IT INTO THE BOARD FILE MYSELF ON SEPT 28 AND THE BOARD LOVED IT. YOUR FORMULA SAID SOMETHING DEPRESSING. FORMULAS DON'T KNOW ABOUT THE BIG-BOX DEAL.\n\n...WAIT. FRANK NEVER ASKS ME ANYTHING. WHO IS THIS??\n\nCALL ME. NO. DON'T CALL ME. THE TEAM QUALIFIER STARTS IN AN HOUR AND I AM NOT DOING THE PIVOT TABLE ROUND.\n\nMAKE IT WORK.\n\nDREW${SIG.drew}` }
+      : { from: P.drew, subject, body: `FRANK??? IS THAT YOU??? WHERE ARE YOU. WE'VE BEEN LOOKING FOR YOU ALL NIGHT. I CHECKED THE BUFFET. TWICE.\n\nIF THIS ISN'T FRANK: WHO IS THIS, AND WHY ARE YOU ON HIS COMPUTER.\n\nIF YOU WANT SOMETHING, ASK FOR IT. IN WORDS. IF IT'S ABOUT THE BOARD DECK, ASK ME ABOUT THE BOARD DECK. I KNOW EVERY NUMBER IN IT. I PUT SOME OF THEM THERE.\n\nDREW${SIG.drew}` };
   }
   function ndr(addr, reason, code) {
     return `Your message did not reach some or all of the intended recipients.\n\n      Sent: ${fmtLong(FR.clock.now().getTime())}\n\nThe following recipient(s) could not be reached:\n\n      ${addr}\n            ${reason}\n            <PACKA-EXCH01.packacorp.local ${code}>`;

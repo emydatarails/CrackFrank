@@ -537,7 +537,7 @@ def playthrough(p, b, devname):
     pg.locator(TOP + ' .oe-to').fill('drew.hollis@packacorp.com'); pg.locator(TOP + ' .oe-subj').fill('runway')
     pg.locator(TOP + ' .oe-body').fill('How many days did you tell the Board?')
     tap(pg, pg.locator(TOP + ' .oe-tbb-send'), 6500)
-    ok('182 DAYS' in pg.evaluate("() => (FR.mail.messages().filter(m => m.from && m.from.email === 'drew.hollis@packacorp.com' && m.folder === 'inbox')[0] || {}).body || ''"), '8: Drew answers the e-mail with what he told the Board')
+    ok(pg.evaluate("() => FR.mail.messages().some(m => m.from && m.from.email === 'drew.hollis@packacorp.com' && m.folder === 'inbox' && /^FRANK\\?\\?\\?/.test(m.body) && m.body.includes('182 DAYS'))"), '8: Drew answers the e-mail (stunned it comes from Frank) with what he told the Board')
     closeall(pg)
     chip(pg, 'FOR THE BOARD folder'); ex_tap(pg, 'forboardx', 600); dlg_type(pg, '18243'); pg.wait_for_timeout(900)
     ok('forboard' in solved(pg), '8 forboard by touch')

@@ -126,10 +126,11 @@ The local server serves `dist/` fresh on every request and reloads `api/*.js` an
 | Hints | first 10 free, then −100 each (a hint asks before it costs; on a phone every hint asks first) |
 | Each bonus request answered (9, optional, see "Extras") | +100 to +250, on top |
 | Each Easter egg found (15 hidden, see "Easter eggs") | +10, on top (+150 for all 15) |
+| Winning a game of Solitaire (Bob the panda dances on the table) | +200, once, on top |
 
 Score = max(0, riddles − wrong guesses − paid hints) + bonus: the main score never goes below 0, and penalties never
-eat into bonus points. A perfect game is 10,000, or 11,450 with every bonus request and every egg. Wrong bonus answers cost nothing. Change
-the numbers in `src/score_rules.js` only (`BONUS` is the bonus table): the game and the server both load that file.
+eat into bonus points. A perfect game is 10,000, or 11,650 with every bonus request, every egg and a Solitaire win. Wrong bonus answers cost nothing. Change
+the numbers in `src/score_rules.js` only (`BONUS` is the bonus table, `EXTRAS` the Solitaire win): the game and the server both load that file.
 
 - The score shows in the checklist footer (with the free hints left and, once there is any, "(+N bonus & eggs)") and on the
   ending screen (with a separate "+N Bonus & eggs" box), with the player's rank. The leaderboard has a "Bonus & eggs" column.

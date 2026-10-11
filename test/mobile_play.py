@@ -987,7 +987,7 @@ def r5_checks(p, b, devname):
     closeall(pg)
     pg.evaluate("() => FR.apps.ie('http://intranet.packacorp.local/')"); pg.wait_for_timeout(900)
     howto = pg.inner_text(TOP + ' .st-howto')
-    ok('+10 for each one you find, 15 hidden' in howto and 'up to +1,450' in howto, 'P3: "How points work" says what an egg is worth')
+    ok('+10 for each one you find, 15 hidden' in howto and 'up to +1,650' in howto, 'P3: "How points work" says what an egg is worth')
     ok('1 of 15 Easter eggs' in pg.inner_text(TOP + ' .st-mine'), 'P3: the leaderboard page shows the egg count')
     closeall(pg)
     ctx.close()

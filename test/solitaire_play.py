@@ -191,6 +191,9 @@ with sync_playwright() as p:
     ok(s['won'] and all(len(f) == 13 for f in s['found']), 'all 52 cards on the foundations: won')
     ok(pg.locator('.so-table canvas.so-fx').count() == 1 and pg.evaluate(f'{T}.fx()'), 'the bouncing-cards cascade starts')
     pg.wait_for_timeout(1500)
+    # Bob the panda (8-bit) dances on the table; the first win is +200, once
+    ok(pg.locator('.so-table .so-bob img.so-bob-i').count() == 1 and 'DIFFERENT DAY' in pg.inner_text('.so-bob-say'), 'Bob the panda comes out to celebrate ("SAME SHEET, DIFFERENT DAY!")')
+    ok(pg.evaluate("() => !!(FR.state.bonus && FR.state.bonus.sol_win) && FR.score.now().solWin && FR.score.now().extraPts === 200") and '+200 points' in pg.text_content('.so-bob-say'), 'the first win is +200 points on top (the "+200 points" line blinks)')
     painted = pg.evaluate("""() => { const c = document.querySelector('.so-fx'); const x = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 3; i < x.length; i += 4 * 97) if (x[i]) n++; return n; }""")
     ok(painted > 50, f'... and paints bouncing cards on the felt ({painted} samples)')
     pg.screenshot(path=f'{OUT}/solitaire_win.png')
@@ -198,6 +201,7 @@ with sync_playwright() as p:
     t = dialog_text(pg)
     ok(t.startswith('Game over. Deal again?'), 'a click ends it: "Game over. Deal again?"')
     close_dialog(pg, 'Yes'); pg.wait_for_timeout(1000); s = st(pg)
+    ok(pg.locator('.so-bob').count() == 0, 'a new deal sends Bob home')
     ok(not s['won'] and len(s['stock']) == 24 and pg.locator('.so-fx').count() == 0, 'Yes deals a new game')
     seed = s['seed']; pg.keyboard.press('F2'); pg.wait_for_timeout(1000)
     ok(st(pg)['seed'] != seed, 'F2 deals again (new seed)')

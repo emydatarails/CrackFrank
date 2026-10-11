@@ -380,7 +380,27 @@
     if (standard() && opts.timed && G.time >= 30) { bonus = Math.floor(700000 / G.time); G.score += bonus; }
     G.bonus = bonus; status();
     busy = true;
-    setTimeout(() => cascade(), 380);
+    // the first win of the game is worth points (src/score_rules.js EXTRAS), and Bob the panda comes out to celebrate
+    // every time (pure fun after the first)
+    const R = FR.scoreRules, first = !!(R && R.EXTRAS && !(FR.state.bonus && FR.state.bonus.sol_win));
+    if (first) {
+      if (!FR.state.bonus || typeof FR.state.bonus !== 'object') FR.state.bonus = {};
+      FR.state.bonus.sol_win = { solvedAt: Date.now(), pts: R.EXTRAS.sol_win };
+      FR.save(); FR.bus.emit('score'); if (FR.checklistRender) FR.checklistRender();
+    }
+    setTimeout(() => { cascade(); bobParty(first); }, 380);
+  }
+
+  /* ---------- the win: Bob the panda (Datarails' mascot, 8-bit: src/bob.js) dances on the table ---------- */
+  let bobEl = null;
+  function bobParty(first) {
+    if (!table || !FR.data.images || !FR.data.images.bob) return;
+    if (bobEl) bobEl.remove();
+    const COL = ['#f4c430', '#1d6f42', '#e8834a', '#2f44c9', '#ffffff', '#d40000'];
+    let cf = ''; for (let i = 0; i < 28; i++) cf += `<span class="so-cf" style="left:${(i * 37) % 100}%;background:${COL[i % COL.length]};--t:${((i * 0.29) % 2.4).toFixed(2)}s;--d:${(1.8 + (i % 5) * 0.35).toFixed(2)}s"></span>`;
+    const pts = first && FR.scoreRules ? `<i>+${FR.scoreRules.EXTRAS.sol_win} points</i>` : '';
+    bobEl = $(`<div class="so-bob" aria-hidden="true">${cf}<div class="so-bob-say"><b>SAME SHEET,<br>DIFFERENT DAY!</b>${pts}</div><img class="so-bob-i" src="${FR.data.images.bob}" alt=""></div>`);
+    table.appendChild(bobEl);
   }
 
   /* ---------- geometry & drawing ---------- */
@@ -607,7 +627,7 @@
       });
     }, 60);
   }
-  function clearFx() { if (fx) { cancelAnimationFrame(fx.raf); fx.cv.remove(); fx = null; } }
+  function clearFx() { if (fx) { cancelAnimationFrame(fx.raf); fx.cv.remove(); fx = null; } if (bobEl) { bobEl.remove(); bobEl = null; } }
 
   /* ---------- dealing ---------- */
   function deal(seed) {

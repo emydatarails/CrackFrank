@@ -203,7 +203,7 @@ with sync_playwright() as p:
     menu(pg, 'File', 'New')
     if pg.locator('.fr-dialog').count(): dlg_button(pg, 'No')
     pg.wait_for_timeout(200)
-    tool(pg, 'pencil'); drag(pg, [(20, 20), (100, 20)]); swatch(pg, 16); tool(pg, 'rect'); drag(pg, [(150, 30), (250, 100)])
+    tool(pg, 'pencil'); drag(pg, [(20, 20), (100, 20)]); swatch(pg, 16); tool(pg, 'rect'); drag(pg, [(150, 30), (250, 100)]); swatch(pg, 0)
 
     # Image menu
     snap = pg.evaluate("() => { const c = document.querySelector('.pt-cv'); return Array.from(c.getContext('2d').getImageData(0, 0, c.width, c.height).data.filter((v, i) => i % 4 === 0)); }")
@@ -231,7 +231,7 @@ with sync_playwright() as p:
     cw = pg.evaluate("() => document.querySelector('.pt-cv').getBoundingClientRect().width")
     ok(abs(cw - 480 * 4) < 1 and pg.evaluate("() => document.querySelector('.pt-ws').scrollWidth > document.querySelector('.pt-ws').clientWidth"), 'Magnifier: 4x with scrollbars')
     tool(pg, 'pencil'); drag(pg, [(100, 100), (110, 100)])
-    ok(px(pg, 105, 100) == [0, 0, 0], 'drawing while zoomed lands on the right pixels')
+    zp = px(pg, 105, 100); ok(zp == [0, 0, 0], f'drawing while zoomed lands on the right pixels {zp}')
     tool(pg, 'mag'); click(pg, 100, 100)
     ok(abs(pg.evaluate("() => document.querySelector('.pt-cv').getBoundingClientRect().width") - 480) < 1, 'Magnifier again: back to 1x')
 

@@ -4036,13 +4036,18 @@ FR.apps = FR.apps || {};
     for (let bx = x + 3; bx + 7 <= x + 3 + (w - 6) * frac; bx += 9) { g.fillStyle = grad(g, y + 3, y + h - 3, [[0, '#acedad'], [0.5, '#2fd02f'], [1, '#2fb62f']]); g.fillRect(bx, y + 3, 7, h - 6); }
   }
   // RIGHT: what this is, and what to do (one button)
-  function pitch(g, button) {
+  // tag: one line ('A FREE GAME FOR FINANCE PEOPLE'), or [big, small] for two (the player's dare on the score card)
+  function pitch(g, button, tag = 'A FREE GAME FOR FINANCE PEOPLE') {
     const rx = 650, rw = W - rx - 48;
-    g.font = `bold 21px ${UI}`; const kick = 'A FREE GAME FOR FINANCE PEOPLE', kw = g.measureText(kick).width + 30;
+    const two = Array.isArray(tag), ty0 = two ? 34 : 64, th = two ? 70 : 40;
+    g.font = `bold ${two ? 25 : 21}px ${UI}`; const big = two ? tag[0] : tag, bw0 = g.measureText(big).width;
+    g.font = `italic bold 19px ${UI}`; const sw0 = two ? g.measureText(tag[1]).width : 0;
+    const kw = Math.max(bw0, sw0) + 30;
     g.save(); g.shadowColor = 'rgba(0,0,0,.35)'; g.shadowBlur = 8; g.shadowOffsetY = 3;
-    rrect(g, rx, 64, kw, 40, 8); g.fillStyle = grad(g, 64, 104, [[0, '#fff3a3'], [1, '#ffd84a']]); g.fill(); g.restore();
-    rrect(g, rx, 64, kw, 40, 8); g.strokeStyle = '#b88a00'; g.lineWidth = 1.2; g.stroke();
-    g.fillStyle = '#1b1b1b'; g.fillText(kick, rx + 15, 91);
+    rrect(g, rx, ty0, kw, th, 8); g.fillStyle = grad(g, ty0, ty0 + th, [[0, '#fff3a3'], [1, '#ffd84a']]); g.fill(); g.restore();
+    rrect(g, rx, ty0, kw, th, 8); g.strokeStyle = '#b88a00'; g.lineWidth = 1.2; g.stroke();
+    g.fillStyle = '#1b1b1b'; g.font = `bold ${two ? 25 : 21}px ${UI}`; g.fillText(big, rx + 15, ty0 + (two ? 31 : 27));
+    if (two) { g.fillStyle = '#5a4300'; g.font = `italic bold 19px ${UI}`; g.fillText(tag[1], rx + 15, ty0 + 57); }
     g.save(); g.shadowColor = 'rgba(0,20,70,.7)'; g.shadowBlur = 10; g.shadowOffsetY = 2; g.fillStyle = '#fff';
     fit(g, 'Frank is missing.', 'bold', 54, TITLE, rw, 30); g.fillText('Frank is missing.', rx, 170);
     fit(g, 'The Board meets at 9.', 'bold', 40, TITLE, rw, 24); g.fillText('The Board meets at 9.', rx, 222);
@@ -4108,7 +4113,7 @@ FR.apps = FR.apps || {};
     bits.push(`${info.time} at Frank's desk`);
     bits.push(`${info.hints || 0} hint${info.hints === 1 ? '' : 's'}`);
     g.fillStyle = '#26324d'; fit(g, bits.join('  ·  '), 'bold', 20, UI, iw, 13); g.fillText(bits.join('  ·  '), ix, fy + fh + 36);
-    pitch(g, 'CAN YOU SAVE PACKA?  PLAY FREE AT');
+    pitch(g, 'CAN YOU SAVE PACKA?  PLAY FREE AT', ['TRY AND BEAT MY SCORE', 'in the race to find Frank']);
     return c;
   }
 

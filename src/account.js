@@ -120,7 +120,7 @@
     const el = $(`<div class="fr-screen fr-intro fr-acct"><div class="fr-folder">
       <div class="fr-stamp">VISITOR</div>
       <h1>Packa Corporation</h1>
-      <div class="fr-sub">FRONT DESK · VISITOR SIGN-IN · Sedalia, Missouri</div>
+      <div class="fr-sub"><span>FRONT DESK</span> <span>· VISITOR SIGN-IN</span> <span>· Sedalia, Missouri</span></div>
       <p>Sign in so your progress goes with you. Close the tab, switch computers, come back tomorrow: Frank's desk will be exactly how you left it.</p>
       <div class="fr-acct-tabs" role="tablist">
         <button type="button" role="tab" data-m="new">New player</button>

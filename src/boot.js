@@ -92,7 +92,7 @@
     const el = $(`<div class="fr-screen fr-intro"><div class="fr-folder">
       <div class="fr-stamp">URGENT</div>
       <h1>Packa Corporation</h1>
-      <div class="fr-sub">INTERNAL · FINANCE · CASE FILE #FW-1016 · Sedalia, Missouri</div>
+      <div class="fr-sub"><span>INTERNAL</span> <span>· FINANCE</span> <span>· CASE FILE #FW-1016</span> <span>· Sedalia, Missouri</span></div>
       <div class="fr-clip"><div class="fr-polaroid"><img class="fr-missing" src="${FR.data.images.frankAvatar}" alt="Frank Warmington"><span>FP&amp;A Manager<br><small>(the website says Director)</small></span></div>
       <div><p><b>Monday, October 19, 2026 — 11:47 PM.</b> Frank, our FP&amp;A Manager, has not been seen since Friday night. There is a man-sized hole behind the cheat-sheet poster at his desk. We are not discussing the hole.</p>
       <p>The Board meets <b>tomorrow at 9:00 AM</b>. Prairie Ledger Bank will release a <b>$4.0M survival package</b> only if the Board Pack is complete — and true.</p></div></div>

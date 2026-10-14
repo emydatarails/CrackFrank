@@ -21,10 +21,11 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
 /* Case file intro */
 .fr-intro { background: radial-gradient(ellipse at 50% 30%, #3a2c1c 0%, #140e08 70%); display: flex; padding: 32px 20px 20px; overflow: auto; }
 .fr-intro .fr-folder { margin: auto; }
-.fr-folder { position: relative; width: min(680px, 100%); background: #e9d9b0; border-radius: 4px 14px 4px 4px; padding: 34px 34px 28px; box-shadow: 0 25px 60px rgba(0,0,0,.6), inset 0 0 60px rgba(120,80,20,.25); color: #2a2216; font-family: "Courier New", Courier, monospace; transform: rotate(-.6deg); }
+.fr-folder { position: relative; width: min(680px, 100%); background: #e9d9b0; border-radius: 4px 14px 4px 4px; padding: 34px 34px 28px; box-shadow: 0 25px 60px rgba(0,0,0,.6), inset 0 0 60px rgba(120,80,20,.25); color: #2a2216; font-family: "Courier New", Courier, monospace; }   /* (level: tilted text renders soft; the stamps keep their tilt) */
 .fr-folder::before { content: ''; position: absolute; top: -18px; left: 24px; width: 180px; height: 22px; background: #e2cf9f; border-radius: 6px 6px 0 0; }
 .fr-stamp { position: absolute; top: 22px; right: 28px; border: 3px solid #a3261c; color: #a3261c; padding: 4px 10px; font: 700 20px/1 "Courier New", monospace; transform: rotate(8deg); opacity: .85; letter-spacing: 2px; }
 .fr-folder h1 { font: 700 26px/1.15 Georgia, "Times New Roman", serif; margin: 0 0 4px; color: #17263f; letter-spacing: .5px; }
+.fr-folder .fr-sub span { white-space: nowrap; }   /* the line breaks between items, never inside one */
 .fr-folder .fr-sub { font-size: 12.5px; font-weight: 700; letter-spacing: .5px; margin-bottom: 18px; color: #5b4a30; }
 /* (the reading text in a serif: the typewriter face is kept for labels, tabs and the stamp, where it reads fine) */
 .fr-folder p, .fr-objectives, .fr-folder .fr-small { font-family: Georgia, "Times New Roman", serif; }
@@ -39,7 +40,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
 .fr-bigbtn { font: 700 14px Tahoma, Verdana, "DejaVu Sans", Arial, sans-serif; padding: 9px 20px; background: linear-gradient(#fdfdfd, #e3e0d2); border: 1px solid #5b4a30; border-radius: 3px; cursor: pointer; color: #1a1a1a; }
 .fr-bigbtn:hover { background: linear-gradient(#fff, #efe9d6); }
 .fr-small { font-size: 11.5px; color: #6b5a3e; }
-.fr-folder .fr-small { font-size: 13.5px; line-height: 1.55; color: #5b4a30; }
+.fr-folder .fr-small { font-size: 14px; line-height: 1.55; color: #43361f; }
 
 /* Boot */
 .fr-boot { background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; gap: 26px; }
@@ -1573,8 +1574,16 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   .fr-intro { padding: 26px 10px 14px; }
   .fr-folder { padding: 30px 18px 22px; }
   .fr-intro .fr-stamp { position: static; display: inline-block; margin: -8px 0 12px; transform: rotate(-3deg); font-size: 16px; }
-  .fr-folder .fr-clip { flex-direction: column; align-items: center; }
-  .fr-folder .fr-clip > div:last-child { width: 100%; }
+  /* (readability pass) the photo small, beside the first lines of the story, not half the first screen */
+  .fr-folder .fr-clip { display: block; }
+  .fr-folder .fr-clip::after { content: ''; display: block; clear: both; }
+  .fr-folder .fr-clip .fr-polaroid { float: left; margin: 4px 14px 8px 0; padding: 4px 4px 10px; }
+  .fr-polaroid .fr-missing { width: 78px; height: 86px; }
+  .fr-polaroid span { width: 78px; font-size: 10.5px; }
+  .fr-polaroid span small { font-size: 9px; }
+  /* the story's "Sit down at Frank's desk" stays on screen while the player reads (pinned to the bottom) */
+  .fr-intro:not(.fr-acct) .fr-intro-start { position: sticky; bottom: -14px; z-index: 2; margin: 18px -18px -14px; padding: 10px 18px 14px; background: #e9d9b0; box-shadow: 0 -8px 14px -6px rgba(90,60,20,.35); }
+  .fr-acct-tabs button { font-size: 12px; padding: 7px 10px; white-space: nowrap; }
   .fr-intro .fr-bigbtn { min-height: 44px; }
   .fr-intro .fr-small { display: inline-block; padding: 6px 0; }
   #fr-root .fr-pw-row input { flex: 1 1 auto; min-width: 0; width: auto; height: 36px; }
@@ -3690,7 +3699,7 @@ FR.apps = FR.apps || {};
     const el = $(`<div class="fr-screen fr-intro fr-acct"><div class="fr-folder">
       <div class="fr-stamp">VISITOR</div>
       <h1>Packa Corporation</h1>
-      <div class="fr-sub">FRONT DESK · VISITOR SIGN-IN · Sedalia, Missouri</div>
+      <div class="fr-sub"><span>FRONT DESK</span> <span>· VISITOR SIGN-IN</span> <span>· Sedalia, Missouri</span></div>
       <p>Sign in so your progress goes with you. Close the tab, switch computers, come back tomorrow: Frank's desk will be exactly how you left it.</p>
       <div class="fr-acct-tabs" role="tablist">
         <button type="button" role="tab" data-m="new">New player</button>
@@ -14394,7 +14403,7 @@ I'm taking Thursday off.
     const el = $(`<div class="fr-screen fr-intro"><div class="fr-folder">
       <div class="fr-stamp">URGENT</div>
       <h1>Packa Corporation</h1>
-      <div class="fr-sub">INTERNAL · FINANCE · CASE FILE #FW-1016 · Sedalia, Missouri</div>
+      <div class="fr-sub"><span>INTERNAL</span> <span>· FINANCE</span> <span>· CASE FILE #FW-1016</span> <span>· Sedalia, Missouri</span></div>
       <div class="fr-clip"><div class="fr-polaroid"><img class="fr-missing" src="${FR.data.images.frankAvatar}" alt="Frank Warmington"><span>FP&amp;A Manager<br><small>(the website says Director)</small></span></div>
       <div><p><b>Monday, October 19, 2026 — 11:47 PM.</b> Frank, our FP&amp;A Manager, has not been seen since Friday night. There is a man-sized hole behind the cheat-sheet poster at his desk. We are not discussing the hole.</p>
       <p>The Board meets <b>tomorrow at 9:00 AM</b>. Prairie Ledger Bank will release a <b>$4.0M survival package</b> only if the Board Pack is complete — and true.</p></div></div>

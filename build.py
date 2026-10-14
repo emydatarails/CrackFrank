@@ -9,7 +9,7 @@ xp = rd(os.path.join(src, 'xp.css'))
 # drop the DOS font-face (external woff files we don't ship)
 xp = re.sub(r'@font-face\{[^}]*\}', '', xp)  # all external woff files (we don't ship them)
 css = xp + '\n' + rd(os.path.join(src, 'core.css')) + '\n' + rd(os.path.join(src, 'account.css')) + '\n' + rd(os.path.join(src, 'score.css')) + '\n' + '\n'.join(rd(p) for p in sorted(glob.glob(os.path.join(src, 'apps', '*.css')))) + '\n' + rd(os.path.join(src, 'mobile.css'))  # phones: last, so it wins
-order = ['core.js', 'icons.js', 'fs.js', 'assets.js', 'portraits.js', 'salon_images.js', 'bob.js', 'sounds.js', 'account.js', 'score_rules.js', 'score.js']
+order = ['core.js', 'icons.js', 'fs.js', 'assets.js', 'portraits.js', 'salon_images.js', 'bob.js', 'sounds.js', 'account.js', 'score_rules.js', 'score.js', 'share_assets.js', 'share.js']
 js = '\n;\n'.join(rd(os.path.join(src, f)) for f in order)
 # the real Packa logo (src/packa-logo*.svg): the box mark sits above the PACKA letters, so cropping the viewBox
 # to the top gives the mark alone (for the Start button, boot screen and favicon)
@@ -35,7 +35,7 @@ title = "Frank's Computer"
 import json, html as _h
 cfg_path = os.path.join(root, 'config.json')
 cfg = json.load(open(cfg_path, encoding='utf-8')) if os.path.exists(cfg_path) else {}
-game_cfg = {k: v for k, v in cfg.items() if k in ('siteUrl', 'ctaUrl', 'ctaLabel', 'seriesUrl')}
+game_cfg = {k: v for k, v in cfg.items() if k in ('siteUrl', 'ctaUrl', 'ctaLabel', 'seriesUrl', 'shareUrl')}
 meta = cfg.get('meta', {})
 page_url = meta.get('url', '')
 # on Vercel, fall back to the production domain so og:image / og:url are absolute

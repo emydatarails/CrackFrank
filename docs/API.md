@@ -51,7 +51,7 @@ Test page: `dist/index.html?dev=1` skips intro/login (logged in, all items unloc
   except `{ login: true }` (the Windows log-on screen) also adds to `FR.state.missStreak` and emits 'miss' (streak); 4 in a
   row = the Blue Screen (`FR.bsod`, src/apps/xp_bsod.js). `FR.puzzle.hit()` ends the streak (solving an item does too).
 - Extras (src/apps/xp_*.js): `FR.xp` { LOCAL, noPopups (`?nopopups=1`, LOCAL only), quiet(), ff(ms) (LOCAL only: moves the
-  play clock) }; `FR.bsod` { show, hide, active }; `FR.solSecretWon()` (Solitaire: has the player won and seen Frank's payroll secret? item 6 keeps it); `FR.norton` { pop(text?), statusWin(page?), restore() (item 7: brings back containerboard_calc.xls, flag `nortonRestored`) }; `FR.eggs` { list, find(id),
+  play clock) }; `FR.bsod` { show, hide, active }; `FR.share` { draw(info) → canvas (the 1200x630 score card), mount(el, info) → { update(more) }, text(info), tier(score), url() } (src/share.js; info = { score, name, time, rank, players, hints, bonus }; emits 'share' (site)); `FR.solSecretWon()` (Solitaire: has the player won and seen Frank's payroll secret? item 6 keeps it); `FR.norton` { pop(text?), statusWin(page?), restore() (item 7: brings back containerboard_calc.xls, flag `nortonRestored`) }; `FR.eggs` { list, find(id),
   count(), total, has(id) } with `FR.state.eggs = { id: foundAtMs }`; `FR.bonus` { TASKS, deliver(id, quiet?), award(id),
   grade(id, text), judge(id, text) → { ok, msg } (pure: the one grader for the answer box and replies, test/bonus_grade_test.js),
   numbers(text), taskOf(msg) (the request a message belongs to: `msg.bonus`, the sender's answers `msg.bonusRe`, or sender +

@@ -404,6 +404,8 @@
   .fr-end-card p { font-size: 14px; }
   .fr-end-stats div { min-width: 0; flex: 1 1 40%; padding: 10px 8px; }
   .fr-end-cta a, .fr-end-cta button { min-height: 44px; }
+  .fr-share { padding: 12px 10px 8px; }
+  .fr-share-b { min-height: 44px; flex: 1 1 30%; }
   .fr-end-cta [data-a=again] { order: 9; width: 140px; margin: 16px calc(50% - 70px) 0; background: none; border: 0; text-decoration: underline; color: #9fb0d9; min-height: 40px; }
   .fr-saver-m { font-size: 32px; }
   .fr-shut-box { width: min(320px, calc(100vw - 16px)); }

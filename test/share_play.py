@@ -41,8 +41,8 @@ with sync_playwright() as p:
         # the card itself: an XP screen (wallpaper sky, Luna title bar, green Start), the Datarails logo in the tray
         info = pg.evaluate("""() => FR.share.draw({ score: 11650, name: 'Tester', time: '42 min', rank: 1, players: 9, hints: 0, bonus: 1650 }).then(c => {
           const g = c.getContext('2d'), at = (x, y) => Array.from(g.getImageData(x, y, 1, 1).data.slice(0, 3));
-          return { w: c.width, h: c.height, sky: at(600, 8), title: at(300, 72), start: at(20, 612),
-                   logo: Array.from(g.getImageData(836, 590, 110, 26).data).some((v, i) => i % 4 === 0 && v > 235) }; })""")
+          return { w: c.width, h: c.height, sky: at(600, 8), title: at(300, 95), start: at(20, 612),
+                   logo: Array.from(g.getImageData(955, 592, 115, 24).data).some((v, i) => i % 4 === 0 && v > 235) }; })""")
         sky, title, start = info['sky'], info['title'], info['start']
         ok(info['w'] == 1200 and info['h'] == 630 and sky[2] > sky[0] + 80 and title[2] > 200 and title[0] < 60 and start[1] > start[0] + 50 and info['logo'],
            f'{name}: the card is a 1200x630 XP screen (sky {sky}, Luna title bar {title}, green Start {start}), Datarails logo in the tray')

@@ -49,121 +49,107 @@
     g.fillStyle = sh; g.fillText(t, x + 1, y + 1); g.fillStyle = col; g.fillText(t, x, y);
   }
 
-  /* the card: info = { score, name, time, rank, players, hints, bonus } → a canvas */
+  /* the card: info = { score, name, time, rank, players, hints, bonus } → a canvas.
+     Three things, in this order: what happened (left: one XP window, "[name] just saved Packa Corp." and the score),
+     what this is (right, on the sky: a free escape-room game for finance people), what to do (one button: play free
+     at WhereisFrank.help). The taskbar frames it: Start, and Datarails in the tray as the official search partner. */
   async function draw(info) {
-    const D = FR.data, I = FR.icons || {};
-    const [wall, logo, mark, dr, folder, xls, recycle] = await Promise.all([load(D.images.wallpaper), load(svg(D.logo.full)), load(svg(D.logo.markWhite)),
-      load(D.share.drLogo.src), load(svg(I.folder)), load(svg(I.excel)), load(svg(I.recycleFull || I.recycle))]);
+    const D = FR.data;
+    const [wall, logo, mark, dr] = await Promise.all([load(D.images.wallpaper), load(svg(D.logo.full)), load(svg(D.logo.markWhite)), load(D.share.drLogo.src)]);
     const c = document.createElement('canvas'); c.width = W; c.height = H;
     const g = c.getContext('2d');
     g.textBaseline = 'alphabetic'; g.textAlign = 'left';
-    const TB = 50;   // taskbar height
+    const TB = 46, DH = H - TB;
 
-    // the desktop: the game's wallpaper, cover-fitted, the hill kept in view
-    const sc = Math.max(W / wall.width, (H - TB) / wall.height);
-    g.drawImage(wall, (W - wall.width * sc) / 2, H - TB - wall.height * sc, wall.width * sc, wall.height * sc);
+    // the desktop: the game's wallpaper, the hill kept in view; a soft shade behind the right-hand text
+    const sc = Math.max(W / wall.width, DH / wall.height);
+    g.drawImage(wall, (W - wall.width * sc) / 2, DH - wall.height * sc, wall.width * sc, wall.height * sc);
+    const shade = g.createRadialGradient(905, 250, 40, 905, 250, 470);
+    shade.addColorStop(0, 'rgba(0,25,90,.42)'); shade.addColorStop(1, 'rgba(0,25,90,0)');
+    g.fillStyle = shade; g.fillRect(560, 0, W - 560, DH);
 
-    // two desktop icons, top right
-    g.font = `12px ${UI}`; g.textAlign = 'center';
-    [[folder, 'FOR THE BOARD', 40], [recycle, 'Recycle Bin', 132]].forEach(([im, label, y]) => {
-      g.drawImage(im, 1106, y, 48, 48); shadowText(g, label, 1130, y + 66);
-    });
-    g.textAlign = 'left';
-
-    // the window
-    const wx = 48, wy = 64, ww = 760, wh = 448, tbh = 34;
-    g.save(); g.shadowColor = 'rgba(0,0,0,.45)'; g.shadowBlur = 24; g.shadowOffsetY = 8;
-    rrect(g, wx, wy, ww, wh, [9, 9, 2, 2]); g.fillStyle = '#0831d9'; g.fill(); g.restore();
+    // LEFT: the window — what happened
+    const wx = 52, wy = 82, ww = 540, wh = 388, tbh = 32;
+    g.save(); g.shadowColor = 'rgba(0,0,0,.45)'; g.shadowBlur = 28; g.shadowOffsetY = 10;
+    rrect(g, wx, wy, ww, wh, [9, 9, 3, 3]); g.fillStyle = '#0831d9'; g.fill(); g.restore();
     rrect(g, wx, wy, ww, tbh + 4, [9, 9, 0, 0]);
     g.fillStyle = grad(g, wy, wy + tbh + 4, [[0, '#0997ff'], [0.08, '#0053ee'], [0.4, '#0050ee'], [0.88, '#0066ff'], [0.93, '#0066ff'], [0.95, '#005bff'], [0.96, '#003dd7'], [1, '#003dd7']]); g.fill();
     g.fillStyle = '#ece9d8'; g.fillRect(wx + 4, wy + tbh + 4, ww - 8, wh - tbh - 8);
-    g.drawImage(xls, wx + 10, wy + 8, 22, 22);
-    g.font = `bold 17px ${TITLE}`; shadowText(g, 'Packa Corporation — Board Pack.xls', wx + 40, wy + 25, '#fff', 'rgba(10,24,131,.9)');
-    // min / max / close
-    const bx = wx + ww - 96;
-    [['min', '#2463e0'], ['max', '#2463e0'], ['close', '#e04a2c']].forEach(([k, col], i) => {
-      const x = bx + i * 30, y = wy + 6;
-      rrect(g, x, y, 25, 25, 4); g.fillStyle = grad(g, y, y + 25, k === 'close' ? [[0, '#f08c6e'], [0.5, '#e04a2c'], [1, '#c6371b']] : [[0, '#6fa2ff'], [0.5, col], [1, '#1c4fc8']]);
-      g.fill(); g.strokeStyle = '#fff'; g.lineWidth = 1.5; g.stroke();
-      g.strokeStyle = '#fff'; g.lineWidth = 2.5; g.beginPath();
-      if (k === 'min') { g.moveTo(x + 7, y + 18); g.lineTo(x + 15, y + 18); }
-      else if (k === 'max') { g.rect(x + 7, y + 7, 11, 11); }
-      else { g.moveTo(x + 7, y + 7); g.lineTo(x + 18, y + 18); g.moveTo(x + 18, y + 7); g.lineTo(x + 7, y + 18); }
-      g.stroke();
-    });
+    g.drawImage(mark, wx + 11, wy + 7, 20, 22);
+    g.font = `bold 16px ${TITLE}`; shadowText(g, "Frank's Computer", wx + 38, wy + 24, '#fff', 'rgba(10,24,131,.9)');
+    rrect(g, wx + ww - 33, wy + 6, 25, 25, 4);
+    g.fillStyle = grad(g, wy + 6, wy + 31, [[0, '#f08c6e'], [0.5, '#e04a2c'], [1, '#c6371b']]); g.fill();
+    g.strokeStyle = '#fff'; g.lineWidth = 1.5; g.stroke();
+    g.lineWidth = 2.5; g.beginPath(); g.moveTo(wx + ww - 26, wy + 13); g.lineTo(wx + ww - 15, wy + 24); g.moveTo(wx + ww - 15, wy + 13); g.lineTo(wx + ww - 26, wy + 24); g.stroke();
 
-    // inside: the Packa logo and the news
-    const ix = wx + 34, iy = wy + tbh + 30;
-    const lh = 150, lw = lh * 1130 / 1220;
+    const ix = wx + 32, iy = wy + tbh + 30, iw = ww - 64;
+    const lh = 96, lw = lh * 1130 / 1220;
     g.drawImage(logo, ix, iy, lw, lh);
-    const tx = ix + lw + 34, tw = wx + ww - 34 - tx;
-    g.fillStyle = '#2a8a2a'; g.font = `bold 15px ${UI}`; g.fillText('✔  BOARD PACK DELIVERED · 8:59 AM', tx, iy + 22);
+    const tx = ix + lw + 22, tw = ix + iw - tx;
+    g.fillStyle = '#2a8a2a'; g.font = `bold 16px ${UI}`; g.fillText('✔ MISSION COMPLETE', tx, iy + 14);
     const who = info.name ? `${info.name} just saved` : 'I just saved';
-    g.fillStyle = NAVY; fit(g, who, 'bold', 46, TITLE, tw, 26); g.fillText(who, tx, iy + 76);
-    g.fillStyle = PACKA; fit(g, 'Packa Corp.', 'bold', 64, TITLE, tw, 30); g.fillText('Packa Corp.', tx, iy + 142);
+    g.fillStyle = NAVY; fit(g, who, 'bold', 32, TITLE, tw, 20); g.fillText(who, tx, iy + 54);
+    g.fillStyle = PACKA; fit(g, 'Packa Corp.', 'bold', 44, TITLE, tw, 26); g.fillText('Packa Corp.', tx, iy + 98);
 
-    // the score, in a sunken XP field
-    const fx = ix, fy = iy + lh + 26, fw = ww - 68, fh = 132;
+    // the score, in a sunken XP field, with its title on the field's edge
+    const fx = ix, fy = iy + lh + 34, fw = iw, fh = 128;
     g.fillStyle = '#fff'; g.fillRect(fx, fy, fw, fh);
     g.strokeStyle = '#7f9db9'; g.lineWidth = 1.5; g.strokeRect(fx + .5, fy + .5, fw - 1, fh - 1);
-    g.fillStyle = NAVY; g.font = `bold 66px ${TITLE}`; const sTxt = fmt(info.score); g.fillText(sTxt, fx + 22, fy + 74);
-    const sw = g.measureText(sTxt).width;
-    g.fillStyle = '#4b5a78'; g.font = `bold 20px ${UI}`; g.fillText('POINTS', fx + 32 + sw, fy + 72);
-    // the score's title, as an XP-style green badge sitting on the field's top edge (clear of the score, any length)
-    g.font = `bold 15px ${UI}`; const tt = tier(info.score), ttw = g.measureText(tt).width + 28, tyy = fy - 16;
-    rrect(g, fx + fw - ttw - 18, tyy, ttw, 32, 16); g.fillStyle = grad(g, tyy, tyy + 32, [[0, '#5ec85e'], [1, '#2f9a2f']]); g.fill();
+    g.font = `bold 15px ${UI}`; const tt = tier(info.score), ttw = g.measureText(tt).width + 28;
+    rrect(g, fx + 16, fy - 15, ttw, 30, 15); g.fillStyle = grad(g, fy - 15, fy + 15, [[0, '#5ec85e'], [1, '#2f9a2f']]); g.fill();
     g.strokeStyle = '#1f7a1f'; g.lineWidth = 1; g.stroke();
-    g.fillStyle = '#fff'; g.fillText(tt, fx + fw - ttw - 4, tyy + 21);
-    // Board Pack: 10 of 10 done, as the XP progress bar (all green blocks)
-    const px = fx + 22, py = fy + 92, pw = fw - 44, ph = 22;
+    g.fillStyle = '#fff'; g.fillText(tt, fx + 30, fy + 5);
+    g.fillStyle = NAVY; g.font = `bold 64px ${TITLE}`; const sTxt = fmt(info.score); g.fillText(sTxt, fx + 18, fy + 82);
+    const sw = g.measureText(sTxt).width;
+    g.fillStyle = '#4b5a78'; g.font = `bold 20px ${UI}`; g.fillText('points', fx + 28 + sw, fy + 80);
+    const px = fx + 18, py = fy + 96, pw = fw - 36, ph = 18;
     rrect(g, px, py, pw, ph, 4); g.fillStyle = '#fff'; g.fill(); g.strokeStyle = '#686868'; g.lineWidth = 1; g.stroke();
-    for (let x = px + 3; x + 8 <= px + pw - 3; x += 10) {
-      g.fillStyle = grad(g, py + 3, py + ph - 3, [[0, '#acedad'], [0.5, '#2fd02f'], [1, '#2fb62f']]); g.fillRect(x, py + 3, 8, ph - 6);
-    }
+    for (let x = px + 3; x + 7 <= px + pw - 3; x += 9) { g.fillStyle = grad(g, py + 3, py + ph - 3, [[0, '#acedad'], [0.5, '#2fd02f'], [1, '#2fb62f']]); g.fillRect(x, py + 3, 7, ph - 6); }
 
-    // the details, one line under the field
-    const bits = [`${info.time} at Frank's desk`];
-    if (info.rank) bits.push(`#${fmt(info.rank)}${info.players ? ' of ' + fmt(info.players) : ''} on the leaderboard`);
+    const bits = [];
+    if (info.rank) bits.push(`#${fmt(info.rank)}${info.players ? ' of ' + fmt(info.players) : ''} players`);
+    bits.push(`${info.time} at Frank's desk`);
     bits.push(`${info.hints || 0} hint${info.hints === 1 ? '' : 's'}`);
-    g.fillStyle = '#333'; fit(g, bits.join('   ·   '), '', 18, UI, fw, 13); g.fillText(bits.join('   ·   '), fx + 2, fy + fh + 34);
+    g.fillStyle = '#26324d'; fit(g, bits.join('  ·  '), 'bold', 20, UI, iw, 13); g.fillText(bits.join('  ·  '), ix, fy + fh + 36);
 
-    // the taskbar: Start, the game's window, the tray with Datarails and the clock
-    const ty = H - TB;
+    // RIGHT: what this is, and what to do
+    const rx = 650, rw = W - rx - 48;
+    // what this is, as a yellow tag (it has to read at feed size)
+    g.font = `bold 21px ${UI}`; const kick = 'A FREE GAME FOR FINANCE PEOPLE', kw = g.measureText(kick).width + 30;
+    g.save(); g.shadowColor = 'rgba(0,0,0,.35)'; g.shadowBlur = 8; g.shadowOffsetY = 3;
+    rrect(g, rx, 64, kw, 40, 8); g.fillStyle = grad(g, 64, 104, [[0, '#fff3a3'], [1, '#ffd84a']]); g.fill(); g.restore();
+    rrect(g, rx, 64, kw, 40, 8); g.strokeStyle = '#b88a00'; g.lineWidth = 1.2; g.stroke();
+    g.fillStyle = '#1b1b1b'; g.fillText(kick, rx + 15, 91);
+    g.save(); g.shadowColor = 'rgba(0,20,70,.7)'; g.shadowBlur = 10; g.shadowOffsetY = 2; g.fillStyle = '#fff';
+    fit(g, 'Frank is missing.', 'bold', 54, TITLE, rw, 30); g.fillText('Frank is missing.', rx, 170);
+    fit(g, 'The Board meets at 9.', 'bold', 40, TITLE, rw, 24); g.fillText('The Board meets at 9.', rx, 222);
+    ['An escape-room game on his old Windows XP', 'computer. Crack the files, fix the numbers,', 'save the company.'].forEach((l, i) => { fit(g, l, '', 22, UI, rw, 16); g.fillText(l, rx, 270 + i * 31); });
+    g.restore();
+    // the button: the campaign's pink, XP-glossy
+    const bx = rx, by = 384, bw = rw, bh = 84;
+    g.save(); g.shadowColor = 'rgba(0,0,0,.4)'; g.shadowBlur = 16; g.shadowOffsetY = 6;
+    rrect(g, bx, by, bw, bh, 14); g.fillStyle = grad(g, by, by + bh, [[0, '#ff6b9b'], [0.48, PINK], [0.52, '#e8205f'], [1, '#c9124d']]); g.fill(); g.restore();
+    rrect(g, bx + 3, by + 3, bw - 6, bh / 2 - 3, [11, 11, 4, 4]); g.fillStyle = 'rgba(255,255,255,.18)'; g.fill();
+    rrect(g, bx, by, bw, bh, 14); g.strokeStyle = 'rgba(120,0,40,.6)'; g.lineWidth = 1.5; g.stroke();
+    g.fillStyle = '#fff'; fit(g, 'CAN YOU SAVE PACKA?  PLAY FREE AT', 'bold', 19, UI, bw - 52, 14); g.fillText('CAN YOU SAVE PACKA?  PLAY FREE AT', bx + 26, by + 31);
+    g.save(); g.shadowColor = 'rgba(100,0,30,.6)'; g.shadowBlur = 4; g.shadowOffsetY = 1.5;
+    fit(g, '▶ ' + SITE, 'bold', 36, TITLE, bw - 52, 22); g.fillText('▶ ' + SITE, bx + 24, by + 69); g.restore();
+
+    // the taskbar: Start, and Datarails as the official search partner
+    const ty = DH;
     g.fillStyle = grad(g, ty, H, [[0, '#1f2f86'], [0.03, '#3165c4'], [0.06, '#3682e5'], [0.1, '#4490e6'], [0.12, '#3883e5'], [0.15, '#2b71e0'], [0.2, '#235bd6'], [0.4, '#2157d6'], [0.55, '#245ddb'], [0.86, '#2562df'], [0.92, '#2158d4'], [0.96, '#1d4ec0'], [1, '#1941a5']]);
     g.fillRect(0, ty, W, TB);
-    rrect(g, 0, ty, 150, TB, [0, 14, 14, 0]);
+    rrect(g, 0, ty, 140, TB, [0, 14, 14, 0]);
     g.fillStyle = grad(g, ty, H, [[0, '#4fb14f'], [0.15, '#3c9e3c'], [0.5, '#37963a'], [0.85, '#2c8a2f'], [1, '#226e25']]); g.fill();
-    g.drawImage(mark, 16, ty + 9, 30, 32);
-    g.font = `italic bold 26px ${TITLE}`; shadowText(g, 'start', 54, ty + 34);
-    rrect(g, 166, ty + 6, 280, TB - 12, 4); g.fillStyle = grad(g, ty + 6, H - 6, [[0, '#1e52b7'], [1, '#174ab0']]); g.fill();
-    g.strokeStyle = 'rgba(0,0,0,.35)'; g.stroke();
-    g.drawImage(xls, 176, ty + 14, 22, 22);
-    g.font = `16px ${UI}`; shadowText(g, 'Board Pack.xls — SAVED', 206, ty + 31);
-    const trayX = 820;
+    g.drawImage(mark, 15, ty + 9, 27, 29);
+    g.font = `italic bold 24px ${TITLE}`; shadowText(g, 'start', 50, ty + 31);
+    const trayX = 730;
     g.fillStyle = grad(g, ty, H, [[0, '#0c59b9'], [0.05, '#139ee9'], [0.1, '#18b5f2'], [0.14, '#139beb'], [0.2, '#1290e8'], [0.63, '#0d8dea'], [0.9, '#0f9eed'], [1, '#095bc9']]);
     g.fillRect(trayX, ty, W - trayX, TB); g.fillStyle = '#0a3f9b'; g.fillRect(trayX, ty, 1.5, TB);
-    const dh = 26, dw = dh * D.share.drLogo.w / D.share.drLogo.h;
-    g.drawImage(dr, trayX + 16, ty + 10, dw, dh);
-    g.font = `13px ${UI}`; shadowText(g, 'Official search partner', trayX + 26 + dw, ty + 30);
-    g.font = `16px ${UI}`; g.textAlign = 'right'; shadowText(g, '8:59 AM', W - 14, ty + 31); g.textAlign = 'left';
-
-    // the balloon: "Join the search and save Packa at WhereisFrank.help", pointing at the tray
-    const bw = 344, bh = 186, bxx = W - bw - 22, by = ty - bh - 30;
-    g.save(); g.shadowColor = 'rgba(0,0,0,.35)'; g.shadowBlur = 14; g.shadowOffsetY = 4;
-    rrect(g, bxx, by, bw, bh, 12); g.fillStyle = '#ffffe1'; g.fill(); g.restore();
-    g.beginPath(); g.moveTo(bxx + bw - 120, by + bh - 1); g.lineTo(bxx + bw - 70, by + bh + 28); g.lineTo(bxx + bw - 92, by + bh - 1); g.closePath(); g.fillStyle = '#ffffe1'; g.fill();
-    rrect(g, bxx, by, bw, bh, 12); g.strokeStyle = '#000'; g.lineWidth = 1.2; g.stroke();
-    g.beginPath(); g.moveTo(bxx + bw - 120, by + bh); g.lineTo(bxx + bw - 70, by + bh + 28); g.lineTo(bxx + bw - 92, by + bh); g.stroke();
-    g.fillStyle = '#ffffe1'; g.fillRect(bxx + bw - 119, by + bh - 2, 26, 3);
-    // (i) icon + bold title, then the call
-    g.beginPath(); g.arc(bxx + 30, by + 30, 13, 0, Math.PI * 2); g.fillStyle = grad(g, by + 17, by + 43, [[0, '#5aa0ff'], [1, '#1c5bd6']]); g.fill();
-    g.fillStyle = '#fff'; g.font = `bold 17px Georgia, serif`; g.textAlign = 'center'; g.fillText('i', bxx + 30, by + 36); g.textAlign = 'left';
-    g.fillStyle = '#000'; g.font = `bold 16px ${UI}`; g.fillText('Frank is still missing.', bxx + 52, by + 36);
-    g.font = `bold 25px ${TITLE}`; g.fillStyle = PINK; g.fillText('Join the search', bxx + 22, by + 82);
-    const js = g.measureText('Join the search ').width; g.fillStyle = '#1b1b1b'; g.fillText('and', bxx + 22 + js, by + 82);
-    g.fillText('save Packa at', bxx + 22, by + 114);
-    g.fillStyle = '#0b3fd6'; fit(g, SITE, 'bold', 32, TITLE, bw - 44, 20); g.fillText(SITE, bxx + 22, by + 156);
-    const uw = g.measureText(SITE).width; g.fillRect(bxx + 22, by + 162, uw, 2.5);
+    g.font = `bold 16px ${UI}`; shadowText(g, 'Official search partner', trayX + 18, ty + 29);
+    const dh = 26, dw = dh * D.share.drLogo.w / D.share.drLogo.h, ow = g.measureText('Official search partner').width;
+    g.drawImage(dr, trayX + 32 + ow, ty + 9, dw, dh);
+    g.font = `15px ${UI}`; g.textAlign = 'right'; shadowText(g, '8:59 AM', W - 14, ty + 29); g.textAlign = 'left';
     return c;
   }
   const blobOf = c => new Promise(res => c.toBlob(res, 'image/png'));

@@ -43,15 +43,16 @@ if not page_url and os.environ.get('VERCEL_PROJECT_PRODUCTION_URL'):
     page_url = 'https://' + os.environ['VERCEL_PROJECT_PRODUCTION_URL'] + '/'
 desc = meta.get('description', "Frank, Packa Corp's FP&A manager, is missing. The Board meets at 9:00 AM. All you have is his computer.")
 og_img = meta.get('image', 'og-image.png')
+og_title = meta.get('title', title)   # the headline under a shared link (the tab title stays "Frank's Computer")
 if page_url and not og_img.startswith('http'): og_img = page_url.rstrip('/') + '/' + og_img
 import urllib.parse
 FAV = 'data:image/svg+xml,' + urllib.parse.quote(logos['mark'], safe='')
 e = lambda x: _h.escape(x, quote=True)
 head_extra = (f'<meta name="description" content="{e(desc)}">'
-              f'<meta property="og:type" content="website"><meta property="og:title" content="{e(title)}">'
+              f'<meta property="og:type" content="website"><meta property="og:title" content="{e(og_title)}">'
               f'<meta property="og:description" content="{e(desc)}"><meta property="og:image" content="{e(og_img)}">'
               + (f'<meta property="og:url" content="{e(page_url)}">' if page_url else '') +
-              f'<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{e(title)}">'
+              f'<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{e(og_title)}">'
               f'<meta name="twitter:description" content="{e(desc)}"><meta name="twitter:image" content="{e(og_img)}">'
               f'<link rel="icon" href="{FAV}"><meta name="theme-color" content="#245edb">')
 cfg_js = f'<script>window.FR_CONFIG = {json.dumps(game_cfg)};</script>\n' if game_cfg else ''

@@ -5,8 +5,9 @@
   "seriesUrl": "",
   "meta": {
     "url": "https://whereisfrank.help/",
-    "description": "Frank, Packa Corp's FP&A manager, is missing. The Board meets at 9:00 AM. All you have is his computer.",
-    "image": "og-image.png"
+    "description": "A free escape-room game on Frank's old Windows XP computer. The Board meets at 9:00 AM: crack the files, fix the numbers, save Packa Corp. Join the search at WhereisFrank.help.",
+    "image": "og-image.png",
+    "title": "Frank is missing. Can you save Packa? A free game for finance people"
   },
   "shareUrl": "https://whereisfrank.help/"
 }

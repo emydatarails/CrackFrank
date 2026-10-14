@@ -49,72 +49,47 @@
     g.fillStyle = sh; g.fillText(t, x + 1, y + 1); g.fillStyle = col; g.fillText(t, x, y);
   }
 
-  /* the card: info = { score, name, time, rank, players, hints, bonus } → a canvas.
-     Three things, in this order: what happened (left: one XP window, "[name] just saved Packa Corp." and the score),
-     what this is (right, on the sky: a free escape-room game for finance people), what to do (one button: play free
-     at WhereisFrank.help). The taskbar frames it: Start, and Datarails in the tray as the official search partner. */
-  async function draw(info) {
+  /* ---------- the XP scene, shared by the score card and the game's link preview (public/og-image.png) ---------- */
+  const TB = 46, DH = H - TB;
+  async function scene() {
     const D = FR.data;
-    const [wall, logo, mark, dr] = await Promise.all([load(D.images.wallpaper), load(svg(D.logo.full)), load(svg(D.logo.markWhite)), load(D.share.drLogo.src)]);
+    const [wall, mark, dr] = await Promise.all([load(D.images.wallpaper), load(svg(D.logo.markWhite)), load(D.share.drLogo.src)]);
     const c = document.createElement('canvas'); c.width = W; c.height = H;
     const g = c.getContext('2d');
     g.textBaseline = 'alphabetic'; g.textAlign = 'left';
-    const TB = 46, DH = H - TB;
-
     // the desktop: the game's wallpaper, the hill kept in view; a soft shade behind the right-hand text
     const sc = Math.max(W / wall.width, DH / wall.height);
     g.drawImage(wall, (W - wall.width * sc) / 2, DH - wall.height * sc, wall.width * sc, wall.height * sc);
     const shade = g.createRadialGradient(905, 250, 40, 905, 250, 470);
     shade.addColorStop(0, 'rgba(0,25,90,.42)'); shade.addColorStop(1, 'rgba(0,25,90,0)');
     g.fillStyle = shade; g.fillRect(560, 0, W - 560, DH);
-
-    // LEFT: the window — what happened
-    const wx = 52, wy = 82, ww = 540, wh = 388, tbh = 32;
+    taskbar(g, mark, dr);
+    return { c, g, mark };
+  }
+  // an XP window (Luna title bar, close button, beige body); returns the body's inner box
+  function xpWindow(g, mark, wx, wy, ww, wh, title) {
+    const tbh = 32;
     g.save(); g.shadowColor = 'rgba(0,0,0,.45)'; g.shadowBlur = 28; g.shadowOffsetY = 10;
     rrect(g, wx, wy, ww, wh, [9, 9, 3, 3]); g.fillStyle = '#0831d9'; g.fill(); g.restore();
     rrect(g, wx, wy, ww, tbh + 4, [9, 9, 0, 0]);
     g.fillStyle = grad(g, wy, wy + tbh + 4, [[0, '#0997ff'], [0.08, '#0053ee'], [0.4, '#0050ee'], [0.88, '#0066ff'], [0.93, '#0066ff'], [0.95, '#005bff'], [0.96, '#003dd7'], [1, '#003dd7']]); g.fill();
     g.fillStyle = '#ece9d8'; g.fillRect(wx + 4, wy + tbh + 4, ww - 8, wh - tbh - 8);
     g.drawImage(mark, wx + 11, wy + 7, 20, 22);
-    g.font = `bold 16px ${TITLE}`; shadowText(g, "Frank's Computer", wx + 38, wy + 24, '#fff', 'rgba(10,24,131,.9)');
+    g.font = `bold 16px ${TITLE}`; shadowText(g, title, wx + 38, wy + 24, '#fff', 'rgba(10,24,131,.9)');
     rrect(g, wx + ww - 33, wy + 6, 25, 25, 4);
     g.fillStyle = grad(g, wy + 6, wy + 31, [[0, '#f08c6e'], [0.5, '#e04a2c'], [1, '#c6371b']]); g.fill();
     g.strokeStyle = '#fff'; g.lineWidth = 1.5; g.stroke();
     g.lineWidth = 2.5; g.beginPath(); g.moveTo(wx + ww - 26, wy + 13); g.lineTo(wx + ww - 15, wy + 24); g.moveTo(wx + ww - 15, wy + 13); g.lineTo(wx + ww - 26, wy + 24); g.stroke();
-
-    const ix = wx + 32, iy = wy + tbh + 30, iw = ww - 64;
-    const lh = 96, lw = lh * 1130 / 1220;
-    g.drawImage(logo, ix, iy, lw, lh);
-    const tx = ix + lw + 22, tw = ix + iw - tx;
-    g.fillStyle = '#2a8a2a'; g.font = `bold 16px ${UI}`; g.fillText('✔ MISSION COMPLETE', tx, iy + 14);
-    const who = info.name ? `${info.name} just saved` : 'I just saved';
-    g.fillStyle = NAVY; fit(g, who, 'bold', 32, TITLE, tw, 20); g.fillText(who, tx, iy + 54);
-    g.fillStyle = PACKA; fit(g, 'Packa Corp.', 'bold', 44, TITLE, tw, 26); g.fillText('Packa Corp.', tx, iy + 98);
-
-    // the score, in a sunken XP field, with its title on the field's edge
-    const fx = ix, fy = iy + lh + 34, fw = iw, fh = 128;
-    g.fillStyle = '#fff'; g.fillRect(fx, fy, fw, fh);
-    g.strokeStyle = '#7f9db9'; g.lineWidth = 1.5; g.strokeRect(fx + .5, fy + .5, fw - 1, fh - 1);
-    g.font = `bold 15px ${UI}`; const tt = tier(info.score), ttw = g.measureText(tt).width + 28;
-    rrect(g, fx + 16, fy - 15, ttw, 30, 15); g.fillStyle = grad(g, fy - 15, fy + 15, [[0, '#5ec85e'], [1, '#2f9a2f']]); g.fill();
-    g.strokeStyle = '#1f7a1f'; g.lineWidth = 1; g.stroke();
-    g.fillStyle = '#fff'; g.fillText(tt, fx + 30, fy + 5);
-    g.fillStyle = NAVY; g.font = `bold 64px ${TITLE}`; const sTxt = fmt(info.score); g.fillText(sTxt, fx + 18, fy + 82);
-    const sw = g.measureText(sTxt).width;
-    g.fillStyle = '#4b5a78'; g.font = `bold 20px ${UI}`; g.fillText('points', fx + 28 + sw, fy + 80);
-    const px = fx + 18, py = fy + 96, pw = fw - 36, ph = 18;
-    rrect(g, px, py, pw, ph, 4); g.fillStyle = '#fff'; g.fill(); g.strokeStyle = '#686868'; g.lineWidth = 1; g.stroke();
-    for (let x = px + 3; x + 7 <= px + pw - 3; x += 9) { g.fillStyle = grad(g, py + 3, py + ph - 3, [[0, '#acedad'], [0.5, '#2fd02f'], [1, '#2fb62f']]); g.fillRect(x, py + 3, 7, ph - 6); }
-
-    const bits = [];
-    if (info.rank) bits.push(`#${fmt(info.rank)}${info.players ? ' of ' + fmt(info.players) : ''} players`);
-    bits.push(`${info.time} at Frank's desk`);
-    bits.push(`${info.hints || 0} hint${info.hints === 1 ? '' : 's'}`);
-    g.fillStyle = '#26324d'; fit(g, bits.join('  ·  '), 'bold', 20, UI, iw, 13); g.fillText(bits.join('  ·  '), ix, fy + fh + 36);
-
-    // RIGHT: what this is, and what to do
+    return { x: wx + 32, y: wy + tbh + 30, w: ww - 64 };
+  }
+  // an XP progress bar: done of total, in green blocks
+  function progress(g, x, y, w, h, frac) {
+    rrect(g, x, y, w, h, 4); g.fillStyle = '#fff'; g.fill(); g.strokeStyle = '#686868'; g.lineWidth = 1; g.stroke();
+    for (let bx = x + 3; bx + 7 <= x + 3 + (w - 6) * frac; bx += 9) { g.fillStyle = grad(g, y + 3, y + h - 3, [[0, '#acedad'], [0.5, '#2fd02f'], [1, '#2fb62f']]); g.fillRect(bx, y + 3, 7, h - 6); }
+  }
+  // RIGHT: what this is, and what to do (one button)
+  function pitch(g, button) {
     const rx = 650, rw = W - rx - 48;
-    // what this is, as a yellow tag (it has to read at feed size)
     g.font = `bold 21px ${UI}`; const kick = 'A FREE GAME FOR FINANCE PEOPLE', kw = g.measureText(kick).width + 30;
     g.save(); g.shadowColor = 'rgba(0,0,0,.35)'; g.shadowBlur = 8; g.shadowOffsetY = 3;
     rrect(g, rx, 64, kw, 40, 8); g.fillStyle = grad(g, 64, 104, [[0, '#fff3a3'], [1, '#ffd84a']]); g.fill(); g.restore();
@@ -131,12 +106,13 @@
     rrect(g, bx, by, bw, bh, 14); g.fillStyle = grad(g, by, by + bh, [[0, '#ff6b9b'], [0.48, PINK], [0.52, '#e8205f'], [1, '#c9124d']]); g.fill(); g.restore();
     rrect(g, bx + 3, by + 3, bw - 6, bh / 2 - 3, [11, 11, 4, 4]); g.fillStyle = 'rgba(255,255,255,.18)'; g.fill();
     rrect(g, bx, by, bw, bh, 14); g.strokeStyle = 'rgba(120,0,40,.6)'; g.lineWidth = 1.5; g.stroke();
-    g.fillStyle = '#fff'; fit(g, 'CAN YOU SAVE PACKA?  PLAY FREE AT', 'bold', 19, UI, bw - 52, 14); g.fillText('CAN YOU SAVE PACKA?  PLAY FREE AT', bx + 26, by + 31);
+    g.fillStyle = '#fff'; fit(g, button, 'bold', 19, UI, bw - 52, 14); g.fillText(button, bx + 26, by + 31);
     g.save(); g.shadowColor = 'rgba(100,0,30,.6)'; g.shadowBlur = 4; g.shadowOffsetY = 1.5;
     fit(g, '▶ ' + SITE, 'bold', 36, TITLE, bw - 52, 22); g.fillText('▶ ' + SITE, bx + 24, by + 69); g.restore();
-
-    // the taskbar: Start, and Datarails as the official search partner
-    const ty = DH;
+  }
+  // the taskbar: Start, and Datarails as the official search partner by the clock
+  function taskbar(g, mark, dr) {
+    const ty = DH, L = FR.data.share.drLogo;
     g.fillStyle = grad(g, ty, H, [[0, '#1f2f86'], [0.03, '#3165c4'], [0.06, '#3682e5'], [0.1, '#4490e6'], [0.12, '#3883e5'], [0.15, '#2b71e0'], [0.2, '#235bd6'], [0.4, '#2157d6'], [0.55, '#245ddb'], [0.86, '#2562df'], [0.92, '#2158d4'], [0.96, '#1d4ec0'], [1, '#1941a5']]);
     g.fillRect(0, ty, W, TB);
     rrect(g, 0, ty, 140, TB, [0, 14, 14, 0]);
@@ -147,9 +123,75 @@
     g.fillStyle = grad(g, ty, H, [[0, '#0c59b9'], [0.05, '#139ee9'], [0.1, '#18b5f2'], [0.14, '#139beb'], [0.2, '#1290e8'], [0.63, '#0d8dea'], [0.9, '#0f9eed'], [1, '#095bc9']]);
     g.fillRect(trayX, ty, W - trayX, TB); g.fillStyle = '#0a3f9b'; g.fillRect(trayX, ty, 1.5, TB);
     g.font = `bold 16px ${UI}`; shadowText(g, 'Official search partner', trayX + 18, ty + 29);
-    const dh = 26, dw = dh * D.share.drLogo.w / D.share.drLogo.h, ow = g.measureText('Official search partner').width;
+    const dh = 26, dw = dh * L.w / L.h, ow = g.measureText('Official search partner').width;
     g.drawImage(dr, trayX + 32 + ow, ty + 9, dw, dh);
     g.font = `15px ${UI}`; g.textAlign = 'right'; shadowText(g, '8:59 AM', W - 14, ty + 29); g.textAlign = 'left';
+  }
+
+  /* the score card: info = { score, name, time, rank, players, hints, bonus } → a canvas.
+     Three things, in this order: what happened (left: one XP window, "[name] just saved Packa Corp." and the score),
+     what this is (right, on the sky: a free escape-room game for finance people), what to do (one button: play free
+     at WhereisFrank.help). */
+  async function draw(info) {
+    const [{ c, g, mark }, logo] = await Promise.all([scene(), load(svg(FR.data.logo.full))]);
+    const box = xpWindow(g, mark, 52, 82, 540, 388, "Frank's Computer");
+    const ix = box.x, iy = box.y, iw = box.w;
+    const lh = 96, lw = lh * 1130 / 1220;
+    g.drawImage(logo, ix, iy, lw, lh);
+    const tx = ix + lw + 22, tw = ix + iw - tx;
+    g.fillStyle = '#2a8a2a'; g.font = `bold 16px ${UI}`; g.fillText('✔ MISSION COMPLETE', tx, iy + 14);
+    const who = info.name ? `${info.name} just saved` : 'I just saved';
+    g.fillStyle = NAVY; fit(g, who, 'bold', 32, TITLE, tw, 20); g.fillText(who, tx, iy + 54);
+    g.fillStyle = PACKA; fit(g, 'Packa Corp.', 'bold', 44, TITLE, tw, 26); g.fillText('Packa Corp.', tx, iy + 98);
+    // the score, in a sunken XP field, with its title on the field's edge
+    const fx = ix, fy = iy + lh + 34, fw = iw, fh = 128;
+    g.fillStyle = '#fff'; g.fillRect(fx, fy, fw, fh);
+    g.strokeStyle = '#7f9db9'; g.lineWidth = 1.5; g.strokeRect(fx + .5, fy + .5, fw - 1, fh - 1);
+    g.font = `bold 15px ${UI}`; const tt = tier(info.score), ttw = g.measureText(tt).width + 28;
+    rrect(g, fx + 16, fy - 15, ttw, 30, 15); g.fillStyle = grad(g, fy - 15, fy + 15, [[0, '#5ec85e'], [1, '#2f9a2f']]); g.fill();
+    g.strokeStyle = '#1f7a1f'; g.lineWidth = 1; g.stroke();
+    g.fillStyle = '#fff'; g.fillText(tt, fx + 30, fy + 5);
+    g.fillStyle = NAVY; g.font = `bold 64px ${TITLE}`; const sTxt = fmt(info.score); g.fillText(sTxt, fx + 18, fy + 82);
+    const sw = g.measureText(sTxt).width;
+    g.fillStyle = '#4b5a78'; g.font = `bold 20px ${UI}`; g.fillText('points', fx + 28 + sw, fy + 80);
+    progress(g, fx + 18, fy + 96, fw - 36, 18, 1);
+    const bits = [];
+    if (info.rank) bits.push(`#${fmt(info.rank)}${info.players ? ' of ' + fmt(info.players) : ''} players`);
+    bits.push(`${info.time} at Frank's desk`);
+    bits.push(`${info.hints || 0} hint${info.hints === 1 ? '' : 's'}`);
+    g.fillStyle = '#26324d'; fit(g, bits.join('  ·  '), 'bold', 20, UI, iw, 13); g.fillText(bits.join('  ·  '), ix, fy + fh + 36);
+    pitch(g, 'CAN YOU SAVE PACKA?  PLAY FREE AT');
+    return c;
+  }
+
+  /* the game's link preview (public/og-image.png, made by tools/make_og_image.py): the same scene, and on the left
+     Frank's MISSING notice: his photo, last seen Friday, the Board at 9:00 AM, the Board Pack at 0 of 10 */
+  async function drawPreview() {
+    const [{ c, g, mark }, photo] = await Promise.all([scene(), load(FR.data.images.frankAvatar)]);
+    const box = xpWindow(g, mark, 52, 82, 540, 388, "Frank's Computer — MISSING.txt");
+    const ix = box.x, iy = box.y, iw = box.w;
+    // the polaroid, a little crooked, with a pink MISSING tape across its corner
+    g.save(); g.translate(ix + 92, iy + 120); g.rotate(-0.05);
+    g.shadowColor = 'rgba(0,0,0,.35)'; g.shadowBlur = 10; g.shadowOffsetY = 4; g.fillStyle = '#fff'; g.fillRect(-92, -116, 184, 222); g.shadowColor = 'transparent';
+    g.drawImage(photo, -80, -104, 160, 160);
+    g.fillStyle = '#222'; g.font = `bold 17px ${UI}`; g.textAlign = 'center'; g.fillText('FRANK', 0, 80); g.font = `14px ${UI}`; g.fillStyle = '#555'; g.fillText('FP&A Manager', 0, 98);
+    g.rotate(-0.22); rrect(g, -112, -120, 150, 38, 6); g.fillStyle = PINK; g.fill();
+    g.fillStyle = '#fff'; g.font = `bold 21px ${TITLE}`; g.fillText('MISSING', -37, -94); g.textAlign = 'left';
+    g.restore();
+    // the facts, like a case file
+    const tx = ix + 214, tw = ix + iw - tx;
+    const rows = [['Last seen', 'Friday night'], ['Board meets', 'Tue 9:00 AM'], ['Bank waiting on', '$4.0M rescue'], ['Left behind', '47 tabs, 1 password']];
+    rows.forEach(([k, v], i) => {
+      const y = iy + 22 + i * 52;
+      g.fillStyle = '#5b6a85'; g.font = `bold 13px ${UI}`; g.fillText(k.toUpperCase(), tx, y);
+      g.fillStyle = NAVY; fit(g, v, 'bold', 22, TITLE, tw, 14); g.fillText(v, tx, y + 26);
+    });
+    // the Board Pack: nothing done yet
+    const py = iy + 252;
+    g.fillStyle = '#26324d'; g.font = `bold 17px ${UI}`; g.fillText('Board Pack: 0 of 10 done', ix, py);
+    progress(g, ix, py + 12, iw, 20, 0);
+    g.fillStyle = PACKA; g.font = `bold 17px ${UI}`; g.fillText('Packa Corp needs someone at his desk.', ix, py + 62);
+    pitch(g, 'JOIN THE SEARCH.  PLAY FREE AT');
     return c;
   }
   const blobOf = c => new Promise(res => c.toBlob(res, 'image/png'));
@@ -236,5 +278,5 @@
     return { update(more) { cur = Object.assign({}, cur, more); render(); }, el: box, canvas: () => canvas };
   }
 
-  FR.share = { draw, mount, text, tier, url: shareUrl };
+  FR.share = { draw, drawPreview, mount, text, tier, url: shareUrl };
 })();

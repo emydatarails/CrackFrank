@@ -26,7 +26,7 @@ player accounts (`/api/*`, see below).
 | `api/` | Vercel functions for player accounts and the scoreboard: `register`, `login`, `logout`, `me`, `save`, `scores` (shared code in `_lib.js`, the player-name check in `_names.js`). No npm dependencies. |
 | `build.py` | Concatenates `src/` into `dist/index.html` and copies `public/` next to it. Python 3, standard library only. |
 | `config.json` | Site links, end-screen CTA and share-card metadata, injected at build time. |
-| `public/` | Static files copied into the build (`og-image.png` share card). |
+| `public/` | Static files copied into the build: `og-image.png`, the link preview (drawn by the game itself: `python3 tools/make_og_image.py`, after `build.py`). |
 | `dist/` | A prebuilt copy of the game (Vercel rebuilds it on every deploy). |
 | `vercel.json` | Vercel build settings (build command, `dist/` output, cache headers). |
 | `.github/workflows/ci.yml` | Builds and runs the spreadsheet-engine tests on every push and PR. |
@@ -55,8 +55,8 @@ tests). These shortcuts work only on `file://` and `localhost`, never on the pub
 | `ctaUrl`, `ctaLabel` | The main button on the ending screen. |
 | `seriesUrl` | Optional. When set, adds a "Watch Frank Is Missing" button on the ending screen. |
 | `shareUrl` | The game's public address, used by the share buttons (`https://whereisfrank.help/`; the default too). |
-| `meta.url` | The public URL of the game. Set it so the share card (`og:image`, `og:url`) uses absolute links. |
-| `meta.description`, `meta.image` | Share-card text and image (image path relative to the site root, or a full URL). |
+| `meta.url` | The public URL of the game (`https://whereisfrank.help/`), so the link preview (`og:image`, `og:url`) uses absolute links. |
+| `meta.title`, `meta.description`, `meta.image` | The link preview's headline, text and image (image path relative to the site root, or a full URL). The browser tab keeps "Frank's Computer". |
 
 Rebuild after editing (`python3 build.py`). A push to `main` rebuilds and redeploys on Vercel automatically.
 
@@ -286,7 +286,10 @@ python3 test/share_play.py               # Share your score: the score card and 
   pink button: "CAN YOU SAVE PACKA? PLAY FREE AT ▶ WhereisFrank.help"). The taskbar frames it: Start, and the Datarails
   logo as "Official search partner" by the clock. A five-second test (an average LinkedIn reader) read it as "a brag card
   from a retro XP game for finance people; I can play free at WhereisFrank.help". The Datarails logo is cut out of
-  `public/og-image.png` by `tools/make_share_card.py` (`src/share_assets.js`); the rest is the game's own art. Buttons:
+  `tools/datarails_logo_source.png` by `tools/make_share_card.py` (`src/share_assets.js`); the rest is the game's own art.
+  The game's link preview (`public/og-image.png`) is the same scene with Frank's MISSING notice on the left (photo, last
+  seen Friday, Board Tue 9:00 AM, $4.0M rescue, "47 tabs, 1 password", Board Pack 0 of 10) and "JOIN THE SEARCH. PLAY
+  FREE AT ▶ WhereisFrank.help": `FR.share.drawPreview()`, saved by `python3 tools/make_og_image.py`. Buttons:
   the phone's share sheet with the picture, LinkedIn, X, Facebook, WhatsApp, Download image, Copy link; the post reads
   "I just saved Packa Corp! … Join the search and save Packa at WhereisFrank.help #FrankIsMissing". The social sites
   can't take a picture through a link, so their buttons open the post and download the card (copied too, where allowed).

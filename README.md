@@ -54,6 +54,7 @@ tests). These shortcuts work only on `file://` and `localhost`, never on the pub
 | `siteUrl` | The Packa Corp website the in-game Internet Explorer opens (clue source). Default `https://www.packacorp.com/`. |
 | `ctaUrl`, `ctaLabel` | The main button on the ending screen. |
 | `seriesUrl` | Optional. When set, adds a "Watch Frank Is Missing" button on the ending screen. |
+| `shareUrl` | Optional. The link that goes with a shared score (LinkedIn, X, Facebook, WhatsApp, Copy link). Default: the game's own address. |
 | `meta.url` | The public URL of the game. Set it so the share card (`og:image`, `og:url`) uses absolute links. |
 | `meta.description`, `meta.image` | Share-card text and image (image path relative to the site root, or a full URL). |
 
@@ -77,7 +78,10 @@ The repository is ready for Vercel; `vercel.json` holds the settings, so nothing
 
 ### Player accounts (Upstash Redis)
 
-Players can create a player name and password on the first screen, and their progress follows them to any computer.
+Players create a player name (a nickname is fine: it's what the leaderboard shows), their email and a password on the
+first screen, and their progress follows them to any computer. Signing back in is name + password. The email is kept in
+the player record (`fc:user:<name>`, field `email`), checked for a sane format, never shown on the leaderboard and never
+sent back to the browser; `tools/board_admin.js emails` exports them. Players from before emails were asked have none.
 "Play without an account" keeps the old behaviour (progress in that browser only), and a guest can create an account
 later from the intro without losing progress.
 
@@ -162,6 +166,7 @@ the numbers in `src/score_rules.js` only (`BONUS` is the bonus table, `EXTRAS` t
   node --env-file=.env.local tools/board_admin.js hide <name>  # off the board and kept off; the account and save stay
   node --env-file=.env.local tools/board_admin.js unhide <name>
   node --env-file=.env.local tools/board_admin.js hidden       # who is hidden
+  node --env-file=.env.local tools/board_admin.js emails > players.csv   # name, email, sign-up date (CSV)
   ```
   A hidden player is marked `hidden` in `fc:user:<name>`; `updateBoard` keeps them off whatever they play.
 
@@ -227,6 +232,7 @@ python3 test/mobile_play.py              # the whole game by touch on an emulate
 python3 test/paint_play.py               # Paint: tools, save, My Pictures, phones
 python3 test/solitaire_play.py           # Solitaire: deal, moves, scoring, the face cards
 python3 test/features_play.py            # Blue Screen, Norton, bonus requests, Easter eggs, Paint/Solitaire icons (desktop + iPhone 13)
+python3 test/share_play.py               # Share your score: the score card and the share buttons on the end screen (desktop + iPhone 13)
 ```
 
 ## Extras
@@ -271,6 +277,15 @@ python3 test/features_play.py            # Blue Screen, Norton, bonus requests, 
 | `rotary_be` | Harold Voss, Sedalia Rotary | item 5 | break-even tickets: $8 ticket, $3 a plate, $600 fixed | 120 | +150 |
 | `brenda_disc` | Brenda Pruitt, AP at Hawthorn Foods | item 6 | $12,000 invoice, 2/10 net 30, paid early | $11,760 | +100 |
 | `vending_ci` | Gary Stroud, Ozark Snack & Vend | item 7 | $2,000 at 1.5%/month compounded, 12 months | $2,391 | +250 |
+
+- **Share your score** (`src/share.js`). The end screen asks the player to share ("Brag a little.") and shows a
+  1200x630 score card in the game's own look: the artwork is cut out of `public/og-image.png` (title, subtitle, the gold
+  "PLAY FREE" pill, the Datarails / FinanceOS footer) by `tools/make_share_card.py` into `src/share_assets.js`, and the
+  browser draws the player's score, a title for it ("FRANK-LEVEL FP&A", "PERFECT GAME · KRISTIANS IS NERVOUS"…), their
+  name, time, rank (when the leaderboard answers), hints and bonus on top. Buttons: the phone's own share sheet with the
+  picture (where the browser can), LinkedIn, X, Facebook, WhatsApp, Download image, Copy link. The social sites can't take a
+  picture through a link, so their buttons open the post and download the card (and copy it where the browser allows) to
+  attach. Change the game's share image → rerun `python3 tools/make_share_card.py`.
 
 ## Easter eggs (spoilers)
 

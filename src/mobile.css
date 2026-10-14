@@ -17,8 +17,16 @@
   .fr-intro { padding: 26px 10px 14px; }
   .fr-folder { padding: 30px 18px 22px; }
   .fr-intro .fr-stamp { position: static; display: inline-block; margin: -8px 0 12px; transform: rotate(-3deg); font-size: 16px; }
-  .fr-folder .fr-clip { flex-direction: column; align-items: center; }
-  .fr-folder .fr-clip > div:last-child { width: 100%; }
+  /* (readability pass) the photo small, beside the first lines of the story, not half the first screen */
+  .fr-folder .fr-clip { display: block; }
+  .fr-folder .fr-clip::after { content: ''; display: block; clear: both; }
+  .fr-folder .fr-clip .fr-polaroid { float: left; margin: 4px 14px 8px 0; padding: 4px 4px 10px; }
+  .fr-polaroid .fr-missing { width: 78px; height: 86px; }
+  .fr-polaroid span { width: 78px; font-size: 10.5px; }
+  .fr-polaroid span small { font-size: 9px; }
+  /* the story's "Sit down at Frank's desk" stays on screen while the player reads (pinned to the bottom) */
+  .fr-intro:not(.fr-acct) .fr-intro-start { position: sticky; bottom: -14px; z-index: 2; margin: 18px -18px -14px; padding: 10px 18px 14px; background: #e9d9b0; box-shadow: 0 -8px 14px -6px rgba(90,60,20,.35); }
+  .fr-acct-tabs button { font-size: 12px; padding: 7px 10px; white-space: nowrap; }
   .fr-intro .fr-bigbtn { min-height: 44px; }
   .fr-intro .fr-small { display: inline-block; padding: 6px 0; }
   #fr-root .fr-pw-row input { flex: 1 1 auto; min-width: 0; width: auto; height: 36px; }
@@ -404,6 +412,9 @@
   .fr-end-card p { font-size: 14px; }
   .fr-end-stats div { min-width: 0; flex: 1 1 40%; padding: 10px 8px; }
   .fr-end-cta a, .fr-end-cta button { min-height: 44px; }
+  .fr-share { padding: 12px 10px 8px; }
+  .fr-end-cta .fr-share-opener { background: #ffcf5a; color: #14172a; border-color: #ffcf5a; }
+  .fr-share-b { min-height: 44px; flex: 1 1 30%; }
   .fr-end-cta [data-a=again] { order: 9; width: 140px; margin: 16px calc(50% - 70px) 0; background: none; border: 0; text-decoration: underline; color: #9fb0d9; min-height: 40px; }
   .fr-saver-m { font-size: 32px; }
   .fr-shut-box { width: min(320px, calc(100vw - 16px)); }

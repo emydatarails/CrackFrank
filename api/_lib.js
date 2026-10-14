@@ -8,6 +8,7 @@ const SESSION_DAYS = 30;
 const COOKIE = 'fc_session';
 const MAX_SAVE = 1024 * 1024;          // bytes of JSON; a finished game is ~3 KB, Paint pictures (src/apps/paint.js) add up to ~600 KB
 const USER_RE = /^[A-Za-z0-9_.-]{3,20}$/;
+const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]+\.[^\s@]{2,}$/;   // a sanity check, not RFC 5322 (the sign-in screen uses the same one)
 
 /* ---------- Redis (Upstash REST) ---------- */
 const REDIS_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
@@ -164,6 +165,6 @@ async function updateBoard(id, prevState, state) {
 
 module.exports = {
   RULES, updateBoard,
-  redis, K, USER_RE, MAX_SAVE, hashPassword, checkPassword, createSession, currentUser, endSession,
+  redis, K, USER_RE, EMAIL_RE, MAX_SAVE, hashPassword, checkPassword, createSession, currentUser, endSession,
   limited, send, clientIp, handler, loadSave,
 };

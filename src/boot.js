@@ -92,7 +92,7 @@
     const el = $(`<div class="fr-screen fr-intro"><div class="fr-folder">
       <div class="fr-stamp">URGENT</div>
       <h1>Packa Corporation</h1>
-      <div class="fr-sub">INTERNAL · FINANCE · CASE FILE #FW-1016 · Sedalia, Missouri</div>
+      <div class="fr-sub"><span>INTERNAL</span> <span>· FINANCE</span> <span>· CASE FILE #FW-1016</span> <span>· Sedalia, Missouri</span></div>
       <div class="fr-clip"><div class="fr-polaroid"><img class="fr-missing" src="${FR.data.images.frankAvatar}" alt="Frank Warmington"><span>FP&amp;A Manager<br><small>(the website says Director)</small></span></div>
       <div><p><b>Monday, October 19, 2026 — 11:47 PM.</b> Frank, our FP&amp;A Manager, has not been seen since Friday night. There is a man-sized hole behind the cheat-sheet poster at his desk. We are not discussing the hole.</p>
       <p>The Board meets <b>tomorrow at 9:00 AM</b>. Prairie Ledger Bank will release a <b>$4.0M survival package</b> only if the Board Pack is complete — and true.</p></div></div>
@@ -840,6 +840,7 @@
       <div class="fr-end-stats"><div class="fr-end-score"><b>${FR.score.fmt(sc.score)}</b><span>Score</span></div><div><b>${t}</b><span>Time at Frank's desk</span></div><div><b>${hints}</b><span>Hints used</span></div><div><b>${FR.state.wrong || 0}</b><span>Wrong guesses</span></div><div class="fr-end-bonus"><b>+${FR.score.fmt(sc.bonus || 0)}</b><span>Bonus &amp; eggs</span></div></div>
       <p class="fr-end-calc">${esc(FR.score.breakdown(sc))}</p>
       <p class="fr-end-rank"></p>
+      <div class="fr-end-share"></div>
       <div class="fr-end-line"></div>
       <p><b style="color:#fff">Packa doesn't run on Datarails.</b> So when Frank walked through the wall, the truth nearly went with him.</p>
       <p>Datarails FinanceOS connects your ERP, CRM, HRIS and Excel data in one governed layer, so the budget, the cash forecast and the covenant math come from the same numbers — and nobody has to be Frank.</p>
@@ -850,6 +851,10 @@
         <button class="sec" data-a="back">Back to Frank's desk</button><button class="sec" data-a="again">Play again</button></div>
     </div></div>`);
     e.querySelector('[data-a=back]').onclick = () => e.remove();
+    // share your score: a score card in the game's look, and the ways to post it (src/share.js)
+    const share = FR.share && FR.data.share ? FR.share.mount(e.querySelector('.fr-end-share'),
+      { score: sc.score, name: FR.account && FR.account.user || '', time: t, hints, bonus: sc.bonus || 0 },
+      { opener: FR.mobile ? e.querySelector('.fr-end-cta') : null }) : null;   // phones: a gold "Share your score" button by the main one
     const sbBtn = e.querySelector('[data-a=board]');
     if (sbBtn) sbBtn.onclick = () => FR.score.open();
     // where this game landed on the board (or how to get on it)
@@ -862,6 +867,7 @@
         if (!d.me || !rankEl.isConnected) return;
         const other = FR.score.otherGame(d.me);
         if (!other && d.me.score !== FR.score.now().score && tries < 3) return setTimeout(() => rank(tries + 1), 2000);
+        if (share && !other) share.update({ rank: d.me.rank, players: d.players });
         rankEl.innerHTML = `You're <b>#${d.me.rank}</b> of ${FR.score.fmt(d.players)} ${d.players === 1 ? 'person who has' : 'people who have'} covered for Frank${other ? ` with your first finished game (${FR.score.fmt(d.me.score)} points; a replay doesn't change it)` : ` with ${FR.score.fmt(d.me.score)} points`}.`;
       }, () => {});
       rank();

@@ -88,13 +88,18 @@
     for (let bx = x + 3; bx + 7 <= x + 3 + (w - 6) * frac; bx += 9) { g.fillStyle = grad(g, y + 3, y + h - 3, [[0, '#acedad'], [0.5, '#2fd02f'], [1, '#2fb62f']]); g.fillRect(bx, y + 3, 7, h - 6); }
   }
   // RIGHT: what this is, and what to do (one button)
-  function pitch(g, button) {
+  // tag: one line ('A FREE GAME FOR FINANCE PEOPLE'), or [big, small] for two (the player's dare on the score card)
+  function pitch(g, button, tag = 'A FREE GAME FOR FINANCE PEOPLE') {
     const rx = 650, rw = W - rx - 48;
-    g.font = `bold 21px ${UI}`; const kick = 'A FREE GAME FOR FINANCE PEOPLE', kw = g.measureText(kick).width + 30;
+    const two = Array.isArray(tag), ty0 = two ? 34 : 64, th = two ? 70 : 40;
+    g.font = `bold ${two ? 25 : 21}px ${UI}`; const big = two ? tag[0] : tag, bw0 = g.measureText(big).width;
+    g.font = `italic bold 19px ${UI}`; const sw0 = two ? g.measureText(tag[1]).width : 0;
+    const kw = Math.max(bw0, sw0) + 30;
     g.save(); g.shadowColor = 'rgba(0,0,0,.35)'; g.shadowBlur = 8; g.shadowOffsetY = 3;
-    rrect(g, rx, 64, kw, 40, 8); g.fillStyle = grad(g, 64, 104, [[0, '#fff3a3'], [1, '#ffd84a']]); g.fill(); g.restore();
-    rrect(g, rx, 64, kw, 40, 8); g.strokeStyle = '#b88a00'; g.lineWidth = 1.2; g.stroke();
-    g.fillStyle = '#1b1b1b'; g.fillText(kick, rx + 15, 91);
+    rrect(g, rx, ty0, kw, th, 8); g.fillStyle = grad(g, ty0, ty0 + th, [[0, '#fff3a3'], [1, '#ffd84a']]); g.fill(); g.restore();
+    rrect(g, rx, ty0, kw, th, 8); g.strokeStyle = '#b88a00'; g.lineWidth = 1.2; g.stroke();
+    g.fillStyle = '#1b1b1b'; g.font = `bold ${two ? 25 : 21}px ${UI}`; g.fillText(big, rx + 15, ty0 + (two ? 31 : 27));
+    if (two) { g.fillStyle = '#5a4300'; g.font = `italic bold 19px ${UI}`; g.fillText(tag[1], rx + 15, ty0 + 57); }
     g.save(); g.shadowColor = 'rgba(0,20,70,.7)'; g.shadowBlur = 10; g.shadowOffsetY = 2; g.fillStyle = '#fff';
     fit(g, 'Frank is missing.', 'bold', 54, TITLE, rw, 30); g.fillText('Frank is missing.', rx, 170);
     fit(g, 'The Board meets at 9.', 'bold', 40, TITLE, rw, 24); g.fillText('The Board meets at 9.', rx, 222);
@@ -132,17 +137,27 @@
      Three things, in this order: what happened (left: one XP window, "[name] just saved Packa Corp." and the score),
      what this is (right, on the sky: a free escape-room game for finance people), what to do (one button: play free
      at WhereisFrank.help). */
+  /* info.photo (an image URL) + info.caption: a hand-made badge (not used by the game itself): the player's photo as a
+     pinned polaroid, in the campaign's look, in place of the Packa logo, with the name on its own line */
   async function draw(info) {
-    const [{ c, g, mark }, logo] = await Promise.all([scene(), load(svg(FR.data.logo.full))]);
-    const box = xpWindow(g, mark, 52, 82, 540, 388, "Frank's Computer");
+    const P = !!info.photo;
+    const [{ c, g, mark }, logo, photo] = await Promise.all([scene(), load(svg(FR.data.logo.full)), P ? load(info.photo) : null]);
+    const box = xpWindow(g, mark, 52, P ? 56 : 82, 540, P ? 440 : 388, "Frank's Computer");
     const ix = box.x, iy = box.y, iw = box.w;
-    const lh = 96, lw = lh * 1130 / 1220;
-    g.drawImage(logo, ix, iy, lw, lh);
+    const lh = P ? 150 : 96, lw = P ? 140 : lh * 1130 / 1220;
+    if (P) polaroid(g, photo, ix + 62, iy + 70, info.caption || '');
+    else g.drawImage(logo, ix, iy, lw, lh);
     const tx = ix + lw + 22, tw = ix + iw - tx;
     g.fillStyle = '#2a8a2a'; g.font = `bold 16px ${UI}`; g.fillText('✔ MISSION COMPLETE', tx, iy + 14);
-    const who = info.name ? `${info.name} just saved` : 'I just saved';
-    g.fillStyle = NAVY; fit(g, who, 'bold', 32, TITLE, tw, 20); g.fillText(who, tx, iy + 54);
-    g.fillStyle = PACKA; fit(g, 'Packa Corp.', 'bold', 44, TITLE, tw, 26); g.fillText('Packa Corp.', tx, iy + 98);
+    if (P) {
+      g.fillStyle = NAVY; fit(g, info.name || 'I', 'bold', 34, TITLE, tw, 20); g.fillText(info.name || 'I', tx, iy + 56);
+      g.fillStyle = '#4b5a78'; g.font = `bold 24px ${TITLE}`; g.fillText('just saved', tx, iy + 90);
+      g.fillStyle = PACKA; fit(g, 'Packa Corp.', 'bold', 48, TITLE, tw, 26); g.fillText('Packa Corp.', tx, iy + 140);
+    } else {
+      const who = info.name ? `${info.name} just saved` : 'I just saved';
+      g.fillStyle = NAVY; fit(g, who, 'bold', 32, TITLE, tw, 20); g.fillText(who, tx, iy + 54);
+      g.fillStyle = PACKA; fit(g, 'Packa Corp.', 'bold', 44, TITLE, tw, 26); g.fillText('Packa Corp.', tx, iy + 98);
+    }
     // the score, in a sunken XP field, with its title on the field's edge
     const fx = ix, fy = iy + lh + 34, fw = iw, fh = 128;
     g.fillStyle = '#fff'; g.fillRect(fx, fy, fw, fh);
@@ -160,8 +175,27 @@
     bits.push(`${info.time} at Frank's desk`);
     bits.push(`${info.hints || 0} hint${info.hints === 1 ? '' : 's'}`);
     g.fillStyle = '#26324d'; fit(g, bits.join('  ·  '), 'bold', 20, UI, iw, 13); g.fillText(bits.join('  ·  '), ix, fy + fh + 36);
-    pitch(g, 'CAN YOU SAVE PACKA?  PLAY FREE AT');
+    pitch(g, 'CAN YOU SAVE PACKA?  PLAY FREE AT', ['TRY AND BEAT MY SCORE', 'in the race to find Frank']);
     return c;
+  }
+
+  // a polaroid pinned with a pink pin (the Figma campaign's look), centred on cx, cy, a little crooked
+  function polaroid(g, img, cx, cy, caption) {
+    const pw = 150, ph = 176, ps = 134;
+    g.save(); g.translate(cx, cy); g.rotate(-0.06);
+    g.shadowColor = 'rgba(0,0,0,.35)'; g.shadowBlur = 14; g.shadowOffsetY = 6;
+    g.fillStyle = '#fff'; g.fillRect(-pw / 2, -ph / 2, pw, ph);
+    g.shadowColor = 'transparent';
+    const side = Math.min(img.width, img.height);
+    g.drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, -ps / 2, -ph / 2 + 8, ps, ps);
+    g.strokeStyle = 'rgba(0,0,0,.08)'; g.lineWidth = 1; g.strokeRect(-ps / 2, -ph / 2 + 8, ps, ps);
+    g.fillStyle = '#333'; g.font = '11px "Courier New", "DejaVu Sans Mono", monospace'; g.textAlign = 'center';
+    g.fillText(caption, 0, ph / 2 - 13, pw - 14); g.textAlign = 'left';
+    g.beginPath(); g.arc(0, -ph / 2 + 3, 9, 0, Math.PI * 2);
+    g.shadowColor = 'rgba(0,0,0,.35)'; g.shadowBlur = 4; g.shadowOffsetY = 2;
+    const pin = g.createRadialGradient(-3, -ph / 2, 1, 0, -ph / 2 + 3, 9); pin.addColorStop(0, '#ff8db4'); pin.addColorStop(1, '#e2195f');
+    g.fillStyle = pin; g.fill();
+    g.restore();
   }
 
   /* the game's link preview (public/og-image.png, made by tools/make_og_image.py): the same scene, and on the left
@@ -208,12 +242,15 @@
     const box = $(`<div class="fr-share">
       <div class="fr-share-h"><b>Brag a little.</b> Share your score and dare your finance friends to beat it.</div>
       <div class="fr-share-pic"><img class="fr-share-img" alt="Your Frank's Computer score card"></div>
+      <div class="fr-share-photo"><label class="fr-share-b fr-share-add">Add your photo<input type="file" accept="image/*" hidden></label>
+        <button class="fr-share-rm" type="button" hidden>Remove photo</button><span class="fr-share-pn">Pinned to your card like a polaroid. It stays on this device.</span></div>
       <div class="fr-share-btns">
         <button class="fr-share-b fr-share-native" data-s="native" hidden>Share…</button>
         <button class="fr-share-b" data-s="linkedin">LinkedIn</button><button class="fr-share-b" data-s="x">X</button>
         <button class="fr-share-b" data-s="facebook">Facebook</button><button class="fr-share-b" data-s="whatsapp">WhatsApp</button>
         <button class="fr-share-b" data-s="download">Download image</button><button class="fr-share-b" data-s="copy">Copy link</button>
       </div>
+      <div class="fr-share-tag"><b>When you post, tag us:</b> type <b>@Packa Corporation</b> and <b>@Datarails</b>, the official search partner, and pick them from the list.</div>
       <p class="fr-share-note" aria-live="polite"></p></div>`);
     host.appendChild(box);
     if (opts.opener) {
@@ -255,7 +292,7 @@
       // open the site first (a pop-up must come straight from the click), then hand over the picture
       open(href);
       const copied = await copyImage(), saved = download();
-      say(`${site} opened in a new tab. ${saved ? 'Your score card was downloaded' : ''}${copied ? (saved ? ' and copied: paste it into your post, or attach the file.' : 'Your score card was copied: paste it into your post.') : (saved ? ': attach it to your post.' : '')}`);
+      say(`${site} opened in a new tab. ${saved ? 'Your score card was downloaded' : ''}${copied ? (saved ? ' and copied: paste it into your post, or attach the file.' : 'Your score card was copied: paste it into your post.') : (saved ? ': attach it to your post.' : '')} Then tag @Packa Corporation and @Datarails.`);
       FR.bus.emit('share', site);
     };
     box.querySelector('.fr-share-btns').addEventListener('click', async e => {
@@ -274,8 +311,28 @@
         try { await navigator.clipboard.writeText(t); say('Copied. Paste it anywhere.'); } catch (err) { say(u); }
       }
     });
+    // the player's photo: read here, shrunk, drawn on the card; never saved with the game or sent anywhere
+    const fileIn = box.querySelector('.fr-share-add input'), rm = box.querySelector('.fr-share-rm'), addL = box.querySelector('.fr-share-add');
+    const caption = () => `${(cur.name || '').toUpperCase() || 'ME'} · FRANK FINDER`;
+    fileIn.onchange = () => {
+      const f = fileIn.files && fileIn.files[0]; fileIn.value = '';
+      if (!f) return;
+      if (!/^image\//.test(f.type)) { say("That isn't a picture. Pick a photo (JPEG or PNG)."); return; }
+      const src = URL.createObjectURL(f), im = new Image();
+      im.onload = () => {
+        const side = Math.min(im.naturalWidth, im.naturalHeight), k = Math.min(1, 600 / side);
+        const c = document.createElement('canvas'); c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k);
+        c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(src);
+        cur = Object.assign({}, cur, { photo: c.toDataURL('image/jpeg', 0.9), caption: caption() });
+        rm.hidden = false; addL.firstChild.textContent = 'Change photo'; say('Your photo is on your card.'); render();
+        FR.bus.emit('share', 'photo');
+      };
+      im.onerror = () => { URL.revokeObjectURL(src); say("That picture couldn't be opened. Try a JPEG or PNG."); };
+      im.src = src;
+    };
+    rm.onclick = () => { const c = Object.assign({}, cur); delete c.photo; delete c.caption; cur = c; rm.hidden = true; addL.firstChild.textContent = 'Add your photo'; say(''); render(); };
     render();
-    return { update(more) { cur = Object.assign({}, cur, more); render(); }, el: box, canvas: () => canvas };
+    return { update(more) { cur = Object.assign({}, cur, more); if (cur.photo) cur.caption = caption(); render(); }, el: box, canvas: () => canvas };
   }
 
   FR.share = { draw, drawPreview, mount, text, tier, url: shareUrl };

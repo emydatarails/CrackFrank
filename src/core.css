@@ -256,6 +256,12 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
 .fr-share-b:hover { border-color: #ffcf5a; color: #ffcf5a; }
 .fr-share-b.fr-share-native { background: #ffcf5a; color: #14172a; border-color: #ffcf5a; }
 .fr-share-folded { display: none; }
+.fr-share-photo { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 10px; margin-top: 12px; }
+.fr-share-add { display: inline-block; background: rgba(255,207,90,.14); border-color: #ffcf5a; color: #ffcf5a; }
+.fr-share-rm { background: none; border: 0; color: #9fb0d9; text-decoration: underline; cursor: pointer; font: 12px Arial, sans-serif; padding: 4px; min-width: 0; box-shadow: none; }
+.fr-share-pn { font-size: 12px; color: #9fb0d9; }
+.fr-share-tag { margin: 12px auto 0; max-width: 520px; padding: 8px 12px; border-radius: 6px; background: rgba(255,255,255,.06); font-size: 13px; line-height: 1.45; color: #d6dcef; }
+.fr-share-tag b { color: #ffcf5a; }
 .fr-share-note { font-size: 12px !important; color: #9fb0d9 !important; min-height: 16px; margin: 8px auto 0 !important; }
 
 /* shutdown */

@@ -281,8 +281,8 @@ python3 test/share_play.py               # Share your score: the score card and 
 - **Share your score** (`src/share.js`). The end screen asks the player to share ("Brag a little.") and shows a
   1200x630 score card drawn as a Windows XP screen, in three parts: what happened (an XP window "Frank's Computer" with
   the real Packa logo, "**[name] just saved Packa Corp.**", the score with its title — "FRANK-LEVEL FP&A", "PERFECT GAME ·
-  KRISTIANS IS NERVOUS"… — a full green progress bar, rank / time / hints), what this is (on the sky: a yellow "A FREE
-  GAME FOR FINANCE PEOPLE" tag, "Frank is missing. The Board meets at 9.", one line on the game), and what to do (one
+  KRISTIANS IS NERVOUS"… — a full green progress bar, rank / time / hints), what this is (on the sky: a yellow tag with
+  the player's dare, "TRY AND BEAT MY SCORE / in the race to find Frank", "Frank is missing. The Board meets at 9.", one line on the game), and what to do (one
   pink button: "CAN YOU SAVE PACKA? PLAY FREE AT ▶ WhereisFrank.help"). The taskbar frames it: Start, and the Datarails
   logo as "Official search partner" by the clock. A five-second test (an average LinkedIn reader) read it as "a brag card
   from a retro XP game for finance people; I can play free at WhereisFrank.help". The Datarails logo is cut out of
@@ -293,6 +293,12 @@ python3 test/share_play.py               # Share your score: the score card and 
   the phone's share sheet with the picture, LinkedIn, X, Facebook, WhatsApp, Download image, Copy link; the post reads
   "I just saved Packa Corp! … Join the search and save Packa at WhereisFrank.help #FrankIsMissing". The social sites
   can't take a picture through a link, so their buttons open the post and download the card (copied too, where allowed).
+
+  Under the card: **Add your photo** (a file / camera pick; it is shrunk in the browser and pinned to the card as a
+  polaroid — white frame, pink pin, "NAME · FRANK FINDER" — in place of the Packa logo; never saved with the game or
+  uploaded: it lives only in that end screen; **Remove photo** puts the logo back), and a guide for the post: "When you
+  post, tag us: type @Packa Corporation and @Datarails, the official search partner, and pick them from the list"
+  (repeated after LinkedIn / X open; the sites can't create a real tag from prefilled text).
 
 ## Easter eggs (spoilers)
 

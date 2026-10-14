@@ -59,6 +59,22 @@ with sync_playwright() as p:
         np.value.close(); pg.wait_for_timeout(1300)
         ok(d2.value.suggested_filename == 'franks-computer-score.png' and 'LinkedIn opened' in pg.text_content('.fr-share-note'),
            f'{name}: LinkedIn opens a post and downloads the card to attach ({pg.text_content(".fr-share-note")[:60]})')
+        # tag us: the guide in the block, and again after a social site opens
+        guide = pg.text_content('.fr-share-tag')
+        ok('@Packa Corporation' in guide and '@Datarails' in guide and 'search partner' in guide and '@Datarails' in pg.text_content('.fr-share-note'),
+           f'{name}: the post guide says to tag @Packa Corporation and @Datarails (the search partner)')
+        # the player's own photo: pinned on the card as a polaroid, kept on this device only
+        before_img, state0 = pg.get_attribute('.fr-share-img', 'src'), pg.evaluate('JSON.stringify(FR.state).length')
+        pg.locator('.fr-share-add input').set_input_files(os.path.join(ROOT, 'public', 'og-image.png'))
+        pg.wait_for_function(f"() => document.querySelector('.fr-share-img').src !== {before_img!r}", timeout=8000); pg.wait_for_timeout(300)
+        white = pg.evaluate("""() => { const i = document.querySelector('.fr-share-img'), c = document.createElement('canvas'); c.width = 1200; c.height = 630;
+          const g = c.getContext('2d'); g.drawImage(i, 0, 0); const d = g.getImageData(144, 246, 4, 3).data; return Array.from(d.slice(0, 3)); }""")
+        ok(pg.locator('.fr-share-rm').is_visible() and 'on your card' in pg.text_content('.fr-share-note') and min(white) > 235,
+           f'{name}: "Add your photo" pins it on the card as a polaroid (white frame {white})')
+        ok(pg.evaluate('JSON.stringify(FR.state).length') == state0 and 'FRANK FINDER' not in pg.evaluate('JSON.stringify(FR.state)'),
+           f'{name}: the photo is not saved with the game (it stays on this device)')
+        pg.locator('.fr-share-rm').click(); pg.wait_for_timeout(800)
+        ok(not pg.locator('.fr-share-rm').is_visible() and pg.text_content('.fr-share-add').strip().startswith('Add your photo'), f'{name}: Remove photo puts the Packa logo back')
         ctx.close()
     b.close()
 print('\n'.join(errors) or 'no console errors')

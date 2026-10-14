@@ -4085,17 +4085,27 @@ FR.apps = FR.apps || {};
      Three things, in this order: what happened (left: one XP window, "[name] just saved Packa Corp." and the score),
      what this is (right, on the sky: a free escape-room game for finance people), what to do (one button: play free
      at WhereisFrank.help). */
+  /* info.photo (an image URL) + info.caption: a hand-made badge (not used by the game itself): the player's photo as a
+     pinned polaroid, in the campaign's look, in place of the Packa logo, with the name on its own line */
   async function draw(info) {
-    const [{ c, g, mark }, logo] = await Promise.all([scene(), load(svg(FR.data.logo.full))]);
-    const box = xpWindow(g, mark, 52, 82, 540, 388, "Frank's Computer");
+    const P = !!info.photo;
+    const [{ c, g, mark }, logo, photo] = await Promise.all([scene(), load(svg(FR.data.logo.full)), P ? load(info.photo) : null]);
+    const box = xpWindow(g, mark, 52, P ? 56 : 82, 540, P ? 440 : 388, "Frank's Computer");
     const ix = box.x, iy = box.y, iw = box.w;
-    const lh = 96, lw = lh * 1130 / 1220;
-    g.drawImage(logo, ix, iy, lw, lh);
+    const lh = P ? 150 : 96, lw = P ? 140 : lh * 1130 / 1220;
+    if (P) polaroid(g, photo, ix + 62, iy + 70, info.caption || '');
+    else g.drawImage(logo, ix, iy, lw, lh);
     const tx = ix + lw + 22, tw = ix + iw - tx;
     g.fillStyle = '#2a8a2a'; g.font = `bold 16px ${UI}`; g.fillText('✔ MISSION COMPLETE', tx, iy + 14);
-    const who = info.name ? `${info.name} just saved` : 'I just saved';
-    g.fillStyle = NAVY; fit(g, who, 'bold', 32, TITLE, tw, 20); g.fillText(who, tx, iy + 54);
-    g.fillStyle = PACKA; fit(g, 'Packa Corp.', 'bold', 44, TITLE, tw, 26); g.fillText('Packa Corp.', tx, iy + 98);
+    if (P) {
+      g.fillStyle = NAVY; fit(g, info.name || 'I', 'bold', 34, TITLE, tw, 20); g.fillText(info.name || 'I', tx, iy + 56);
+      g.fillStyle = '#4b5a78'; g.font = `bold 24px ${TITLE}`; g.fillText('just saved', tx, iy + 90);
+      g.fillStyle = PACKA; fit(g, 'Packa Corp.', 'bold', 48, TITLE, tw, 26); g.fillText('Packa Corp.', tx, iy + 140);
+    } else {
+      const who = info.name ? `${info.name} just saved` : 'I just saved';
+      g.fillStyle = NAVY; fit(g, who, 'bold', 32, TITLE, tw, 20); g.fillText(who, tx, iy + 54);
+      g.fillStyle = PACKA; fit(g, 'Packa Corp.', 'bold', 44, TITLE, tw, 26); g.fillText('Packa Corp.', tx, iy + 98);
+    }
     // the score, in a sunken XP field, with its title on the field's edge
     const fx = ix, fy = iy + lh + 34, fw = iw, fh = 128;
     g.fillStyle = '#fff'; g.fillRect(fx, fy, fw, fh);
@@ -4115,6 +4125,25 @@ FR.apps = FR.apps || {};
     g.fillStyle = '#26324d'; fit(g, bits.join('  ·  '), 'bold', 20, UI, iw, 13); g.fillText(bits.join('  ·  '), ix, fy + fh + 36);
     pitch(g, 'CAN YOU SAVE PACKA?  PLAY FREE AT', ['TRY AND BEAT MY SCORE', 'in the race to find Frank']);
     return c;
+  }
+
+  // a polaroid pinned with a pink pin (the Figma campaign's look), centred on cx, cy, a little crooked
+  function polaroid(g, img, cx, cy, caption) {
+    const pw = 150, ph = 176, ps = 134;
+    g.save(); g.translate(cx, cy); g.rotate(-0.06);
+    g.shadowColor = 'rgba(0,0,0,.35)'; g.shadowBlur = 14; g.shadowOffsetY = 6;
+    g.fillStyle = '#fff'; g.fillRect(-pw / 2, -ph / 2, pw, ph);
+    g.shadowColor = 'transparent';
+    const side = Math.min(img.width, img.height);
+    g.drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, -ps / 2, -ph / 2 + 8, ps, ps);
+    g.strokeStyle = 'rgba(0,0,0,.08)'; g.lineWidth = 1; g.strokeRect(-ps / 2, -ph / 2 + 8, ps, ps);
+    g.fillStyle = '#333'; g.font = '11px "Courier New", "DejaVu Sans Mono", monospace'; g.textAlign = 'center';
+    g.fillText(caption, 0, ph / 2 - 13, pw - 14); g.textAlign = 'left';
+    g.beginPath(); g.arc(0, -ph / 2 + 3, 9, 0, Math.PI * 2);
+    g.shadowColor = 'rgba(0,0,0,.35)'; g.shadowBlur = 4; g.shadowOffsetY = 2;
+    const pin = g.createRadialGradient(-3, -ph / 2, 1, 0, -ph / 2 + 3, 9); pin.addColorStop(0, '#ff8db4'); pin.addColorStop(1, '#e2195f');
+    g.fillStyle = pin; g.fill();
+    g.restore();
   }
 
   /* the game's link preview (public/og-image.png, made by tools/make_og_image.py): the same scene, and on the left

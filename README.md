@@ -54,7 +54,7 @@ tests). These shortcuts work only on `file://` and `localhost`, never on the pub
 | `siteUrl` | The Packa Corp website the in-game Internet Explorer opens (clue source). Default `https://www.packacorp.com/`. |
 | `ctaUrl`, `ctaLabel` | The main button on the ending screen. |
 | `seriesUrl` | Optional. When set, adds a "Watch Frank Is Missing" button on the ending screen. |
-| `shareUrl` | Optional. The link that goes with a shared score (LinkedIn, X, Facebook, WhatsApp, Copy link). Default: the game's own address. |
+| `shareUrl` | The game's public address, used by the share buttons (`https://whereisfrank.help/`; the default too). |
 | `meta.url` | The public URL of the game. Set it so the share card (`og:image`, `og:url`) uses absolute links. |
 | `meta.description`, `meta.image` | Share-card text and image (image path relative to the site root, or a full URL). |
 
@@ -279,13 +279,16 @@ python3 test/share_play.py               # Share your score: the score card and 
 | `vending_ci` | Gary Stroud, Ozark Snack & Vend | item 7 | $2,000 at 1.5%/month compounded, 12 months | $2,391 | +250 |
 
 - **Share your score** (`src/share.js`). The end screen asks the player to share ("Brag a little.") and shows a
-  1200x630 score card in the game's own look: the artwork is cut out of `public/og-image.png` (title, subtitle, the gold
-  "PLAY FREE" pill, the Datarails / FinanceOS footer) by `tools/make_share_card.py` into `src/share_assets.js`, and the
-  browser draws the player's score, a title for it ("FRANK-LEVEL FP&A", "PERFECT GAME · KRISTIANS IS NERVOUS"…), their
-  name, time, rank (when the leaderboard answers), hints and bonus on top. Buttons: the phone's own share sheet with the
-  picture (where the browser can), LinkedIn, X, Facebook, WhatsApp, Download image, Copy link. The social sites can't take a
-  picture through a link, so their buttons open the post and download the card (and copy it where the browser allows) to
-  attach. Change the game's share image → rerun `python3 tools/make_share_card.py`.
+  1200x630 score card drawn as a Windows XP screen, like the game: the game's hill-and-sky wallpaper, a Luna-blue window
+  "Packa Corporation — Board Pack.xls" with the real Packa logo and "**[name] just saved Packa Corp.**", the score with a
+  title for it ("FRANK-LEVEL FP&A", "PERFECT GAME · KRISTIANS IS NERVOUS"…) and a full green Board Pack progress bar,
+  time / rank / hints, a yellow XP balloon "**Join the search** and save Packa at **WhereisFrank.help**" (the campaign's
+  words), and the taskbar with Start, "Board Pack.xls — SAVED", the Datarails logo as "Official search partner" and the
+  clock at 8:59 AM. The Datarails logo is cut out of `public/og-image.png` by `tools/make_share_card.py` into
+  `src/share_assets.js`; everything else is drawn from the game's own art. Buttons: the phone's own share sheet with the
+  picture (where the browser can), LinkedIn, X, Facebook, WhatsApp, Download image, Copy link. The post reads "I just
+  saved Packa Corp! … Join the search and save Packa at WhereisFrank.help #FrankIsMissing". The social sites can't take a
+  picture through a link, so their buttons open the post and download the card (and copy it where the browser allows).
 
 ## Easter eggs (spoilers)
 

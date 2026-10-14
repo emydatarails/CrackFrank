@@ -4,8 +4,9 @@
   "ctaLabel": "See how FinanceOS works",
   "seriesUrl": "",
   "meta": {
-    "url": "",
+    "url": "https://whereisfrank.help/",
     "description": "Frank, Packa Corp's FP&A manager, is missing. The Board meets at 9:00 AM. All you have is his computer.",
     "image": "og-image.png"
-  }
+  },
+  "shareUrl": "https://whereisfrank.help/"
 }

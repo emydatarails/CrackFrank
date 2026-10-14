@@ -18,7 +18,7 @@ logo_full = rd(os.path.join(src, 'packa-logo.svg')).strip()
 logo_full_white = rd(os.path.join(src, 'packa-logo-white.svg')).strip()
 crop = lambda svg: re.sub(r'viewBox="[^"]*"', MARK_VIEWBOX, svg, count=1)
 import json
-logos = {'mark': crop(logo_full), 'markWhite': crop(logo_full_white)}
+logos = {'mark': crop(logo_full), 'markWhite': crop(logo_full_white), 'full': logo_full}   # (full: the box over PACKA, for the share card)
 js += '\n;\nFR.data.logo = ' + json.dumps(logos) + ';'
 # the version players see in Help › About Windows and Help and Support (bump VERSION for each release). On Vercel the
 # build adds the commit and date; a local build (and the committed dist/index.html) says "dev", so it never churns.

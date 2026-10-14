@@ -38,14 +38,19 @@ with sync_playwright() as p:
             ok(pg.locator('.fr-share-pic').is_visible() and pg.locator('.fr-share-b[data-s=linkedin]').is_visible(), f'{name}: a tap opens the card and the share buttons')
         pg.locator('.fr-share').scroll_into_view_if_needed(); pg.wait_for_timeout(700)
         pg.screenshot(path=f'{OUT}/share_{name.replace(" ", "")}.png')
-        # the card itself: brand artwork (title, gold pill, Datarails footer) + the score
+        # the card itself: an XP screen (wallpaper sky, Luna title bar, green Start), the Datarails logo in the tray
         info = pg.evaluate("""() => FR.share.draw({ score: 11650, name: 'Tester', time: '42 min', rank: 1, players: 9, hints: 0, bonus: 1650 }).then(c => {
           const g = c.getContext('2d'), at = (x, y) => Array.from(g.getImageData(x, y, 1, 1).data.slice(0, 3));
-          return { w: c.width, h: c.height, corner: at(5, 5), logo: Array.from(g.getImageData(400, 555, 190, 45).data).some((v, i) => i % 4 === 0 && v > 200) }; })""")
-        ok(info['w'] == 1200 and info['h'] == 630 and max(info['corner']) < 60 and info['logo'], f'{name}: the card is 1200x630 on the dark brand background, Datarails logo in the footer {info["corner"]}')
+          return { w: c.width, h: c.height, sky: at(600, 8), title: at(300, 72), start: at(20, 612),
+                   logo: Array.from(g.getImageData(836, 590, 110, 26).data).some((v, i) => i % 4 === 0 && v > 235) }; })""")
+        sky, title, start = info['sky'], info['title'], info['start']
+        ok(info['w'] == 1200 and info['h'] == 630 and sky[2] > sky[0] + 80 and title[2] > 200 and title[0] < 60 and start[1] > start[0] + 50 and info['logo'],
+           f'{name}: the card is a 1200x630 XP screen (sky {sky}, Luna title bar {title}, green Start {start}), Datarails logo in the tray')
         ok(pg.evaluate("FR.share.tier(11650)") == 'PERFECT GAME · KRISTIANS IS NERVOUS' and pg.evaluate("FR.share.tier(10000)") == 'FRANK-LEVEL FP&A', 'a title for the score (perfect game / Frank-level …)')
         t = pg.evaluate("FR.share.text({ score: 10000, time: '1h 2m', rank: 3 })")
-        ok('10,000 points' in t and '#3 on the leaderboard' in t and '#FrankIsMissing' in t, f'{name}: the post text: {t[:70]}…')
+        ok(t.startswith('I just saved Packa Corp!') and '10,000 points' in t and '#3 on the leaderboard' in t and 'WhereisFrank.help' in t and 'packacorp' not in t.lower(),
+           f'{name}: the post leads with saving Packa and points to WhereisFrank.help: {t[:80]}…')
+        ok(pg.evaluate("FR.share.url()") == 'https://whereisfrank.help/', f'{name}: the shared link is whereisfrank.help')
         with pg.expect_download() as d:
             pg.locator('.fr-share-b[data-s=download]').click()
         ok(d.value.suggested_filename == 'franks-computer-score.png', f'{name}: Download image saves franks-computer-score.png')

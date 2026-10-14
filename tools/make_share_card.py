@@ -1,95 +1,48 @@
 #!/usr/bin/env python3
-"""Cut the end-of-game share card's artwork out of the game's own share image (public/og-image.png).
+"""Cut the real Datarails logo out of tools/datarails_logo_source.png for the score card and the link preview.
 
   python3 tools/make_share_card.py
 
-The card (src/share.js) is drawn in the browser at 1200x630, the same size and look as og-image.png: the dark navy
-background with its footer (the Datarails logo, "Hints by FinanceOS", the tagline) stays exactly where it is, and the
-middle (title, subtitle, the gold "PLAY FREE" pill) is lifted out so the player's score can go there. Writes
-src/share_assets.js (FR.data.share): the background with the middle painted over (a JPEG), and the title, subtitle and
-pill as transparent PNGs, so they keep their real lettering wherever the card puts them. Needs Pillow.
+The score card (src/share.js) is drawn in the browser as a Windows XP scene (the game's own wallpaper, a Luna window,
+a notification balloon, the taskbar); the only artwork it needs from outside the game is the Datarails logo for the
+taskbar's "Official search partner". This lifts it off the dark background with its colours (the white letters, the
+orange arc, the pink dot) and writes src/share_assets.js (FR.data.share.drLogo, a transparent PNG). Needs Pillow.
 """
-import base64, io, os, random
+import base64, io, os
 from PIL import Image
 
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SRC = os.path.join(root, 'public', 'og-image.png')
-TOP, BOTTOM = 212, 432           # the middle band (title, subtitle, pill); everything outside it is kept as is
-lum = lambda c: 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
+# the "datarails" wordmark, from the footer of the game's first share image (kept here: public/og-image.png is now
+# drawn by the game itself, tools/make_og_image.py)
+SRC = os.path.join(root, 'tools', 'datarails_logo_source.png')
+BOX = (10, 10, 206, 63)
 
 
-def clean_background(im):
-    """paint over the middle band: each column runs smoothly from the row above the band to the row below it"""
-    bg = im.copy(); px = bg.load(); w, _ = bg.size; rnd = random.Random(1958)
-    # the edge rows, smoothed sideways first (the glow has faint steps; stretched down they'd show as streaks)
-    def smooth(y, r=40):
-        row = [px[x, y] for x in range(w)]
-        return [tuple(sum(row[j][i] for j in range(max(0, x - r), min(w, x + r + 1))) / (min(w, x + r + 1) - max(0, x - r)) for i in range(3)) for x in range(w)]
-    top, bottom = smooth(TOP), smooth(BOTTOM)
-    for x in range(w):
-        a, b = top[x], bottom[x]
-        for y in range(TOP + 1, BOTTOM):
-            t = (y - TOP) / (BOTTOM - TOP)
-            n = rnd.uniform(-0.9, 0.9)      # a little grain, like the rest of the picture (no flat band)
-            px[x, y] = tuple(round(a[i] + (b[i] - a[i]) * t + n) for i in range(3))
-    return bg
-
-
-def bbox(im, y0, y1, test):
-    px = im.load(); w, _ = im.size
-    xs, ys = [], []
-    for y in range(y0, y1):
+def lift(im, box):
+    """the logo without its background: alpha from how far each pixel is from the background, colour un-mixed"""
+    crop = im.crop(box); w, h = crop.size; px = crop.load()
+    edge = [px[x, y] for x in range(w) for y in (0, h - 1)] + [px[x, y] for y in range(h) for x in (0, w - 1)]
+    bg = tuple(sorted(c[i] for c in edge)[len(edge) // 2] for i in range(3))
+    out = Image.new('RGBA', (w, h)); op = out.load()
+    for y in range(h):
         for x in range(w):
-            if test(px[x, y]): xs.append(x); ys.append(y)
-    return min(xs) - 3, min(ys) - 3, max(xs) + 4, max(ys) + 4
-
-
-def lift(im, bg, box, color):
-    """the pixels in box as `color` with an alpha that says how far each one stands out from the background"""
-    crop, back = im.crop(box), bg.crop(box)
-    out = Image.new('RGBA', crop.size)
-    cp, bp, op = crop.load(), back.load(), out.load()
-    cl = lum(color)
-    for y in range(crop.size[1]):
-        for x in range(crop.size[0]):
-            bl = lum(bp[x, y])
-            a = max(0.0, min(1.0, (lum(cp[x, y]) - bl) / max(1.0, cl - bl)))
-            op[x, y] = color + (round(a * 255),)
-    return out
-
-
-def b64(im, fmt, **kw):
-    buf = io.BytesIO(); im.save(buf, fmt, **kw)
-    return f"data:image/{fmt.lower()};base64,{base64.b64encode(buf.getvalue()).decode()}"
+            c = px[x, y]
+            a = min(1.0, max(abs(c[i] - bg[i]) for i in range(3)) / 200)
+            a = max(0.0, (a - 0.12) / 0.88)       # the background is a gradient: its drift isn't logo
+            if a <= 0: op[x, y] = (0, 0, 0, 0); continue
+            op[x, y] = tuple(max(0, min(255, round(bg[i] + (c[i] - bg[i]) / a))) for i in range(3)) + (round(a * 255),)
+    return out.crop(out.getbbox())
 
 
 def main():
-    im = Image.open(SRC).convert('RGB')
-    bg = clean_background(im)
-    # the three pieces, found by colour inside the band: the white title, the grey-blue subtitle, the gold pill
-    white = lambda c: lum(c) > 150 and abs(c[0] - c[2]) < 40
-    gold = lambda c: c[0] > 150 and c[2] < 120
-    title_box = bbox(im, 230, 312, white)
-    sub_box = bbox(im, 318, 350, lambda c: lum(c) > 90)
-    cta_box = bbox(im, 360, 420, gold)
-    sub_color = max((im.getpixel((x, y)) for x in range(sub_box[0], sub_box[2]) for y in range(sub_box[1], sub_box[3])), key=lum)
-    cta_color = max((im.getpixel((x, y)) for x in range(cta_box[0], cta_box[2]) for y in range(cta_box[1], cta_box[3])), key=lambda c: c[0])
-    pieces = {
-        'title': lift(im, bg, title_box, (255, 255, 255)),
-        'sub': lift(im, bg, sub_box, sub_color),
-        'cta': lift(im, bg, cta_box, cta_color),
-    }
-    out = ['/* FRANK\'S COMPUTER - the end-of-game share card artwork, cut out of public/og-image.png.',
-           '   Generated by tools/make_share_card.py; do not edit by hand. */',
-           '(() => { FR.data.share = {',
-           f"  bg: '{b64(bg, 'JPEG', quality=95, subsampling=0)}',"]
-    for k, p in pieces.items():
-        out.append(f"  {k}: {{ src: '{b64(p, 'PNG', optimize=True)}', w: {p.size[0]}, h: {p.size[1]} }},")
-        print(k, p.size)
-    out.append(f"  ctaColor: '#{cta_color[0]:02x}{cta_color[1]:02x}{cta_color[2]:02x}',")
-    out.append('}; })();\n')
-    open(os.path.join(root, 'src', 'share_assets.js'), 'w').write('\n'.join(out))
-    print('wrote src/share_assets.js', os.path.getsize(os.path.join(root, 'src', 'share_assets.js')) // 1024, 'KB')
+    logo = lift(Image.open(SRC).convert('RGB'), BOX)
+    buf = io.BytesIO(); logo.save(buf, 'PNG', optimize=True)
+    src = 'data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode()
+    open(os.path.join(root, 'src', 'share_assets.js'), 'w').write(
+        "/* FRANK'S COMPUTER - the Datarails logo for the end-of-game score card, cut out of tools/datarails_logo_source.png.\n"
+        "   Generated by tools/make_share_card.py; do not edit by hand. */\n"
+        f"(() => {{ FR.data.share = {{ drLogo: {{ src: '{src}', w: {logo.size[0]}, h: {logo.size[1]} }} }}; }})();\n")
+    print('datarails logo', logo.size, '→ src/share_assets.js', len(buf.getvalue()) // 1024, 'KB')
 
 
 if __name__ == '__main__':

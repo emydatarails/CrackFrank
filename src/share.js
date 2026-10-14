@@ -242,12 +242,15 @@
     const box = $(`<div class="fr-share">
       <div class="fr-share-h"><b>Brag a little.</b> Share your score and dare your finance friends to beat it.</div>
       <div class="fr-share-pic"><img class="fr-share-img" alt="Your Frank's Computer score card"></div>
+      <div class="fr-share-photo"><label class="fr-share-b fr-share-add">Add your photo<input type="file" accept="image/*" hidden></label>
+        <button class="fr-share-rm" type="button" hidden>Remove photo</button><span class="fr-share-pn">Pinned to your card like a polaroid. It stays on this device.</span></div>
       <div class="fr-share-btns">
         <button class="fr-share-b fr-share-native" data-s="native" hidden>Share…</button>
         <button class="fr-share-b" data-s="linkedin">LinkedIn</button><button class="fr-share-b" data-s="x">X</button>
         <button class="fr-share-b" data-s="facebook">Facebook</button><button class="fr-share-b" data-s="whatsapp">WhatsApp</button>
         <button class="fr-share-b" data-s="download">Download image</button><button class="fr-share-b" data-s="copy">Copy link</button>
       </div>
+      <div class="fr-share-tag"><b>When you post, tag us:</b> type <b>@Packa Corporation</b> and <b>@Datarails</b>, the official search partner, and pick them from the list.</div>
       <p class="fr-share-note" aria-live="polite"></p></div>`);
     host.appendChild(box);
     if (opts.opener) {
@@ -289,7 +292,7 @@
       // open the site first (a pop-up must come straight from the click), then hand over the picture
       open(href);
       const copied = await copyImage(), saved = download();
-      say(`${site} opened in a new tab. ${saved ? 'Your score card was downloaded' : ''}${copied ? (saved ? ' and copied: paste it into your post, or attach the file.' : 'Your score card was copied: paste it into your post.') : (saved ? ': attach it to your post.' : '')}`);
+      say(`${site} opened in a new tab. ${saved ? 'Your score card was downloaded' : ''}${copied ? (saved ? ' and copied: paste it into your post, or attach the file.' : 'Your score card was copied: paste it into your post.') : (saved ? ': attach it to your post.' : '')} Then tag @Packa Corporation and @Datarails.`);
       FR.bus.emit('share', site);
     };
     box.querySelector('.fr-share-btns').addEventListener('click', async e => {
@@ -308,8 +311,28 @@
         try { await navigator.clipboard.writeText(t); say('Copied. Paste it anywhere.'); } catch (err) { say(u); }
       }
     });
+    // the player's photo: read here, shrunk, drawn on the card; never saved with the game or sent anywhere
+    const fileIn = box.querySelector('.fr-share-add input'), rm = box.querySelector('.fr-share-rm'), addL = box.querySelector('.fr-share-add');
+    const caption = () => `${(cur.name || '').toUpperCase() || 'ME'} · FRANK FINDER`;
+    fileIn.onchange = () => {
+      const f = fileIn.files && fileIn.files[0]; fileIn.value = '';
+      if (!f) return;
+      if (!/^image\//.test(f.type)) { say("That isn't a picture. Pick a photo (JPEG or PNG)."); return; }
+      const src = URL.createObjectURL(f), im = new Image();
+      im.onload = () => {
+        const side = Math.min(im.naturalWidth, im.naturalHeight), k = Math.min(1, 600 / side);
+        const c = document.createElement('canvas'); c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k);
+        c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(src);
+        cur = Object.assign({}, cur, { photo: c.toDataURL('image/jpeg', 0.9), caption: caption() });
+        rm.hidden = false; addL.firstChild.textContent = 'Change photo'; say('Your photo is on your card.'); render();
+        FR.bus.emit('share', 'photo');
+      };
+      im.onerror = () => { URL.revokeObjectURL(src); say("That picture couldn't be opened. Try a JPEG or PNG."); };
+      im.src = src;
+    };
+    rm.onclick = () => { const c = Object.assign({}, cur); delete c.photo; delete c.caption; cur = c; rm.hidden = true; addL.firstChild.textContent = 'Add your photo'; say(''); render(); };
     render();
-    return { update(more) { cur = Object.assign({}, cur, more); render(); }, el: box, canvas: () => canvas };
+    return { update(more) { cur = Object.assign({}, cur, more); if (cur.photo) cur.caption = caption(); render(); }, el: box, canvas: () => canvas };
   }
 
   FR.share = { draw, drawPreview, mount, text, tier, url: shareUrl };

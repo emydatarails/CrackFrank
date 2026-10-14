@@ -415,6 +415,8 @@
   .fr-share { padding: 12px 10px 8px; }
   .fr-end-cta .fr-share-opener { background: #ffcf5a; color: #14172a; border-color: #ffcf5a; }
   .fr-share-b { min-height: 44px; flex: 1 1 30%; }
+  .fr-share-photo .fr-share-add { flex: 1 1 100%; display: flex; align-items: center; justify-content: center; }
+  .fr-share-rm { min-height: 40px; }
   .fr-end-cta [data-a=again] { order: 9; width: 140px; margin: 16px calc(50% - 70px) 0; background: none; border: 0; text-decoration: underline; color: #9fb0d9; min-height: 40px; }
   .fr-saver-m { font-size: 32px; }
   .fr-shut-box { width: min(320px, calc(100vw - 16px)); }

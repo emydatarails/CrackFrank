@@ -294,6 +294,12 @@ python3 test/share_play.py               # Share your score: the score card and 
   "I just saved Packa Corp! … Join the search and save Packa at WhereisFrank.help #FrankIsMissing". The social sites
   can't take a picture through a link, so their buttons open the post and download the card (copied too, where allowed).
 
+  Under the card: **Add your photo** (a file / camera pick; it is shrunk in the browser and pinned to the card as a
+  polaroid — white frame, pink pin, "NAME · FRANK FINDER" — in place of the Packa logo; never saved with the game or
+  uploaded: it lives only in that end screen; **Remove photo** puts the logo back), and a guide for the post: "When you
+  post, tag us: type @Packa Corporation and @Datarails, the official search partner, and pick them from the list"
+  (repeated after LinkedIn / X open; the sites can't create a real tag from prefilled text).
+
 ## Easter eggs (spoilers)
 
 Fifteen of Frank's private secrets (`src/apps/xp_eggs.js`). Each shows a small "Easter egg found (n/15) · +10 points"

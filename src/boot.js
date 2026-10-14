@@ -853,7 +853,8 @@
     e.querySelector('[data-a=back]').onclick = () => e.remove();
     // share your score: a score card in the game's look, and the ways to post it (src/share.js)
     const share = FR.share && FR.data.share ? FR.share.mount(e.querySelector('.fr-end-share'),
-      { score: sc.score, name: FR.account && FR.account.user || '', time: t, hints, bonus: sc.bonus || 0 }) : null;
+      { score: sc.score, name: FR.account && FR.account.user || '', time: t, hints, bonus: sc.bonus || 0 },
+      { opener: FR.mobile ? e.querySelector('.fr-end-cta') : null }) : null;   // phones: a gold "Share your score" button by the main one
     const sbBtn = e.querySelector('[data-a=board]');
     if (sbBtn) sbBtn.onclick = () => FR.score.open();
     // where this game landed on the board (or how to get on it)

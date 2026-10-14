@@ -21,22 +21,25 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
 /* Case file intro */
 .fr-intro { background: radial-gradient(ellipse at 50% 30%, #3a2c1c 0%, #140e08 70%); display: flex; padding: 32px 20px 20px; overflow: auto; }
 .fr-intro .fr-folder { margin: auto; }
-.fr-folder { position: relative; width: min(640px, 100%); background: #e9d9b0; border-radius: 4px 14px 4px 4px; padding: 34px 34px 28px; box-shadow: 0 25px 60px rgba(0,0,0,.6), inset 0 0 60px rgba(120,80,20,.25); color: #2a2216; font-family: "Courier New", Courier, monospace; transform: rotate(-.6deg); }
+.fr-folder { position: relative; width: min(680px, 100%); background: #e9d9b0; border-radius: 4px 14px 4px 4px; padding: 34px 34px 28px; box-shadow: 0 25px 60px rgba(0,0,0,.6), inset 0 0 60px rgba(120,80,20,.25); color: #2a2216; font-family: "Courier New", Courier, monospace; transform: rotate(-.6deg); }
 .fr-folder::before { content: ''; position: absolute; top: -18px; left: 24px; width: 180px; height: 22px; background: #e2cf9f; border-radius: 6px 6px 0 0; }
 .fr-stamp { position: absolute; top: 22px; right: 28px; border: 3px solid #a3261c; color: #a3261c; padding: 4px 10px; font: 700 20px/1 "Courier New", monospace; transform: rotate(8deg); opacity: .85; letter-spacing: 2px; }
 .fr-folder h1 { font: 700 26px/1.15 Georgia, "Times New Roman", serif; margin: 0 0 4px; color: #17263f; letter-spacing: .5px; }
-.fr-folder .fr-sub { font-size: 12px; margin-bottom: 18px; color: #5b4a30; }
-.fr-folder p { font-size: 13.5px; line-height: 1.55; margin: 0 0 11px; }
+.fr-folder .fr-sub { font-size: 12.5px; font-weight: 700; letter-spacing: .5px; margin-bottom: 18px; color: #5b4a30; }
+/* (the reading text in a serif: the typewriter face is kept for labels, tabs and the stamp, where it reads fine) */
+.fr-folder p, .fr-objectives, .fr-folder .fr-small { font-family: Georgia, "Times New Roman", serif; }
+.fr-folder p { font-size: 16px; line-height: 1.6; margin: 0 0 12px; color: #241c11; }
 .fr-folder .fr-clip { display: flex; gap: 16px; align-items: flex-start; margin: 16px 0 14px; }
 .fr-polaroid { background: #fff; padding: 6px 6px 18px; box-shadow: 0 3px 8px rgba(0,0,0,.35); transform: rotate(-4deg); flex: none; }
 .fr-polaroid .fr-missing { width: 110px; height: 120px; object-fit: cover; display: block; background: #cfd9c4; }
 .fr-polaroid span { display: block; width: 110px; font: 12px/1.2 "Comic Sans MS", "Segoe Print", cursive; text-align: center; margin-top: 4px; }
 .fr-polaroid span small { font-size: 10px; opacity: .8; }
-.fr-objectives { font-size: 13px; margin: 0; padding-left: 18px; line-height: 1.6; }
+.fr-objectives { font-size: 15px; margin: 0; padding-left: 20px; line-height: 1.6; }
 .fr-folder .fr-intro-start { margin-top: 18px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .fr-bigbtn { font: 700 14px Tahoma, Verdana, "DejaVu Sans", Arial, sans-serif; padding: 9px 20px; background: linear-gradient(#fdfdfd, #e3e0d2); border: 1px solid #5b4a30; border-radius: 3px; cursor: pointer; color: #1a1a1a; }
 .fr-bigbtn:hover { background: linear-gradient(#fff, #efe9d6); }
 .fr-small { font-size: 11.5px; color: #6b5a3e; }
+.fr-folder .fr-small { font-size: 13.5px; line-height: 1.55; color: #5b4a30; }
 
 /* Boot */
 .fr-boot { background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; gap: 26px; }
@@ -258,6 +261,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
 .fr-share-b { font: 700 13px Arial, sans-serif; padding: 9px 14px; border-radius: 6px; cursor: pointer; background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.4); }
 .fr-share-b:hover { border-color: #ffcf5a; color: #ffcf5a; }
 .fr-share-b.fr-share-native { background: #ffcf5a; color: #14172a; border-color: #ffcf5a; }
+.fr-share-folded { display: none; }
 .fr-share-note { font-size: 12px !important; color: #9fb0d9 !important; min-height: 16px; margin: 8px auto 0 !important; }
 
 /* shutdown */
@@ -374,19 +378,21 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
 .fr-end-fos { font-size: 12px !important; color: #9fb0d9 !important; margin-top: 18px !important; }
 
 /* player sign-in screen (src/account.js) — reuses the intro's case-file folder */
-.fr-acct .fr-folder { width: min(520px, 100%); }
+.fr-acct .fr-folder { width: min(600px, 100%); }
 .fr-acct-tabs { display: flex; gap: 0; margin: 18px 0 0; border-bottom: 2px solid #5b4a30; }
 .fr-acct-tabs button { font: 700 13px "Courier New", Courier, monospace; background: #dcc795; color: #5b4a30; border: 1px solid #5b4a30; border-bottom: 0; border-radius: 6px 6px 0 0; padding: 7px 14px; margin-right: 4px; cursor: pointer; min-width: 0; box-shadow: none; }
 .fr-acct-tabs button.on { background: #f4e9cc; color: #17263f; position: relative; top: 2px; padding-bottom: 9px; }
 .fr-acct-form { background: #f4e9cc; border: 1px solid #5b4a30; border-top: 0; padding: 16px 18px 18px; display: grid; gap: 12px; }
-.fr-acct-form label { display: grid; gap: 4px; font-size: 12px; font-weight: 700; color: #5b4a30; letter-spacing: .5px; text-transform: uppercase; }
-.fr-acct-form input { font: 15px "Courier New", Courier, monospace; padding: 7px 9px; border: 1px solid #7a6440; border-radius: 2px; background: #fffdf6; color: #1a1a1a; height: auto; }
+.fr-acct-form label { display: grid; gap: 5px; font: 700 12.5px Arial, Helvetica, sans-serif; color: #5b4a30; letter-spacing: .6px; text-transform: uppercase; }
+.fr-acct-form label small { font: italic 400 13px Georgia, serif; text-transform: none; letter-spacing: 0; color: #6b5a3e; }
+.fr-acct-form label[hidden] { display: none; }
+.fr-acct-form input { font: 16px Georgia, "Times New Roman", serif; padding: 7px 9px; border: 1px solid #7a6440; border-radius: 2px; background: #fffdf6; color: #1a1a1a; height: auto; }
 .fr-acct-form input:focus { outline: 2px solid #245edb; outline-offset: 0; }
-.fr-acct-note { font-size: 11.5px; color: #6b5a3e; line-height: 1.45; }
+.fr-acct-note { font: 13.5px/1.5 Georgia, "Times New Roman", serif; color: #5b4a30; }
 .fr-acct-note:empty, .fr-acct-err:empty { display: none; }
-.fr-acct-err { font-size: 12.5px; color: #a3261c; font-weight: 700; line-height: 1.4; }
+.fr-acct-err { font: 700 14px/1.4 Georgia, "Times New Roman", serif; color: #a3261c; }
 .fr-acct-form .fr-intro-start { margin-top: 2px; }
-.fr-acct-guest { background: none; border: 0; box-shadow: none; min-width: 0; padding: 4px 2px; font: 12px "Courier New", Courier, monospace; color: #6b5a3e; text-decoration: underline; cursor: pointer; }
+.fr-acct-guest { background: none; border: 0; box-shadow: none; min-width: 0; padding: 4px 2px; font: 14px Georgia, "Times New Roman", serif; color: #5b4a30; text-decoration: underline; cursor: pointer; }
 .fr-acct-guest:hover { color: #17263f; }
 .fr-bigbtn:disabled { opacity: .6; cursor: default; }
 .fr-intro .fr-save-line a { color: #17263f; font-weight: 700; }
@@ -1955,6 +1961,7 @@ button.oe-cl:hover { border-color: #c2bfb0; background: linear-gradient(#fff, #e
   .fr-end-stats div { min-width: 0; flex: 1 1 40%; padding: 10px 8px; }
   .fr-end-cta a, .fr-end-cta button { min-height: 44px; }
   .fr-share { padding: 12px 10px 8px; }
+  .fr-end-cta .fr-share-opener { background: #ffcf5a; color: #14172a; border-color: #ffcf5a; }
   .fr-share-b { min-height: 44px; flex: 1 1 30%; }
   .fr-end-cta [data-a=again] { order: 9; width: 140px; margin: 16px calc(50% - 70px) 0; background: none; border: 0; text-decoration: underline; color: #9fb0d9; min-height: 40px; }
   .fr-saver-m { font-size: 32px; }
@@ -3678,6 +3685,7 @@ FR.apps = FR.apps || {};
     .then(() => { clearTimeout(timer); A.user = null; localReset(); store.set(OWNER, ''); store.del(GUEST); store.del(SYNC); location.reload(); });
 
   /* ---------- sign-in screen ---------- */
+  const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]+\.[^\s@]{2,}$/;   // the same check as api/register.js
   A.screen = (mode = 'new') => new Promise(done => {
     const el = $(`<div class="fr-screen fr-intro fr-acct"><div class="fr-folder">
       <div class="fr-stamp">VISITOR</div>
@@ -3689,7 +3697,8 @@ FR.apps = FR.apps || {};
         <button type="button" role="tab" data-m="back">I've been here before</button>
       </div>
       <form class="fr-acct-form" novalidate>
-        <label>Player name<input name="u" maxlength="20" spellcheck="false" autocapitalize="off" autocomplete="username" required></label>
+        <label>Player name <small>(a nickname is fine: it's on the leaderboard)</small><input name="u" maxlength="20" spellcheck="false" autocapitalize="off" autocomplete="username" required></label>
+        <label class="fr-acct-email">Email <small>(never shown on the leaderboard)</small><input name="e" type="email" maxlength="254" spellcheck="false" autocapitalize="off" autocomplete="email" required></label>
         <label>Password<input name="p" type="password" maxlength="200" required></label>
         <div class="fr-acct-note"></div>
         <div class="fr-acct-err" role="alert"></div>
@@ -3698,16 +3707,17 @@ FR.apps = FR.apps || {};
           <button class="fr-acct-guest" type="button">Play without an account</button>
         </div>
       </form>
-      <p class="fr-small" style="margin-top:14px">Without an account, progress saves only in this browser. We keep your player name, a scrambled copy of your password and your game progress. Nothing else.</p>
+      <p class="fr-small" style="margin-top:14px">Without an account, progress saves only in this browser. We keep your player name, your email, a scrambled copy of your password and your game progress. Nothing else.</p>
     </div></div>`);
-    const form = el.querySelector('form'), u = form.elements.u, p = form.elements.p;
+    const form = el.querySelector('form'), u = form.elements.u, p = form.elements.p, em = form.elements.e, emRow = el.querySelector('.fr-acct-email');
     const err = el.querySelector('.fr-acct-err'), note = el.querySelector('.fr-acct-note'), go = form.querySelector('[type=submit]');
     const setMode = m => {
       mode = m;
       el.querySelectorAll('[data-m]').forEach(b => { const on = b.dataset.m === m; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
       go.textContent = m === 'new' ? 'Create player' : 'Sign in';
       p.autocomplete = m === 'new' ? 'new-password' : 'current-password';
-      note.textContent = m === 'new' ? "3–20 letters or numbers, and a password of 6+ characters. There's no password reset, so pick one you'll remember." : '';
+      emRow.hidden = m !== 'new';          // new players only: signing back in is name + password
+      note.textContent = m === 'new' ? "Player name: 3–20 letters or numbers. Password: 6+ characters. There's no password reset, so pick one you'll remember." : '';
       err.textContent = '';
     };
     el.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { FR.sound.play('click'); setMode(b.dataset.m); u.focus(); });
@@ -3716,14 +3726,15 @@ FR.apps = FR.apps || {};
     el.querySelector('.fr-acct-guest').onclick = () => { FR.sound.play('click'); store.set(GUEST, '1'); finish(); };
     form.onsubmit = e => {
       e.preventDefault();
-      const name = u.value.trim(), pw = p.value;
+      const name = u.value.trim(), pw = p.value, email = em.value.trim();
       err.textContent = '';
       if (!/^[A-Za-z0-9_.-]{3,20}$/.test(name)) { err.textContent = 'Player names are 3–20 letters, numbers, dots, dashes or underscores.'; return u.focus(); }
+      if (mode === 'new' && !EMAIL_RE.test(email)) { err.textContent = 'Type your email address (like frank@packacorp.com).'; return em.focus(); }
       if (mode === 'new' ? pw.length < 6 : !pw) { err.textContent = mode === 'new' ? 'Passwords need at least 6 characters.' : 'Type your password.'; return p.focus(); }
       // a guest's progress in this browser becomes the new player's first save
       const carry = mode === 'new' && !store.get(OWNER) && hasProgress(FR.state) ? FR.state : undefined;
       go.disabled = true; go.textContent = mode === 'new' ? 'Creating…' : 'Signing in…';
-      api(mode === 'new' ? 'register' : 'login', 'POST', { username: name, password: pw, state: carry }).then(r => {
+      api(mode === 'new' ? 'register' : 'login', 'POST', mode === 'new' ? { username: name, email, password: pw, state: carry } : { username: name, password: pw }).then(r => {
         if (r.ok) { FR.sound.play('ding'); store.del(GUEST); adopt(r.data); return finish(); }
         FR.sound.play('error');
         err.textContent = r.data.message || "Couldn't reach the sign-in server. Try again in a moment.";
@@ -4019,8 +4030,10 @@ FR.apps = FR.apps || {};
   }
   const FILE = 'franks-computer-score.png';
 
-  /* the "Share your score" block on the end screen. Returns { update(info) } for when the rank arrives. */
-  function mount(host, info) {
+  /* the "Share your score" block on the end screen. Returns { update(info) } for when the rank arrives.
+     opts.opener (phones): a button row to put a gold "Share your score" button in; the block stays folded until it's
+     tapped, so the end screen's main button stays on screen */
+  function mount(host, info, opts = {}) {
     const box = $(`<div class="fr-share">
       <div class="fr-share-h"><b>Brag a little.</b> Share your score and dare your finance friends to beat it.</div>
       <div class="fr-share-pic"><img class="fr-share-img" alt="Your Frank's Computer score card"></div>
@@ -4032,6 +4045,13 @@ FR.apps = FR.apps || {};
       </div>
       <p class="fr-share-note" aria-live="polite"></p></div>`);
     host.appendChild(box);
+    if (opts.opener) {
+      box.classList.add('fr-share-folded');
+      const ob = $('<button class="sec fr-share-opener" type="button">Share your score</button>');
+      const pri = opts.opener.querySelector('.pri');
+      pri ? pri.after(ob) : opts.opener.prepend(ob);
+      ob.onclick = () => { FR.sound.play('click'); box.classList.remove('fr-share-folded'); ob.remove(); box.scrollIntoView({ block: 'start', behavior: 'smooth' }); };
+    }
     const img = box.querySelector('.fr-share-img'), note = box.querySelector('.fr-share-note');
     let cur = info, canvas = null, blob = null, url = null, gen = 0;
     const say = t => { note.textContent = t; };
@@ -15135,7 +15155,8 @@ I'm taking Thursday off.
     e.querySelector('[data-a=back]').onclick = () => e.remove();
     // share your score: a score card in the game's look, and the ways to post it (src/share.js)
     const share = FR.share && FR.data.share ? FR.share.mount(e.querySelector('.fr-end-share'),
-      { score: sc.score, name: FR.account && FR.account.user || '', time: t, hints, bonus: sc.bonus || 0 }) : null;
+      { score: sc.score, name: FR.account && FR.account.user || '', time: t, hints, bonus: sc.bonus || 0 },
+      { opener: FR.mobile ? e.querySelector('.fr-end-cta') : null }) : null;   // phones: a gold "Share your score" button by the main one
     const sbBtn = e.querySelector('[data-a=board]');
     if (sbBtn) sbBtn.onclick = () => FR.score.open();
     // where this game landed on the board (or how to get on it)

@@ -26,8 +26,16 @@ with sync_playwright() as p:
         pg.on('console', lambda m: m.type == 'error' and errors.append(m.text)); pg.on('pageerror', lambda e: errors.append(str(e)))
         pg.goto(URL); pg.wait_for_selector('.fr-desktop'); pg.wait_for_timeout(900)
         pg.evaluate('FR.ending()'); pg.wait_for_function("() => { const i = document.querySelector('.fr-share-img'); return i && i.naturalWidth > 0 }", timeout=8000)
-        ok(pg.evaluate("document.querySelector('.fr-share-img').naturalWidth") == 1200 and 'Share your score' in pg.text_content('.fr-share-h'),
+        ok(pg.evaluate("document.querySelector('.fr-share-img').naturalWidth") == 1200 and 'Share your score' in (pg.text_content('.fr-share-h') + (pg.text_content('.fr-share-opener') if name != 'desktop' else '')),
            f'{name}: the end screen asks to share, with a 1200x630 score card')
+        if name != 'desktop':
+            # phones: a gold "Share your score" button next to the main one (which stays on screen); it opens the block
+            cta = pg.locator('.fr-end-cta .pri').bounding_box()
+            ok(pg.locator('.fr-share-opener').is_visible() and not pg.locator('.fr-share').is_visible() and cta['y'] + cta['height'] <= pg.viewport_size['height'],
+               f'{name}: a gold "Share your score" button by the main button, which is still on screen')
+            pg.wait_for_timeout(1600)   # (the end screen ignores taps for its first 1.5 s on phones)
+            pg.locator('.fr-share-opener').tap(); pg.wait_for_timeout(700)
+            ok(pg.locator('.fr-share-pic').is_visible() and pg.locator('.fr-share-b[data-s=linkedin]').is_visible(), f'{name}: a tap opens the card and the share buttons')
         pg.locator('.fr-share').scroll_into_view_if_needed(); pg.wait_for_timeout(700)
         pg.screenshot(path=f'{OUT}/share_{name.replace(" ", "")}.png')
         # the card itself: brand artwork (title, gold pill, Datarails footer) + the score

@@ -69,9 +69,9 @@ ok(R.rankValue({ score: 5000, timeMs: 9e12 }) > R.rankValue({ score: 4950, timeM
   let r = await anon('scores'); ok(r.status === 200 && r.data.top.length === 0 && r.data.me === null && r.data.rules.freeHints === 10, 'empty board, rules published');
 
   const a = browser('1.0.0.1'), b = browser('1.0.0.2'), c = browser('1.0.0.3');
-  await a('register', 'POST', { username: 'Alice', password: 'alice-pw', state: st(2) });   // guest progress carried in
-  await b('register', 'POST', { username: 'Bob', password: 'bob-pw1' });
-  await c('register', 'POST', { username: 'Cara', password: 'cara-pw' });
+  await a('register', 'POST', { username: 'Alice', email: 'player@example.com', password: 'alice-pw', state: st(2) });   // guest progress carried in
+  await b('register', 'POST', { username: 'Bob', email: 'player@example.com', password: 'bob-pw1' });
+  await c('register', 'POST', { username: 'Cara', email: 'player@example.com', password: 'cara-pw' });
   r = await anon('scores'); ok(r.data.top.length === 1 && r.data.top[0].name === 'Alice' && r.data.top[0].score === 2000, 'registering with progress puts the player on the board');
   ok(r.data.players === 1, 'players with nothing solved are not on the board');
 
@@ -113,7 +113,7 @@ ok(R.rankValue({ score: 5000, timeMs: 9e12 }) > R.rankValue({ score: 4950, timeM
 
   // (F4, round 4) ONE SCORE: the first finished game keeps counting after the ending, in the same game
   const d = browser('1.0.0.4');
-  await d('register', 'POST', { username: 'Dana', password: 'dana-pw' });
+  await d('register', 'POST', { username: 'Dana', email: 'player@example.com', password: 'dana-pw' });
   const fin = extra => st(10, {}, 4, { finishedAt: 777, finishPlayMs: 3474000, ...extra });
   const b8 = Object.fromEntries(['rotary_be', 'brenda_disc', 'vending_ci', 'dale_var', 'steve_margin', 'it_audit', 'intern_accrual', 'mum_fx'].map(id => [id, { solvedAt: 3 }]));
   await d('save', 'PUT', { state: fin({ bonus: b8 }), rev: 0 });
@@ -137,7 +137,7 @@ ok(R.rankValue({ score: 5000, timeMs: 9e12 }) > R.rankValue({ score: 4950, timeM
   // an entry locked before entries remembered their game (no "game" field) follows the same game only
   const L = require('../api/_lib');
   const e = browser('1.0.0.5');
-  await e('register', 'POST', { username: 'Eve', password: 'eve-pw1' });
+  await e('register', 'POST', { username: 'Eve', email: 'player@example.com', password: 'eve-pw1' });
   const legacyState = st(10, {}, 4, { finishedAt: 555, finishPlayMs: 3000000 });
   await e('save', 'PUT', { state: legacyState, rev: 0 });
   const info = JSON.parse(await L.redis('HGET', L.K.boardInfo, 'eve')); delete info.game; delete info.bonus;

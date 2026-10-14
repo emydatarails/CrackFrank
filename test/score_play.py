@@ -24,6 +24,7 @@ def player(b, name, pw):
     pg.route('https://www.packacorp.com/**', lambda r: r.fulfill(status=200, content_type='text/html', body='<h1>Packa</h1>'))
     pg.goto(URL); pg.wait_for_timeout(600)
     pg.fill('.fr-acct-form input[name=u]', name); pg.fill('.fr-acct-form input[name=p]', pw)
+    if pg.locator('.fr-acct-form input[name=e]').is_visible(): pg.fill('.fr-acct-form input[name=e]', name + '@example.com')
     pg.click('.fr-acct-form [type=submit]'); pg.wait_for_timeout(600)
     pg.click('.fr-intro [data-a=go]'); pg.wait_for_selector('.fr-login input', timeout=8000)
     pg.fill('.fr-login input', 'sedalia1958'); pg.click('.fr-go')

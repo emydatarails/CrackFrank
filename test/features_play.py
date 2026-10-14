@@ -418,7 +418,7 @@ with sync_playwright() as p:
     server.stdout.readline()
     try:
         pg = page(b, f'http://localhost:{PORT}/?nopopups=1')
-        pg.fill('.fr-acct-form input[name=u]', 'Bonusina'); pg.fill('.fr-acct-form input[name=p]', 'bonus-pw-1')
+        pg.fill('.fr-acct-form input[name=u]', 'Bonusina'); pg.fill('.fr-acct-form input[name=e]', 'bonusina@example.com'); pg.fill('.fr-acct-form input[name=p]', 'bonus-pw-1')
         pg.click('.fr-acct-form [type=submit]'); pg.wait_for_timeout(600)
         pg.click('.fr-intro [data-a=go]'); pg.wait_for_selector('.fr-login input', timeout=8000)
         pg.fill('.fr-login input', 'sedalia1958'); pg.click('.fr-go'); pg.wait_for_selector('.fr-desktop', timeout=8000); pg.wait_for_timeout(2000)

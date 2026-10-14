@@ -19,22 +19,25 @@ const ok = (cond, msg) => { console.log((cond ? 'ok   ' : 'FAIL ') + msg); if (!
   const state = (n) => ({ solved: { login: 1, version: 2 }, flags: { oe: { moved: {} } }, hintsUsed: { version: 1 }, playMs: n });
 
   let r = await a('me'); ok(r.status === 200 && r.data.user === null, 'signed out: /me is 200 {user: null} (no console error for new players)');
-  r = await a('register', 'POST', { username: 'ab', password: 'secret1' }); ok(r.status === 400 && r.data.error === 'username', 'short name rejected');
-  r = await a('register', 'POST', { username: 'Emily', password: '123' }); ok(r.status === 400 && r.data.error === 'password', 'short password rejected');
-  r = await a('register', 'POST', { username: 'Emily', password: 'secret1', state: state(5000) });
+  r = await a('register', 'POST', { username: 'ab', email: 'player@example.com', password: 'secret1' }); ok(r.status === 400 && r.data.error === 'username', 'short name rejected');
+  r = await a('register', 'POST', { username: 'Emily', email: 'player@example.com', password: '123' }); ok(r.status === 400 && r.data.error === 'password', 'short password rejected');
+  r = await a('register', 'POST', { username: 'Emily', password: 'secret1' }); ok(r.status === 400 && r.data.error === 'email', 'no email: rejected');
+  r = await a('register', 'POST', { username: 'Emily', email: 'not-an-email', password: 'secret1' }); ok(r.status === 400 && r.data.error === 'email', 'a bad email: rejected');
+  r = await a('register', 'POST', { username: 'Emily', email: 'player@example.com', password: 'secret1', state: state(5000) });
   ok(r.status === 201 && r.data.user === 'Emily' && r.data.rev === 1 && r.data.state.playMs === 5000, 'register carries guest progress up');
+  { const L = require('../api/_lib'), rec = JSON.parse(await L.redis('GET', L.K.user('emily'))); ok(rec.email === 'player@example.com' && !JSON.stringify(r.data).includes('@'), 'the email is kept with the player (and never sent back)'); }
   ok(/HttpOnly/.test(r.set) && /SameSite=Lax/.test(r.set) && !/Secure/.test(r.set), 'session cookie is HttpOnly + SameSite (no Secure on localhost)');
   r = await a('me'); ok(r.status === 200 && r.data.user === 'Emily' && r.data.state.solved.version === 2, '/me returns the player and save');
-  r = await b('register', 'POST', { username: 'emily', password: 'other12' }); ok(r.status === 409 && r.data.error === 'taken', 'names are unique, case-insensitive');
+  r = await b('register', 'POST', { username: 'emily', email: 'player@example.com', password: 'other12' }); ok(r.status === 409 && r.data.error === 'taken', 'names are unique, case-insensitive');
 
   // names on the public leaderboard (api/_names.js)
   for (const bad of ['FuckThis', 'sh1t_head', 'Big.Dick', 'a55', 'Admin', 'PackaCorp', 'Datarails']) {
-    r = await b('register', 'POST', { username: bad, password: 'secret1' }); ok(r.status === 400 && r.data.error === 'name' && !r.set, `name "${bad}" is refused`);
+    r = await b('register', 'POST', { username: bad, email: 'player@example.com', password: 'secret1' }); ok(r.status === 400 && r.data.error === 'name' && !r.set, `name "${bad}" is refused`);
   }
   const { nameProblem } = require('../api/_names');
   const fine = ['Dickens', 'Hancock', 'Analyst', 'Scunthorpe', 'Sussex', 'Therapist', 'Cassandra', 'Nigeria', 'Speedo', 'Kristians', 'Frank2', 'Mike_2024', 'Glass', 'Essex', 'Nick'];
   ok(fine.every(n => !nameProblem(n)), 'innocent names that contain a rude word pass: ' + fine.filter(n => nameProblem(n)).join(', '));
-  r = await b('register', 'POST', { username: 'Dickens', password: 'secret1' }); ok(r.status === 201 && r.data.user === 'Dickens', 'an innocent name registers');
+  r = await b('register', 'POST', { username: 'Dickens', email: 'player@example.com', password: 'secret1' }); ok(r.status === 201 && r.data.user === 'Dickens', 'an innocent name registers');
   r = await b('logout', 'POST', {});
   r = await b('login', 'POST', { username: 'EMILY', password: 'wrong!!' }); ok(r.status === 401 && r.data.error === 'credentials', 'wrong password rejected');
   r = await b('login', 'POST', { username: 'nobody', password: 'secret1' }); ok(r.status === 401 && r.data.error === 'credentials', 'unknown player gets the same message');

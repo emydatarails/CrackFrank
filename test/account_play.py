@@ -31,6 +31,7 @@ def computer(b):
 def sign(pg, mode, user, pw):
     if mode == 'back': pg.click('.fr-acct-tabs [data-m=back]')
     pg.fill('.fr-acct-form input[name=u]', user)
+    if pg.locator('.fr-acct-form input[name=e]').is_visible(): pg.fill('.fr-acct-form input[name=e]', user + '@example.com')
     pg.fill('.fr-acct-form input[name=p]', pw)
     pg.click('.fr-acct-form [type=submit]'); pg.wait_for_timeout(700)
 

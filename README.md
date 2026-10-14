@@ -78,7 +78,10 @@ The repository is ready for Vercel; `vercel.json` holds the settings, so nothing
 
 ### Player accounts (Upstash Redis)
 
-Players can create a player name and password on the first screen, and their progress follows them to any computer.
+Players create a player name (a nickname is fine: it's what the leaderboard shows), their email and a password on the
+first screen, and their progress follows them to any computer. Signing back in is name + password. The email is kept in
+the player record (`fc:user:<name>`, field `email`), checked for a sane format, never shown on the leaderboard and never
+sent back to the browser; `tools/board_admin.js emails` exports them. Players from before emails were asked have none.
 "Play without an account" keeps the old behaviour (progress in that browser only), and a guest can create an account
 later from the intro without losing progress.
 
@@ -163,6 +166,7 @@ the numbers in `src/score_rules.js` only (`BONUS` is the bonus table, `EXTRAS` t
   node --env-file=.env.local tools/board_admin.js hide <name>  # off the board and kept off; the account and save stay
   node --env-file=.env.local tools/board_admin.js unhide <name>
   node --env-file=.env.local tools/board_admin.js hidden       # who is hidden
+  node --env-file=.env.local tools/board_admin.js emails > players.csv   # name, email, sign-up date (CSV)
   ```
   A hidden player is marked `hidden` in `fc:user:<name>`; `updateBoard` keeps them off whatever they play.
 

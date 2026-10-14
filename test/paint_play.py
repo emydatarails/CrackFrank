@@ -362,6 +362,7 @@ with sync_playwright() as p:
         def sign(q, mode, user, pw):
             if mode == 'back': q.click('.fr-acct-tabs [data-m=back]')
             q.fill('.fr-acct-form input[name=u]', user); q.fill('.fr-acct-form input[name=p]', pw)
+            if q.locator('.fr-acct-form input[name=e]').is_visible(): q.fill('.fr-acct-form input[name=e]', user + '@example.com')
             q.click('.fr-acct-form [type=submit]'); q.wait_for_timeout(700)
 
         A = computer(); sign(A, 'new', 'painter', 'hearts-212')

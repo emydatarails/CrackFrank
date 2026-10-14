@@ -85,8 +85,10 @@
   }
   const FILE = 'franks-computer-score.png';
 
-  /* the "Share your score" block on the end screen. Returns { update(info) } for when the rank arrives. */
-  function mount(host, info) {
+  /* the "Share your score" block on the end screen. Returns { update(info) } for when the rank arrives.
+     opts.opener (phones): a button row to put a gold "Share your score" button in; the block stays folded until it's
+     tapped, so the end screen's main button stays on screen */
+  function mount(host, info, opts = {}) {
     const box = $(`<div class="fr-share">
       <div class="fr-share-h"><b>Brag a little.</b> Share your score and dare your finance friends to beat it.</div>
       <div class="fr-share-pic"><img class="fr-share-img" alt="Your Frank's Computer score card"></div>
@@ -98,6 +100,13 @@
       </div>
       <p class="fr-share-note" aria-live="polite"></p></div>`);
     host.appendChild(box);
+    if (opts.opener) {
+      box.classList.add('fr-share-folded');
+      const ob = $('<button class="sec fr-share-opener" type="button">Share your score</button>');
+      const pri = opts.opener.querySelector('.pri');
+      pri ? pri.after(ob) : opts.opener.prepend(ob);
+      ob.onclick = () => { FR.sound.play('click'); box.classList.remove('fr-share-folded'); ob.remove(); box.scrollIntoView({ block: 'start', behavior: 'smooth' }); };
+    }
     const img = box.querySelector('.fr-share-img'), note = box.querySelector('.fr-share-note');
     let cur = info, canvas = null, blob = null, url = null, gen = 0;
     const say = t => { note.textContent = t; };

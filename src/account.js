@@ -115,6 +115,7 @@
     .then(() => { clearTimeout(timer); A.user = null; localReset(); store.set(OWNER, ''); store.del(GUEST); store.del(SYNC); location.reload(); });
 
   /* ---------- sign-in screen ---------- */
+  const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]+\.[^\s@]{2,}$/;   // the same check as api/register.js
   A.screen = (mode = 'new') => new Promise(done => {
     const el = $(`<div class="fr-screen fr-intro fr-acct"><div class="fr-folder">
       <div class="fr-stamp">VISITOR</div>
@@ -126,7 +127,8 @@
         <button type="button" role="tab" data-m="back">I've been here before</button>
       </div>
       <form class="fr-acct-form" novalidate>
-        <label>Player name<input name="u" maxlength="20" spellcheck="false" autocapitalize="off" autocomplete="username" required></label>
+        <label>Player name <small>(a nickname is fine: it's on the leaderboard)</small><input name="u" maxlength="20" spellcheck="false" autocapitalize="off" autocomplete="username" required></label>
+        <label class="fr-acct-email">Email <small>(never shown on the leaderboard)</small><input name="e" type="email" maxlength="254" spellcheck="false" autocapitalize="off" autocomplete="email" required></label>
         <label>Password<input name="p" type="password" maxlength="200" required></label>
         <div class="fr-acct-note"></div>
         <div class="fr-acct-err" role="alert"></div>
@@ -135,16 +137,17 @@
           <button class="fr-acct-guest" type="button">Play without an account</button>
         </div>
       </form>
-      <p class="fr-small" style="margin-top:14px">Without an account, progress saves only in this browser. We keep your player name, a scrambled copy of your password and your game progress. Nothing else.</p>
+      <p class="fr-small" style="margin-top:14px">Without an account, progress saves only in this browser. We keep your player name, your email, a scrambled copy of your password and your game progress. Nothing else.</p>
     </div></div>`);
-    const form = el.querySelector('form'), u = form.elements.u, p = form.elements.p;
+    const form = el.querySelector('form'), u = form.elements.u, p = form.elements.p, em = form.elements.e, emRow = el.querySelector('.fr-acct-email');
     const err = el.querySelector('.fr-acct-err'), note = el.querySelector('.fr-acct-note'), go = form.querySelector('[type=submit]');
     const setMode = m => {
       mode = m;
       el.querySelectorAll('[data-m]').forEach(b => { const on = b.dataset.m === m; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
       go.textContent = m === 'new' ? 'Create player' : 'Sign in';
       p.autocomplete = m === 'new' ? 'new-password' : 'current-password';
-      note.textContent = m === 'new' ? "3–20 letters or numbers, and a password of 6+ characters. There's no password reset, so pick one you'll remember." : '';
+      emRow.hidden = m !== 'new';          // new players only: signing back in is name + password
+      note.textContent = m === 'new' ? "Player name: 3–20 letters or numbers. Password: 6+ characters. There's no password reset, so pick one you'll remember." : '';
       err.textContent = '';
     };
     el.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { FR.sound.play('click'); setMode(b.dataset.m); u.focus(); });
@@ -153,14 +156,15 @@
     el.querySelector('.fr-acct-guest').onclick = () => { FR.sound.play('click'); store.set(GUEST, '1'); finish(); };
     form.onsubmit = e => {
       e.preventDefault();
-      const name = u.value.trim(), pw = p.value;
+      const name = u.value.trim(), pw = p.value, email = em.value.trim();
       err.textContent = '';
       if (!/^[A-Za-z0-9_.-]{3,20}$/.test(name)) { err.textContent = 'Player names are 3–20 letters, numbers, dots, dashes or underscores.'; return u.focus(); }
+      if (mode === 'new' && !EMAIL_RE.test(email)) { err.textContent = 'Type your email address (like frank@packacorp.com).'; return em.focus(); }
       if (mode === 'new' ? pw.length < 6 : !pw) { err.textContent = mode === 'new' ? 'Passwords need at least 6 characters.' : 'Type your password.'; return p.focus(); }
       // a guest's progress in this browser becomes the new player's first save
       const carry = mode === 'new' && !store.get(OWNER) && hasProgress(FR.state) ? FR.state : undefined;
       go.disabled = true; go.textContent = mode === 'new' ? 'Creating…' : 'Signing in…';
-      api(mode === 'new' ? 'register' : 'login', 'POST', { username: name, password: pw, state: carry }).then(r => {
+      api(mode === 'new' ? 'register' : 'login', 'POST', mode === 'new' ? { username: name, email, password: pw, state: carry } : { username: name, password: pw }).then(r => {
         if (r.ok) { FR.sound.play('ding'); store.del(GUEST); adopt(r.data); return finish(); }
         FR.sound.play('error');
         err.textContent = r.data.message || "Couldn't reach the sign-in server. Try again in a moment.";

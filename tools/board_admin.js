@@ -8,6 +8,7 @@
 //   hide <name>       take a player off the board and keep them off (their account and save stay; they can still play)
 //   unhide <name>     let them back on (they reappear the next time their game saves)
 //   hidden            the players that are hidden
+//   emails            every player's name, email and sign-up date, as CSV (players from before emails were asked show none)
 const L = require('../api/_lib');
 
 const fmtTime = ms => { const m = Math.floor((ms || 0) / 60000); return m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`; };
@@ -50,7 +51,18 @@ async function hidden() {
   return out;
 }
 
-module.exports = { list, hide, unhide, hidden };
+async function emails() {
+  const out = []; let cursor = '0';
+  do {
+    const [next, keys] = await L.redis('SCAN', cursor, 'MATCH', 'fc:user:*', 'COUNT', 500);
+    for (const k of keys) { const r = JSON.parse((await L.redis('GET', k)) || '{}'); out.push({ name: r.name || k.slice(8), email: r.email || '', createdAt: r.createdAt || 0 }); }
+    cursor = String(next);
+  } while (cursor !== '0');
+  return out.sort((a, b) => a.createdAt - b.createdAt);
+}
+const csv = v => /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+
+module.exports = { list, hide, unhide, hidden, emails };
 
 if (require.main === module) (async () => {
   if (!(process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL)) {
@@ -62,5 +74,6 @@ if (require.main === module) (async () => {
   else if (cmd === 'hide' && arg) console.log('hidden from the board:', await hide(arg));
   else if (cmd === 'unhide' && arg) console.log('back on the board:', await unhide(arg));
   else if (cmd === 'hidden') console.log((await hidden()).join('\n') || '(nobody is hidden)');
-  else { console.log('usage: tools/board_admin.js list [n] | hide <name> | unhide <name> | hidden'); process.exit(1); }
+  else if (cmd === 'emails') { console.log('name,email,signed_up'); for (const r of await emails()) console.log([r.name, r.email, r.createdAt ? new Date(r.createdAt).toISOString().slice(0, 10) : ''].map(csv).join(',')); }
+  else { console.log('usage: tools/board_admin.js list [n] | hide <name> | unhide <name> | hidden | emails'); process.exit(1); }
 })().catch(e => { console.error(e.message); process.exit(1); });
